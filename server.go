@@ -18,7 +18,7 @@ type ServerArgs struct {
 	HandshakeTimeout time.Duration
 	ReadBufferSize   int
 	WriteBufferSize  int
-	Logger           ILogger
+	HtmlFilePath     string
 }
 
 func (args *ServerArgs) checkArgs() {
@@ -34,20 +34,21 @@ func (args *ServerArgs) checkArgs() {
 		args.WriteBufferSize = 2048
 	}
 
-	if args.Logger == nil {
-		args.Logger = &ConsoleLogger{}
+	if args.HtmlFilePath == "" {
+		args.HtmlFilePath = "vendor/github.com/lixianmin/gonsole/console.html"
 	}
 }
 
 type Server struct {
+	args        ServerArgs
 	gpid        string
 	upgrader    *websocket.Upgrader
 	commandChan chan ICommand
-	logger      ILogger
 }
 
 func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	args.checkArgs()
+
 	var upgrader = &websocket.Upgrader{
 		HandshakeTimeout:  args.HandshakeTimeout,
 		ReadBufferSize:    args.ReadBufferSize,
@@ -60,6 +61,8 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 
 	var commandChan = make(chan ICommand, 32)
 	var server = &Server{
+		args:        args,
+		gpid:        "",
 		upgrader:    upgrader,
 		commandChan: commandChan,
 	}
@@ -67,8 +70,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	server.registerServices(mux)
 	go server.goLoop()
 
-	args.Logger.Info("[Start()] Server started~")
-
+	logger.Info("[Start()] Golang Console Server started~")
 	return server
 }
 
@@ -87,11 +89,11 @@ func (server *Server) goLoop() {
 
 				var remoteAddress = client.GetRemoteAddress()
 				client.SendBean(NewChallenge(server.gpid, remoteAddress))
-				server.logger.Info("[goLoop(%q)] client connected.", remoteAddress)
+				logger.Info("[goLoop(%q)] client connected.", remoteAddress)
 			case DetachClient:
 				delete(clients, cmd.Client)
 			default:
-				server.logger.Error("[goLoop()]Invalid cmd=%v", cmd)
+				logger.Error("[goLoop()]Invalid cmd=%v", cmd)
 			}
 		}
 	}
@@ -100,23 +102,26 @@ func (server *Server) goLoop() {
 func (server *Server) registerServices(mux *http.ServeMux) {
 	// 项目目录，表现在url中
 	const rootDirectory = ""
+	const websocketName = "ws_console"
 
 	// 处理debug消息
-	var tmpl = template.Must(template.ParseFiles("gonsole/console.html"))
-	mux.HandleFunc(rootDirectory+"/gonsole", func(w http.ResponseWriter, r *http.Request) {
+	var tmpl = template.Must(template.ParseFiles(server.args.HtmlFilePath))
+	mux.HandleFunc(rootDirectory+"/console", func(w http.ResponseWriter, r *http.Request) {
 		var data struct {
 			RootDirectory string
+			WebsocketName string
 		}
 
 		data.RootDirectory = rootDirectory
+		data.WebsocketName = websocketName
 		_ = tmpl.Execute(w, data)
 	})
 
 	// 处理ws消息
-	mux.HandleFunc(rootDirectory+"/ws", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := server.upgrader.Upgrade(w, r, nil)
+	mux.HandleFunc(rootDirectory+"/"+websocketName, func(writer http.ResponseWriter, request *http.Request) {
+		conn, err := server.upgrader.Upgrade(writer, request, nil)
 		if err != nil {
-			server.logger.Error("[RegisterServices(%s)]connection upgrade failed, userAgent=%q, err=%q", r.RemoteAddr, r.UserAgent(), err)
+			logger.Error("[registerServices(%s)]connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
 			return
 		}
 

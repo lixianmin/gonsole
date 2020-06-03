@@ -213,7 +213,7 @@
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;
                 const protocol = isHttps ? "wss://" : "ws://";
-                const url = protocol + myHost + "/ws";
+                const url = protocol + myHost + "/" + {{.WebsocketName}};
 
                 conn = new WebSocket(url);
                 conn.onclose = function (evt) {

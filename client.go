@@ -53,7 +53,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 		writeChan:     make(chan []byte, chanSize),
 		commandChan:   commandChan,
 		server:        server,
-		logger:        server.logger,
+		logger:        logger,
 		wd:            loom.NewWaitDispose(),
 	}
 
@@ -86,9 +86,9 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 			// CloseGoingAway: indicates that an endpoint is "going away", such as a server going down or a browser having navigated away from a page.
 			// https://tools.ietf.org/html/rfc6455
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				client.logger.Info("[goReadPump(%q)] unexpected disconnect, err=%q", client.GetRemoteAddress(), err)
+				logger.Info("[goReadPump(%q)] unexpected disconnect, err=%q", client.GetRemoteAddress(), err)
 			} else {
-				client.logger.Info("[goReadPump(%q)] disconnect normally, err=%q", client.GetRemoteAddress(), err)
+				logger.Info("[goReadPump(%q)] disconnect normally, err=%q", client.GetRemoteAddress(), err)
 			}
 
 			client.Dispose()
@@ -101,19 +101,19 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 		var basicBean = BasicRequest{}
 		err = json.Unmarshal(message, &basicBean)
 		if err != nil {
-			client.logger.Warn("[goReadPump(%q)] Invalid message, err=%q, message=%q", client.GetRemoteAddress(), err, message)
+			logger.Warn("[goReadPump(%q)] Invalid message, err=%q, message=%q", client.GetRemoteAddress(), err, message)
 			continue
 		}
 
 		var bean = CreateBean(basicBean.Operation)
 		if bean == nil {
-			client.logger.Warn("[goReadPump(%q)] Invalid bean.Operation=", client.GetRemoteAddress(), basicBean.Operation)
+			logger.Warn("[goReadPump(%q)] Invalid bean.Operation=", client.GetRemoteAddress(), basicBean.Operation)
 			continue
 		}
 
 		err = json.Unmarshal(message, &bean)
 		if err != nil {
-			client.logger.Warn("[goReadPump(%q)] Invalid message, err=%q", client.GetRemoteAddress(), err)
+			logger.Warn("[goReadPump(%q)] Invalid message, err=%q", client.GetRemoteAddress(), err)
 			continue
 		}
 
@@ -150,12 +150,12 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 			case *PingData:
 				loopClientPingData(client, *bean)
 			default:
-				client.logger.Error("unexpected bean type: %T", bean)
+				logger.Error("unexpected bean type: %T", bean)
 			}
 		case cmd := <-commandChan:
 			switch cmd := cmd.(type) {
 			default:
-				client.logger.Error("unexpected command type: %T", cmd)
+				logger.Error("unexpected command type: %T", cmd)
 			}
 		case <-client.wd.DisposeChan:
 			return
@@ -209,7 +209,7 @@ func (client *Client) SendBean(bean interface{}) {
 		if err == nil {
 			client.innerSendBytes(jsonBytes)
 		} else {
-			client.logger.Warn("[SendBean()] Can not marshal bean=%v, err=%s", bean, err)
+			logger.Warn("[SendBean()] Can not marshal bean=%v, err=%s", bean, err)
 		}
 	}
 }
@@ -222,7 +222,7 @@ func (client *Client) SendBeanAsync(bean interface{}) {
 			if err == nil {
 				client.innerSendBytes(jsonBytes)
 			} else {
-				client.logger.Warn("[SendBeanAsync()] Can not marshal bean=%v, err=%s", bean, err)
+				logger.Warn("[SendBeanAsync()] Can not marshal bean=%v, err=%s", bean, err)
 			}
 		})
 	}
