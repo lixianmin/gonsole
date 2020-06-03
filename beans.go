@@ -21,7 +21,7 @@ func registerBeanCreators() {
 	beanCreators["ping"] = func() IBean { return &PingData{} }
 }
 
-func CreateBean(beanType string) IBean {
+func createBean(beanType string) IBean {
 	var creator, ok = beanCreators[beanType]
 	if ok {
 		var bean = creator()

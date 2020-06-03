@@ -88,7 +88,7 @@ func (server *Server) goLoop() {
 				clients[client] = struct{}{}
 
 				var remoteAddress = client.GetRemoteAddress()
-				client.SendBean(NewChallenge(server.gpid, remoteAddress))
+				client.SendBean(newChallenge(server.gpid, remoteAddress))
 				logger.Info("[goLoop(%q)] client connected.", remoteAddress)
 			case DetachClient:
 				delete(clients, cmd.Client)
@@ -104,7 +104,7 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 	const rootDirectory = ""
 	const websocketName = "ws_console"
 
-	// 处理debug消息
+	// 处理console页面
 	var tmpl = template.Must(template.ParseFiles(server.args.HtmlFilePath))
 	mux.HandleFunc(rootDirectory+"/console", func(w http.ResponseWriter, r *http.Request) {
 		var data struct {

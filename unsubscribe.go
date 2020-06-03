@@ -22,6 +22,6 @@ func NewUnsubscribeRe(requestId string, topicId string) *UnsubscribeRe {
 		TopicId: topicId,
 	}
 
-	res.BasicResponse = *NewBasicResponse("unsubscribeRe", requestId)
+	res.BasicResponse = *newBasicResponse("unsubscribeRe", requestId)
 	return res
 }

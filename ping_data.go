@@ -19,6 +19,6 @@ func NewPingDataRe(requestID string) *PingDataRe {
 	var res = &PingDataRe{
 	}
 
-	res.BasicResponse = *NewBasicResponse("pong", requestID)
+	res.BasicResponse = *newBasicResponse("pong", requestID)
 	return res
 }

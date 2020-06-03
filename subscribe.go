@@ -22,6 +22,6 @@ func NewSubscribeRe(requestId string, topicId string) *SubscribeRe {
 		TopicId: topicId,
 	}
 
-	res.BasicResponse = *NewBasicResponse("subscribeRe", requestId)
+	res.BasicResponse = *newBasicResponse("subscribeRe", requestId)
 	return res
 }

@@ -17,10 +17,10 @@ func loopClientDebugRequest(client *Client, requestId string, command string) {
 	switch cmd {
 	case "help":
 		var remoteAddress = client.GetRemoteAddress()
-		client.SendBeanAsync(NewDebugHelp(remoteAddress))
+		client.SendBeanAsync(newDebugHelp(remoteAddress))
 	case "ls":
 		client.SendBeanAsync(newDebugListTopics())
 	default:
-		client.SendBeanAsync(NewBadRequestRe(requestId, InternalError, command))
+		client.SendBeanAsync(newBadRequestRe(requestId, InternalError, command))
 	}
 }

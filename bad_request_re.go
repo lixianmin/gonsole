@@ -13,12 +13,12 @@ type BadRequestRe struct {
 	Message string `json:"message"`
 }
 
-func NewBadRequestRe(requestID string, code int, message string) *BadRequestRe {
+func newBadRequestRe(requestID string, code int, message string) *BadRequestRe {
 	var bean = &BadRequestRe{
 		Code:    code,
 		Message: message,
 	}
 
-	bean.BasicResponse = *NewBasicResponse("badRequestRe", requestID)
+	bean.BasicResponse = *newBasicResponse("badRequestRe", requestID)
 	return bean
 }

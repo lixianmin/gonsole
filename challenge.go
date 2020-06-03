@@ -22,7 +22,7 @@ type Challenge struct {
 	UpTime              string `json:"uptime"`
 }
 
-func NewChallenge(gpid string, clientRemoteAddress string) *Challenge {
+func newChallenge(gpid string, clientRemoteAddress string) *Challenge {
 	var bean = &Challenge{
 		Operation:           "challenge",
 		Timestamp:           GetTimestamp(),

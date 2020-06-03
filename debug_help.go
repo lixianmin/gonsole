@@ -12,7 +12,7 @@ type DebugHelp struct {
 	Commands [][]string `json:"commands"`
 }
 
-func NewDebugHelp(remoteAddress string) *DebugHelp {
+func newDebugHelp(remoteAddress string) *DebugHelp {
 	var bean = &DebugHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = GetTimestamp()

@@ -20,7 +20,7 @@ type BasicResponse struct {
 	Timestamp int64  `json:"ts"`  // 服务器的时间戳
 }
 
-func NewBasicResponse(operation string, requestID string) *BasicResponse {
+func newBasicResponse(operation string, requestID string) *BasicResponse {
 	var response = &BasicResponse{
 		Operation: operation,
 		RequestID: requestID,
