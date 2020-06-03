@@ -102,7 +102,7 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 	const rootDirectory = ""
 
 	// 处理debug消息
-	var tmpl = template.Must(template.ParseFiles("core/gonsole/gonsole.html"))
+	var tmpl = template.Must(template.ParseFiles("gonsole/console.html"))
 	mux.HandleFunc(rootDirectory+"/gonsole", func(w http.ResponseWriter, r *http.Request) {
 		var data struct {
 			RootDirectory string
