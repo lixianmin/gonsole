@@ -15,7 +15,7 @@ type PingDataRe struct {
 	BasicResponse
 }
 
-func NewPingDataRe(requestID string) *PingDataRe {
+func newPingDataRe(requestID string) *PingDataRe {
 	var res = &PingDataRe{
 	}
 

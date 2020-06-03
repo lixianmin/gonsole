@@ -17,7 +17,7 @@ type UnsubscribeRe struct {
 	TopicId string `json:"topic"`
 }
 
-func NewUnsubscribeRe(requestId string, topicId string) *UnsubscribeRe {
+func newUnsubscribeRe(requestId string, topicId string) *UnsubscribeRe {
 	var res = &UnsubscribeRe{
 		TopicId: topicId,
 	}

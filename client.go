@@ -167,7 +167,7 @@ func loopClientSubscribe(client *Client, bean *Subscribe) {
 	var topics = make([]string, 0, len(client.topics)+1)
 	copy(topics, client.topics)
 	client.topics = append(topics, bean.TopicId)
-	client.SendBean(NewSubscribeRe(bean.RequestId, bean.TopicId))
+	client.SendBean(newSubscribeRe(bean.RequestId, bean.TopicId))
 }
 
 func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
@@ -182,11 +182,11 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 	}
 
 	client.topics = topics
-	client.SendBean(NewUnsubscribeRe(bean.RequestId, bean.TopicId))
+	client.SendBean(newUnsubscribeRe(bean.RequestId, bean.TopicId))
 }
 
 func loopClientPingData(client *Client, data PingData) {
-	client.SendBeanAsync(NewPingDataRe(data.RequestId))
+	client.SendBeanAsync(newPingDataRe(data.RequestId))
 }
 
 // 这个不使用启goroutine去写client.writeChan，虽然不卡死了，但是无法保证顺序了，这就完蛋了

@@ -62,7 +62,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	var commandChan = make(chan ICommand, 32)
 	var server = &Server{
 		args:        args,
-		gpid:        "",
+		gpid:        "", // todo 计算gpid
 		upgrader:    upgrader,
 		commandChan: commandChan,
 	}
