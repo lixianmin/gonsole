@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <title>Debug Server</title>
+    <script type="text/javascript">
+        Date.prototype.Format = function (fmt) {
+            let o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "h+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (let k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        };
+
+        window.onload = function () {
+            let conn;
+            const mainPanel = document.getElementById("mainPanel");
+
+            function appendLog(item) {
+                let doScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1;
+                mainPanel.appendChild(item);
+                if (doScroll) {
+                    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight;
+                }
+            }
+
+            function printHtml(html) {
+                const item = document.createElement("div");
+                item.innerHTML = html;
+                appendLog(item);
+            }
+
+            function printText(text) {
+                const item = document.createElement("div");
+                item.innerText = text;
+                appendLog(item)
+            }
+
+            function println() {
+                printHtml("<br/>");
+            }
+
+            let totalReceivedSize = 0;
+
+            function printWithTimestamp(html) {
+                const current = getHumanReadableSize(html.length);
+                const total = getHumanReadableSize(totalReceivedSize);
+                printHtml("[" + (new Date()).Format("hh:mm:ss.S") + " (" + current + "/" + total + ") ] " + html);
+            }
+
+            function sendBean(bean) {
+                const data = JSON.stringify(bean);
+                printWithTimestamp("<b>client请求：</b>");
+                printHtml(data);
+                println();
+                conn.send(data);
+            }
+
+            function getLinkHtml(name, url) {
+                return "<div><a href=\"" + url + "\">" + name + "</a></div>";
+            }
+
+            function getHumanReadableSize(size) {
+                if (size < 1024) {
+                    return size + "B";
+                }
+
+                if (size < 1048576) {
+                    return (size / 1024.0).toFixed(1) + "K";
+                }
+
+                return (size / 1048576.0).toFixed(1) + "M";
+            }
+
+            let lastCommand = "";
+            document.getElementById("inputBox").onkeydown = function (evt) {
+                if (!conn) {
+                    return false;
+                }
+
+                // 回车
+                if (evt.keyCode === 13) {
+                    const inputBox = document.getElementById("inputBox");
+                    const command = inputBox.value.trim();
+                    if (command !== "") {
+                        inputBox.value = "";
+
+                        const texts = command.split(" ");
+                        if (texts.length === 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
+                            const bean = {
+                                op: texts[0],
+                                rid: "request-id",
+                                topic: texts[1],
+                            };
+
+                            sendBean(bean);
+                        } else if (texts.length === 1 && (texts[0] === "unsub")) {
+                            const bean = {
+                                op: "unsub",
+                                rid: "request-id",
+                                authorization: texts[1],
+                            };
+
+                            sendBean(bean);
+                        } else if (texts.length === 1 && (texts[0] === "ping")) {
+                            const bean = {
+                                op: "ping",
+                                rid: "",
+                            };
+
+                            sendBean(bean);
+                        } else {
+                            const bean = {
+                                op: "debug",
+                                command: command,
+                            };
+
+                            sendBean(bean);
+                        }
+
+                        lastCommand = command;
+                        return false;
+                    }
+                } else if (evt.keyCode === 38) { // up arrow
+                    const inputBox = document.getElementById("inputBox");
+                    inputBox.value = lastCommand;
+
+                    setTimeout(function () {
+                            let position = inputBox.value.length;
+                            inputBox.setSelectionRange(position, position);
+                            inputBox.focus();
+                        }
+                        , 0);
+                }
+
+                return true;
+            };
+
+            const handlers = [];
+            const myHost = window.location.host + {{.RootDirectory}};
+            handlers["help"] = function (obj) {
+                const commands = obj.commands;
+                let result = "<b>内置命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Description</th></tr>";
+                for (let i = 0; i < commands.length; i++) {
+                    result += "<tr><td>" + commands[i][0] + "</td><td>" + commands[i][1] + "</td>";
+                }
+
+                result += "</table>";
+
+                const host = document.location.protocol + "//" + myHost;
+                result += getLinkHtml("pprof", host + "/debug/pprof");
+                result += getLinkHtml("文档参考", "https://github.com/lixianmin/writer/blob/master/golang/pprof.md");
+
+                result += "<div>";
+                const tail = "<br>";
+                result += "go tool pprof " + host + "/debug/pprof/profile" + tail; // 30-second CPU profile
+                result += "go tool pprof " + host + "/debug/pprof/heap" + tail;    // heap profile
+                result += "curl -G -k " + host + "/debug/pprof/goroutine?debug=2 > tmp.prof" + tail;
+                result += "</div>";
+
+                printWithTimestamp(result)
+            };
+
+            handlers["listTopics"] = function (obj) {
+                const result = "<b>可订阅主题列表：</b>： <br> <ol><li>" + obj.topics.join("<li>") + "</ol>";
+                printWithTimestamp(result)
+            };
+
+            handlers["redisKeys"] = function (obj) {
+                const result = "<b>redis keys：</b>： <br> <ol><li>" + obj.keys.join("<li>") + "</ol>";
+                printWithTimestamp(result)
+            };
+
+            handlers["redisHGetAll"] = function (obj) {
+                let result = "<b>redis hash items：</b> <br> <ol><li>";
+
+                let items = new Array(obj.count * 2);
+                let index = 0;
+                for (let key in obj.items) {
+                    items[index++] = key;
+                    items[index++] = obj.items[key];
+                }
+
+                result += items.join("<li>") + "</ol>";
+                printWithTimestamp(result)
+            };
+
+            handlers["listLogFiles"] = function (obj) {
+                const host = document.location.protocol + "//" + myHost;
+                const logFiles = obj.logFiles;
+                const fileCount = logFiles.length;
+                const links = new Array(fileCount);
+                let totalSize = 0;
+                for (let i = 0; i < fileCount; i++) {
+                    const fi = logFiles[i];
+                    totalSize += fi.size;
+                    let sizeText = getHumanReadableSize(fi.size);
+                    links[i] = "<tr><td>" + sizeText + "</td><td><a href=\"" + host + "/logs/" + fi.name + "\">" + fi.name + "</a></li></td>";
+                }
+
+                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
+                result += "<table border=\"1\"> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
+                printWithTimestamp(result);
+            };
+
+            if (window["WebSocket"]) {
+                const isHttps = "https:" === document.location.protocol;
+                const protocol = isHttps ? "wss://" : "ws://";
+                const url = protocol + myHost + "/ws";
+
+                conn = new WebSocket(url);
+                conn.onclose = function (evt) {
+                    printHtml("<b>Connection closed.</b>");
+                };
+
+                conn.onmessage = function (evt) {
+                    const data = evt.data;
+                    totalReceivedSize += data.length;
+                    const messages = data.split('\n');
+                    for (let i = 0; i < messages.length; i++) {
+                        const obj = JSON.parse(messages[i]);
+                        const handler = handlers[obj.op];
+                        if (null != handler) {
+                            handler(obj);
+                        } else {
+                            printWithTimestamp("<b>server返回：</b>" + messages[i]);
+                        }
+                        println();
+                    }
+                };
+            } else {
+                printHtml("<b>Your browser does not support WebSockets.</b>");
+            }
+
+            document.getElementById("inputBox").focus();
+            printHtml("Input 'help' and press Enter to fetch builtin commands.");
+            println();
+        };
+    </script>
+    <style type="text/css">
+        #mainPanel {
+            background: white;
+            margin: 0;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            position: absolute;
+            top: 0.5em;
+            left: 0.5em;
+            right: 0.5em;
+            bottom: 3em;
+            overflow: auto;
+        }
+
+        #form {
+            padding: 0 0.5em 0 0.5em;
+            margin: 0;
+            position: absolute;
+            bottom: 1em;
+            left: 1px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body>
+<div id="mainPanel"></div>
+<form id="form">
+    {{/*<label for="inputBox" style="height:40px;font-size:20px;">Enter commands:</label>*/}}
+    <input id="inputBox" type="text" value="" style="width:100%;height:40px;font-size:26px;"/>
+</form>
+</body>
+</html>
