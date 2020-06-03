@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/websocket"
 	"html/template"
 	"net/http"
-	"time"
+	"sync"
 )
 
 /********************************************************************
@@ -14,36 +14,12 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type ServerArgs struct {
-	HandshakeTimeout time.Duration
-	ReadBufferSize   int
-	WriteBufferSize  int
-	HtmlFilePath     string
-}
-
-func (args *ServerArgs) checkArgs() {
-	if args.HandshakeTimeout <= 0 {
-		args.HandshakeTimeout = time.Second
-	}
-
-	if args.ReadBufferSize <= 0 {
-		args.ReadBufferSize = 2048
-	}
-
-	if args.WriteBufferSize <= 0 {
-		args.WriteBufferSize = 2048
-	}
-
-	if args.HtmlFilePath == "" {
-		args.HtmlFilePath = "vendor/github.com/lixianmin/gonsole/console.html"
-	}
-}
-
 type Server struct {
 	args        ServerArgs
 	gpid        string
 	upgrader    *websocket.Upgrader
-	commandChan chan ICommand
+	messageChan chan IMessage
+	handlers    sync.Map
 }
 
 func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
@@ -59,12 +35,12 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	// todo: 不应该无条件的接受CheckOrigin
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-	var commandChan = make(chan ICommand, 32)
+	var messageChan = make(chan IMessage, 32)
 	var server = &Server{
 		args:        args,
 		gpid:        "", // todo 计算gpid
 		upgrader:    upgrader,
-		commandChan: commandChan,
+		messageChan: messageChan,
 	}
 
 	server.registerServices(mux)
@@ -75,25 +51,25 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) goLoop() {
-	var commandChan <-chan ICommand = server.commandChan
+	var messageChan <-chan IMessage = server.messageChan
 
 	// 注册的client列表
 	var clients = make(map[*Client]struct{}, 16)
 	for {
 		select {
-		case cmd := <-commandChan:
-			switch cmd := cmd.(type) {
+		case msg := <-messageChan:
+			switch msg := msg.(type) {
 			case AttachClient:
-				var client = cmd.Client
+				var client = msg.Client
 				clients[client] = struct{}{}
 
 				var remoteAddress = client.GetRemoteAddress()
 				client.SendBean(newChallenge(server.gpid, remoteAddress))
 				logger.Info("[goLoop(%q)] client connected.", remoteAddress)
 			case DetachClient:
-				delete(clients, cmd.Client)
+				delete(clients, msg.Client)
 			default:
-				logger.Error("[goLoop()]Invalid cmd=%v", cmd)
+				logger.Error("[goLoop()] Invalid msg=%v", msg)
 			}
 		}
 	}
@@ -127,12 +103,27 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 
 		// caution: client负责conn的生命周期
 		var client = newClient(server, conn)
-		server.SendCommand(AttachClient{Client: client})
+		server.SendMessage(AttachClient{Client: client})
 	})
 }
 
-func (server *Server) SendCommand(cmd ICommand) {
-	server.commandChan <- cmd
+func (server *Server) registerDebugHandlers() {
+	server.AddCommand("help", "帮助中心", func(client *Client) {
+		var remoteAddress = client.GetRemoteAddress()
+		client.SendBean(newDebugHelp(remoteAddress))
+	})
+
+	server.AddCommand("ls", "打印主题列表", func(client *Client) {
+		client.SendBean(newDebugListTopics())
+	})
+}
+
+func (server *Server) AddCommand(cmd string, remark string, handler func(client *Client)) {
+	server.handlers.Store(cmd, handler)
+}
+
+func (server *Server) SendMessage(msg IMessage) {
+	server.messageChan <- msg
 }
 
 func (server *Server) GetGPID() string {

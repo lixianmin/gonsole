@@ -10,5 +10,5 @@ Copyright (C) - All Rights Reserved
 type IBean interface {
 }
 
-type ICommand interface {
+type IMessage interface {
 }

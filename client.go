@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gocore/loom"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -23,35 +24,27 @@ const (
 	writeDeadline = 60 * time.Second
 )
 
-var sendBeanPool = loom.NewGoroutinePool(128)
-
 type Client struct {
 	wd            *loom.WaitDispose
 	userID        int64
 	remoteAddress string
 	writeChan     chan []byte
-	commandChan   chan ICommand
+	messageChan   chan IMessage
 	server        *Server
 	logger        ILogger
 	topics        []string
-}
-
-type ClientDescription struct {
-	RemoteAddress  string `json:"remoteAddress"`
-	WriteChanLen   int    `json:"writeChan"`
-	CommandChanLen int    `json:"commandChan"`
 }
 
 // newClient 创建一个新的client对象
 func newClient(server *Server, conn *websocket.Conn) *Client {
 	const chanSize = 8
 	var readChan = make(chan IBean, chanSize)
-	var commandChan = make(chan ICommand, chanSize)
+	var messageChan = make(chan IMessage, chanSize)
 
 	var client = &Client{
 		remoteAddress: conn.RemoteAddr().String(),
 		writeChan:     make(chan []byte, chanSize),
-		commandChan:   commandChan,
+		messageChan:   messageChan,
 		server:        server,
 		logger:        logger,
 		wd:            loom.NewWaitDispose(),
@@ -134,8 +127,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 func (client *Client) goLoop(readChan <-chan IBean) {
 	defer loom.DumpIfPanic()
 	// 本client订阅的topic列表
-	const candidateCount = 4
-	var commandChan <-chan ICommand = client.commandChan
+	var messageChan <-chan IMessage = client.messageChan
 
 	for {
 		select {
@@ -152,10 +144,10 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 			default:
 				logger.Error("unexpected bean type: %T", bean)
 			}
-		case cmd := <-commandChan:
-			switch cmd := cmd.(type) {
+		case msg := <-messageChan:
+			switch msg := msg.(type) {
 			default:
-				logger.Error("unexpected command type: %T", cmd)
+				logger.Error("unexpected message type: %T", msg)
 			}
 		case <-client.wd.DisposeChan:
 			return
@@ -185,8 +177,19 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 	client.SendBean(newUnsubscribeRe(bean.RequestId, bean.TopicId))
 }
 
+func loopClientDebugRequest(client *Client, requestId string, command string) {
+	var texts = strings.Split(command, " ")
+	var cmd = texts[0]
+	var handler, ok = client.server.handlers.Load(cmd)
+	if ok {
+		handler.(func(*Client))(client)
+	} else {
+		client.SendBean(newBadRequestRe(requestId, InternalError, command))
+	}
+}
+
 func loopClientPingData(client *Client, data PingData) {
-	client.SendBeanAsync(newPingDataRe(data.RequestId))
+	client.SendBean(newPingDataRe(data.RequestId))
 }
 
 // 这个不使用启goroutine去写client.writeChan，虽然不卡死了，但是无法保证顺序了，这就完蛋了
@@ -214,25 +217,9 @@ func (client *Client) SendBean(bean interface{}) {
 	}
 }
 
-func (client *Client) SendBeanAsync(bean interface{}) {
-	if bean != nil {
-		sendBeanPool.Schedule(func() {
-			defer loom.DumpIfPanic()
-			var jsonBytes, err = json.Marshal(bean)
-			if err == nil {
-				client.innerSendBytes(jsonBytes)
-			} else {
-				logger.Warn("[SendBeanAsync()] Can not marshal bean=%v, err=%s", bean, err)
-			}
-		})
-	}
-}
-
-// 只所以要定义一个SendCommand()方法，而不是让别人直接使用client.commandChan，是为了证明commandChan这个字段
-// 需要放到struct内部(而不是放到goroutine内部)
-func (client *Client) SendCommand(cmd ICommand) {
+func (client *Client) SendMessage(msg IMessage) {
 	select {
-	case client.commandChan <- cmd:
+	case client.messageChan <- msg:
 	case <-client.wd.DisposeChan:
 	}
 }

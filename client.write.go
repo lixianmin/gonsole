@@ -1,4 +1,3 @@
-
 package gonsole
 
 import (
@@ -32,8 +31,8 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 	// 所以，它不仅负责清理自己的数据，同时负责通知从TopicManger与CacheServer中把对自己的引用移除
 	defer func() {
 		// 请求CacheServer把自己移除
-		var cmd = DetachClient{Client: client}
-		client.server.SendCommand(cmd)
+		var msg = DetachClient{Client: client}
+		client.server.SendMessage(msg)
 
 		// 关闭定时器
 		pingTicker.Stop()
