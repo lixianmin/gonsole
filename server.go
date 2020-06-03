@@ -1,12 +1,8 @@
 package gonsole
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gocore/loom"
-	"github.com/lixianmin/logo"
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 )
@@ -18,17 +14,44 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+type ServerArgs struct {
+	HandshakeTimeout time.Duration
+	ReadBufferSize   int
+	WriteBufferSize  int
+	Logger           ILogger
+}
+
+func (args *ServerArgs) checkArgs() {
+	if args.HandshakeTimeout <= 0 {
+		args.HandshakeTimeout = time.Second
+	}
+
+	if args.ReadBufferSize <= 0 {
+		args.ReadBufferSize = 2048
+	}
+
+	if args.WriteBufferSize <= 0 {
+		args.WriteBufferSize = 2048
+	}
+
+	if args.Logger == nil {
+		args.Logger = &ConsoleLogger{}
+	}
+}
+
 type Server struct {
 	gpid        string
 	upgrader    *websocket.Upgrader
 	commandChan chan ICommand
+	logger      ILogger
 }
 
-func NewServer() *Server {
+func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
+	args.checkArgs()
 	var upgrader = &websocket.Upgrader{
-		HandshakeTimeout:  1 * time.Second,
-		ReadBufferSize:    2048,
-		WriteBufferSize:   2048,
+		HandshakeTimeout:  args.HandshakeTimeout,
+		ReadBufferSize:    args.ReadBufferSize,
+		WriteBufferSize:   args.WriteBufferSize,
 		EnableCompression: true,
 	}
 
@@ -41,18 +64,15 @@ func NewServer() *Server {
 		commandChan: commandChan,
 	}
 
-	return server
-}
-
-func (server *Server) Start(mux *http.ServeMux) {
 	server.registerServices(mux)
 	go server.goLoop()
 
-	logo.Info("[Start()] Server started~")
+	args.Logger.Info("[Start()] Server started~")
+
+	return server
 }
 
 func (server *Server) goLoop() {
-	defer loom.DumpIfPanic()
 	var commandChan <-chan ICommand = server.commandChan
 
 	// 注册的client列表
@@ -67,11 +87,11 @@ func (server *Server) goLoop() {
 
 				var remoteAddress = client.GetRemoteAddress()
 				client.SendBean(NewChallenge(server.gpid, remoteAddress))
-				logo.Info("[goLoop(%q)] client connected.", remoteAddress)
+				server.logger.Info("[goLoop(%q)] client connected.", remoteAddress)
 			case DetachClient:
 				delete(clients, cmd.Client)
 			default:
-				logo.Error("[goLoop()]Invalid cmd=%v", cmd)
+				server.logger.Error("[goLoop()]Invalid cmd=%v", cmd)
 			}
 		}
 	}
@@ -96,7 +116,7 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 	mux.HandleFunc(rootDirectory+"/ws", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := server.upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			logo.Error("[RegisterServices(%s)]connection upgrade failed, userAgent=%q, err=%q", r.RemoteAddr, r.UserAgent(), err)
+			server.logger.Error("[RegisterServices(%s)]connection upgrade failed, userAgent=%q, err=%q", r.RemoteAddr, r.UserAgent(), err)
 			return
 		}
 
@@ -104,26 +124,6 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 		var client = newClient(server, conn)
 		server.SendCommand(AttachClient{Client: client})
 	})
-}
-
-func (server *Server) listenAndServe(mux *http.ServeMux, port int) {
-	var readTimeout = 5 * time.Second
-	var writeTimeout = 2 * time.Second
-
-	// 要绑定网卡，而不是判断某个ip地址
-	var address = fmt.Sprintf(":%d", port)
-	server.gpid = ""
-
-	logo.Info("[listenAndServe(%s)] try to listen at address=%q", "", address)
-	var srv = &http.Server{
-		Addr:           address,
-		Handler:        mux,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	log.Fatal(srv.ListenAndServe())
 }
 
 func (server *Server) SendCommand(cmd ICommand) {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gocore/loom"
-	"github.com/lixianmin/logo"
 	"time"
 )
 
@@ -44,7 +43,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 		_ = conn.WriteMessage(websocket.CloseMessage, []byte{})
 		_ = conn.Close()
 
-		logo.Info("[defer func(%q)] disconnected, len(readChan)=%d, len(writeChan)=%d",
+		client.logger.Info("[defer func(%q)] disconnected, len(readChan)=%d, len(writeChan)=%d",
 			client.GetRemoteAddress(), len(readChan), len(client.writeChan))
 	}()
 
@@ -56,7 +55,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 			// 由于某些原因， 虽然我们定时的这个pingTicker.C是20s触发一次，但client收到的时间间隔最大可能会在190s以上，因此client主动ping server是必须的，否则可能被踢
 			_ = conn.SetWriteDeadline(time.Now().Add(writeDeadline))
 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				logo.Warn("[goWritePump(%q)] write PingMessage failed, err=%q", client.GetRemoteAddress(), err)
+				client.logger.Warn("[goWritePump(%q)] write PingMessage failed, err=%q", client.GetRemoteAddress(), err)
 				client.Dispose()
 				return
 			}
@@ -69,7 +68,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 func (client *Client) writeOneBean(conn *websocket.Conn, pushBean IBean) {
 	var jsonBytes, err = json.Marshal(pushBean)
 	if nil != err {
-		logo.Error("[writeOneBean()] Failed to Marshal pushBean=%v, err=%s", pushBean, err)
+		client.logger.Error("[writeOneBean()] Failed to Marshal pushBean=%v, err=%s", pushBean, err)
 		return
 	}
 
@@ -80,7 +79,7 @@ func (client *Client) writeOneMessage(conn *websocket.Conn, message []byte) {
 	_ = conn.SetWriteDeadline(time.Now().Add(writeDeadline))
 	writer, err := conn.NextWriter(websocket.TextMessage)
 	if err != nil {
-		logo.Info("[conn.NextWriter(%q)] err=%q", client.GetRemoteAddress(), err)
+		client.logger.Info("[conn.NextWriter(%q)] err=%q", client.GetRemoteAddress(), err)
 		client.Dispose()
 		return
 	}
@@ -88,7 +87,7 @@ func (client *Client) writeOneMessage(conn *websocket.Conn, message []byte) {
 	_, _ = writer.Write(message)
 
 	if err := writer.Close(); err != nil {
-		logo.Info("[writer.Close(%q)] err=%q", client.GetRemoteAddress(), err)
+		client.logger.Info("[writer.Close(%q)] err=%q", client.GetRemoteAddress(), err)
 		client.Dispose()
 	}
 }
