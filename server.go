@@ -101,7 +101,7 @@ func (server *Server) handleConsolePage(mux *http.ServeMux) {
 }
 
 func (server *Server) handleLogFiles(mux *http.ServeMux) {
-	var pattern = "/" + server.args.LogRoot
+	var pattern = "/" + server.args.LogRoot + "/"
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var logFilePath = request.URL.Path
 		if len(logFilePath) < 1 {
