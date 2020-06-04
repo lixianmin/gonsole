@@ -44,6 +44,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	}
 
 	server.registerServices(mux)
+	server.registerBuiltinCommands()
 	go server.goLoop()
 
 	logger.Info("[Start()] Golang Console Server started~")
