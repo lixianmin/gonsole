@@ -1,8 +1,10 @@
 package gonsole
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"sync"
 )
@@ -43,7 +45,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 		messageChan: messageChan,
 	}
 
-	server.registerServices(mux)
+	server.registerHandlers(mux)
 	server.registerBuiltinCommands()
 	go server.goLoop()
 
@@ -76,29 +78,56 @@ func (server *Server) goLoop() {
 	}
 }
 
-func (server *Server) registerServices(mux *http.ServeMux) {
-	// 项目目录，表现在url中
-	const rootDirectory = ""
-	const websocketName = "ws_console"
+func (server *Server) registerHandlers(mux *http.ServeMux) {
+	server.handleConsolePage(mux)
+	server.handleLogFiles(mux)
+	server.handleWebsocket(mux)
+}
 
-	// 处理console页面
+func (server *Server) handleConsolePage(mux *http.ServeMux) {
 	var tmpl = template.Must(template.ParseFiles(server.args.TemplatePath))
-	mux.HandleFunc(rootDirectory+"/console", func(w http.ResponseWriter, r *http.Request) {
+	var pattern = server.args.UrlRoot + "/console"
+
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var data struct {
-			RootDirectory string
+			UrlRoot       string
 			WebsocketName string
 		}
 
-		data.RootDirectory = rootDirectory
+		data.UrlRoot = server.args.UrlRoot
 		data.WebsocketName = websocketName
-		_ = tmpl.Execute(w, data)
+		_ = tmpl.Execute(writer, data)
 	})
+}
 
+func (server *Server) handleLogFiles(mux *http.ServeMux) {
+	var pattern = "/" + server.args.LogRoot
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		var logFilePath = request.URL.Path
+		if len(logFilePath) < 1 {
+			return
+		}
+
+		logFilePath = logFilePath[1:]
+		if IsPathExist(logFilePath) {
+			var bytes, err = ioutil.ReadFile(logFilePath)
+			if err == nil {
+				_, _ = writer.Write(bytes)
+			} else {
+				var text = fmt.Sprintf("%v", err)
+				_, _ = writer.Write([]byte(text))
+			}
+		}
+	})
+}
+
+func (server *Server) handleWebsocket(mux *http.ServeMux) {
 	// 处理ws消息
-	mux.HandleFunc(rootDirectory+"/"+websocketName, func(writer http.ResponseWriter, request *http.Request) {
+	var pattern = server.args.UrlRoot + "/" + websocketName
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		conn, err := server.upgrader.Upgrade(writer, request, nil)
 		if err != nil {
-			logger.Error("[registerServices(%s)]connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
+			logger.Error("[handleWebsocket(%s)] connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
 			return
 		}
 

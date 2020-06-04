@@ -14,6 +14,7 @@ type ServerArgs struct {
 	ReadBufferSize   int
 	WriteBufferSize  int
 
+	UrlRoot      string // 项目目录，表现在url中
 	TemplatePath string // console.html模板文件的路径名
 	LogRoot      string // 日志文件根目录
 }

@@ -144,7 +144,7 @@
             };
 
             const handlers = [];
-            const myHost = window.location.host + {{.RootDirectory}};
+            const myHost = window.location.host + {{.UrlRoot}};
             handlers["help"] = function (obj) {
                 const commands = obj.commands;
                 let result = "<b>内置命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Description</th></tr>";

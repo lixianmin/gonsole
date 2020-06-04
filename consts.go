@@ -12,4 +12,6 @@ const (
 	InternalError       = 500 // 内部错误
 	UnknownError        = 600 // 未知错误
 	UnknownDebugCommand = 601 // 未知的debug命令
+
+	websocketName = "ws_console"
 )
