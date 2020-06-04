@@ -32,7 +32,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 	defer func() {
 		// 请求CacheServer把自己移除
 		var msg = DetachClient{Client: client}
-		client.server.SendMessage(msg)
+		client.server.sendMessage(msg)
 
 		// 关闭定时器
 		pingTicker.Stop()

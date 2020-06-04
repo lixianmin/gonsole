@@ -1,5 +1,9 @@
 package gonsole
 
+import (
+	"sort"
+)
+
 /********************************************************************
 created:    2019-11-16
 author:     lixianmin
@@ -12,22 +16,23 @@ type DebugHelp struct {
 	Commands [][]string `json:"commands"`
 }
 
-func newDebugHelp(remoteAddress string) *DebugHelp {
+func newDebugHelp(commands []Command) *DebugHelp {
 	var bean = &DebugHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = GetTimestamp()
-	bean.Commands = [][]string{
-		{"dailyIncome", "计算每每日收入"},
-		{"fund", "资金费率"},
-		{"hedgeLong size", "对冲多仓，注意markPrice在哪边"},
-		{"hedgeShort size", "对冲空仓，注意markPrice在哪边"},
-		{"help", "帮助中心"},
-		{"ls", "打印主题列表"},
-		{"order 6", "查询订单状态"},
-		{"sub topicId", "订阅主题"},
-		{"sum", "账户概览"},
-		{"unsub topicId", "取消订阅，不带topicId则取消所有"},
+
+	// 排序
+	sort.Slice(commands, func(i, j int) bool {
+		return commands[i].Name < commands[j].Name
+	})
+
+	var list = make([][]string, 0, len(commands))
+	for i := 0; i < len(commands); i++ {
+		var item = commands[i]
+		list = append(list, []string{item.Name, item.Remark})
 	}
+
+	bean.Commands = list
 
 	return bean
 }

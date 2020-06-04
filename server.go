@@ -19,7 +19,7 @@ type Server struct {
 	gpid        string
 	upgrader    *websocket.Upgrader
 	messageChan chan IMessage
-	handlers    sync.Map
+	commands    sync.Map
 }
 
 func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
@@ -103,26 +103,58 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 
 		// caution: client负责conn的生命周期
 		var client = newClient(server, conn)
-		server.SendMessage(AttachClient{Client: client})
+		server.sendMessage(AttachClient{Client: client})
 	})
 }
 
-func (server *Server) registerDebugHandlers() {
-	server.AddCommand("help", "帮助中心", func(client *Client) {
-		var remoteAddress = client.GetRemoteAddress()
-		client.SendBean(newDebugHelp(remoteAddress))
-	})
+func (server *Server) registerBuiltinCommands() {
+	server.RegisterCommand(Command{
+		Name:   "help",
+		Remark: "帮助中心",
+		Handler: func(client *Client) {
+			var commands = server.getCommands()
+			client.SendBean(newDebugHelp(commands))
+		}})
 
-	server.AddCommand("ls", "打印主题列表", func(client *Client) {
-		client.SendBean(newDebugListTopics())
-	})
+	server.RegisterCommand(Command{
+		Name:   "ls",
+		Remark: "打印主题列表",
+		Handler: func(client *Client) {
+			client.SendBean(newDebugListTopics())
+		}})
 }
 
-func (server *Server) AddCommand(cmd string, remark string, handler func(client *Client)) {
-	server.handlers.Store(cmd, handler)
+func (server *Server) RegisterCommand(cmd Command) {
+	if cmd.Name != "" {
+		server.commands.Store(cmd.Name, cmd)
+	}
 }
 
-func (server *Server) SendMessage(msg IMessage) {
+func (server *Server) getCommand(name string) Command {
+	var box, ok = server.commands.Load(name)
+	if ok {
+		var cmd, _ = box.(Command)
+		return cmd
+	}
+
+	return Command{}
+}
+
+func (server *Server) getCommands() []Command {
+	var list []Command
+	server.commands.Range(func(key, value interface{}) bool {
+		var cmd, ok = value.(Command)
+		if ok {
+			list = append(list, cmd)
+		}
+
+		return true
+	})
+
+	return list
+}
+
+func (server *Server) sendMessage(msg IMessage) {
 	server.messageChan <- msg
 }
 

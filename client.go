@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gocore/loom"
+	"runtime/debug"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -179,10 +180,17 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 
 func loopClientDebugRequest(client *Client, requestId string, command string) {
 	var texts = strings.Split(command, " ")
-	var cmd = texts[0]
-	var handler, ok = client.server.handlers.Load(cmd)
-	if ok {
-		handler.(func(*Client))(client)
+	var name = texts[0]
+	var cmd = client.server.getCommand(name)
+	if cmd.Name == name {
+		// 防止panic
+		defer func() {
+			if rec := recover(); rec != nil {
+				logger.Error("panic - %v \n%s", rec, debug.Stack())
+			}
+		}()
+
+		cmd.Handler(client)
 	} else {
 		client.SendBean(newBadRequestRe(requestId, InternalError, command))
 	}
