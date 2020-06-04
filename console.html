@@ -173,6 +173,24 @@
                 printWithTimestamp(result)
             };
 
+            handlers["listLogFiles"] = function (obj) {
+                const host = document.location.protocol + "//" + myHost;
+                const logFiles = obj.logFiles;
+                const fileCount = logFiles.length;
+                const links = new Array(fileCount);
+                let totalSize = 0;
+                for (let i = 0; i < fileCount; i++) {
+                    const fi = logFiles[i];
+                    totalSize += fi.size;
+                    let sizeText = getHumanReadableSize(fi.size);
+                    links[i] = "<tr><td>" + sizeText + "</td><td><a href=\"" + host + "/" + fi.path + "\">" + fi.path + "</a></li></td>";
+                }
+
+                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
+                result += "<table border=\"1\"> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
+                printWithTimestamp(result);
+            };
+
             // handlers["redisKeys"] = function (obj) {
             //     const result = "<b>redis keys：</b>： <br> <ol><li>" + obj.keys.join("<li>") + "</ol>";
             //     printWithTimestamp(result)
@@ -191,24 +209,6 @@
             //     result += items.join("<li>") + "</ol>";
             //     printWithTimestamp(result)
             // };
-
-            handlers["listLogFiles"] = function (obj) {
-                const host = document.location.protocol + "//" + myHost;
-                const logFiles = obj.logFiles;
-                const fileCount = logFiles.length;
-                const links = new Array(fileCount);
-                let totalSize = 0;
-                for (let i = 0; i < fileCount; i++) {
-                    const fi = logFiles[i];
-                    totalSize += fi.size;
-                    let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = "<tr><td>" + sizeText + "</td><td><a href=\"" + host + "/logs/" + fi.name + "\">" + fi.name + "</a></li></td>";
-                }
-
-                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-                result += "<table border=\"1\"> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
-                printWithTimestamp(result);
-            };
 
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;

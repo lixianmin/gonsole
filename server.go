@@ -82,7 +82,7 @@ func (server *Server) registerServices(mux *http.ServeMux) {
 	const websocketName = "ws_console"
 
 	// 处理console页面
-	var tmpl = template.Must(template.ParseFiles(server.args.HtmlFilePath))
+	var tmpl = template.Must(template.ParseFiles(server.args.TemplatePath))
 	mux.HandleFunc(rootDirectory+"/console", func(w http.ResponseWriter, r *http.Request) {
 		var data struct {
 			RootDirectory string
@@ -118,11 +118,19 @@ func (server *Server) registerBuiltinCommands() {
 		}})
 
 	server.RegisterCommand(Command{
-		Name:   "ls",
+		Name:   "topics",
 		Remark: "打印可订阅主题列表",
 		Handler: func(client *Client) {
 			client.SendBean(newCommandListTopics())
 		}})
+
+	server.RegisterCommand(Command{
+		Name:   "logs",
+		Remark: "打印日志文件列表",
+		Handler: func(client *Client) {
+			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
+		},
+	})
 }
 
 func (server *Server) RegisterCommand(cmd Command) {

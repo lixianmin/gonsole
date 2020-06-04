@@ -13,7 +13,9 @@ type ServerArgs struct {
 	HandshakeTimeout time.Duration
 	ReadBufferSize   int
 	WriteBufferSize  int
-	HtmlFilePath     string
+
+	TemplatePath string // console.html模板文件的路径名
+	LogRoot      string // 日志文件根目录
 }
 
 func (args *ServerArgs) checkArgs() {
@@ -29,7 +31,11 @@ func (args *ServerArgs) checkArgs() {
 		args.WriteBufferSize = 2048
 	}
 
-	if args.HtmlFilePath == "" {
-		args.HtmlFilePath = "vendor/github.com/lixianmin/gonsole/console.html"
+	if args.TemplatePath == "" {
+		args.TemplatePath = "vendor/github.com/lixianmin/gonsole/console.html"
+	}
+
+	if args.LogRoot == "" {
+		args.LogRoot = "logs"
 	}
 }
