@@ -7,7 +7,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type DebugRequest struct {
+type CommandRequest struct {
 	BasicRequest
 	Command string `json:"command"`
 }

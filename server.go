@@ -114,14 +114,14 @@ func (server *Server) registerBuiltinCommands() {
 		Remark: "帮助中心",
 		Handler: func(client *Client) {
 			var commands = server.getCommands()
-			client.SendBean(newDebugHelp(commands))
+			client.SendBean(newCommandHelp(commands))
 		}})
 
 	server.RegisterCommand(Command{
 		Name:   "ls",
-		Remark: "打印主题列表",
+		Remark: "打印可订阅主题列表",
 		Handler: func(client *Client) {
-			client.SendBean(newDebugListTopics())
+			client.SendBean(newCommandListTopics())
 		}})
 }
 

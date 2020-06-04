@@ -138,8 +138,8 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 				loopClientSubscribe(client, bean)
 			case *Unsubscribe:
 				loopClientUnsubscribe(client, bean)
-			case *DebugRequest:
-				loopClientDebugRequest(client, bean.RequestId, bean.Command)
+			case *CommandRequest:
+				loopClientCommandRequest(client, bean.RequestId, bean.Command)
 			case *PingData:
 				loopClientPingData(client, *bean)
 			default:
@@ -178,7 +178,7 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 	client.SendBean(newUnsubscribeRe(bean.RequestId, bean.TopicId))
 }
 
-func loopClientDebugRequest(client *Client, requestId string, command string) {
+func loopClientCommandRequest(client *Client, requestId string, command string) {
 	var texts = strings.Split(command, " ")
 	var name = texts[0]
 	var cmd = client.server.getCommand(name)
@@ -225,7 +225,7 @@ func (client *Client) SendBean(bean interface{}) {
 	}
 }
 
-func (client *Client) SendMessage(msg IMessage) {
+func (client *Client) sendMessage(msg IMessage) {
 	select {
 	case client.messageChan <- msg:
 	case <-client.wd.DisposeChan:

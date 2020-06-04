@@ -118,7 +118,7 @@
                             sendBean(bean);
                         } else {
                             const bean = {
-                                op: "debug",
+                                op: "command",
                                 command: command,
                             };
 
@@ -173,24 +173,24 @@
                 printWithTimestamp(result)
             };
 
-            handlers["redisKeys"] = function (obj) {
-                const result = "<b>redis keys：</b>： <br> <ol><li>" + obj.keys.join("<li>") + "</ol>";
-                printWithTimestamp(result)
-            };
-
-            handlers["redisHGetAll"] = function (obj) {
-                let result = "<b>redis hash items：</b> <br> <ol><li>";
-
-                let items = new Array(obj.count * 2);
-                let index = 0;
-                for (let key in obj.items) {
-                    items[index++] = key;
-                    items[index++] = obj.items[key];
-                }
-
-                result += items.join("<li>") + "</ol>";
-                printWithTimestamp(result)
-            };
+            // handlers["redisKeys"] = function (obj) {
+            //     const result = "<b>redis keys：</b>： <br> <ol><li>" + obj.keys.join("<li>") + "</ol>";
+            //     printWithTimestamp(result)
+            // };
+            //
+            // handlers["redisHGetAll"] = function (obj) {
+            //     let result = "<b>redis hash items：</b> <br> <ol><li>";
+            //
+            //     let items = new Array(obj.count * 2);
+            //     let index = 0;
+            //     for (let key in obj.items) {
+            //         items[index++] = key;
+            //         items[index++] = obj.items[key];
+            //     }
+            //
+            //     result += items.join("<li>") + "</ol>";
+            //     printWithTimestamp(result)
+            // };
 
             handlers["listLogFiles"] = function (obj) {
                 const host = document.location.protocol + "//" + myHost;

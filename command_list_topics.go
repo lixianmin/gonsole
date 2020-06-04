@@ -7,18 +7,18 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type DebugListTopics struct {
+type CommandListTopics struct {
 	BasicResponse
 	Topics []string `json:"topics"`
 }
 
-func newDebugListTopics() *DebugListTopics {
-	var bean = &DebugListTopics{}
+func newCommandListTopics() *CommandListTopics {
+	var bean = &CommandListTopics{}
 	bean.Operation = "listTopics"
 	bean.Timestamp = GetTimestamp()
 
 	bean.Topics = []string{
-		"rsi",
+		"待实现",
 	}
 
 	return bean

@@ -11,13 +11,13 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type DebugHelp struct {
+type CommandHelp struct {
 	BasicResponse
 	Commands [][]string `json:"commands"`
 }
 
-func newDebugHelp(commands []Command) *DebugHelp {
-	var bean = &DebugHelp{}
+func newCommandHelp(commands []Command) *CommandHelp {
+	var bean = &CommandHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = GetTimestamp()
 

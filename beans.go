@@ -15,7 +15,7 @@ func init() {
 
 func registerBeanCreators() {
 	beanCreators["challenge"] = func() IBean { return &Challenge{} }
-	beanCreators["debug"] = func() IBean { return &DebugRequest{} }
+	beanCreators["command"] = func() IBean { return &CommandRequest{} }
 	beanCreators["sub"] = func() IBean { return &Subscribe{} }
 	beanCreators["unsub"] = func() IBean { return &Unsubscribe{} }
 	beanCreators["ping"] = func() IBean { return &PingData{} }
