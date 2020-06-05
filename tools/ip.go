@@ -18,17 +18,17 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var hostIP string
+var localIP string
 
 func init() {
-	hostIP = fetchIPAddress()
+	localIP = fetchLocalIP()
 }
 
-func GetHostIP() string {
-	return hostIP
+func GetLocalIP() string {
+	return localIP
 }
 
-func fetchIPAddress() string {
+func fetchLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		_, _ = os.Stderr.WriteString("Oops: " + err.Error() + "\n")
@@ -48,7 +48,7 @@ func fetchIPAddress() string {
 }
 
 func GetGPID(port int) string {
-	var ip = GetHostIP()
+	var ip = GetLocalIP()
 	var now = time.Now().UnixNano() / 1000
 	var pid = os.Getpid()
 	var ret = fmt.Sprintf("%s/%d/%d/%d", ip, port, now, pid)
