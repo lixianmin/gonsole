@@ -29,7 +29,7 @@ func newCommandHelp(commands []Command) *CommandHelp {
 	var list = make([][]string, 0, len(commands))
 	for i := 0; i < len(commands); i++ {
 		var item = commands[i]
-		list = append(list, []string{item.Name, item.Remark})
+		list = append(list, []string{item.Name, item.Note})
 	}
 
 	bean.Commands = list

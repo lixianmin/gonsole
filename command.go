@@ -9,6 +9,6 @@ Copyright (C) - All Rights Reserved
 
 type Command struct {
 	Name    string
-	Remark  string
+	Note    string
 	Handler func(client *Client)
 }

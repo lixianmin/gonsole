@@ -139,23 +139,23 @@ func (server *Server) handleWebsocket(mux *http.ServeMux) {
 
 func (server *Server) registerBuiltinCommands() {
 	server.RegisterCommand(Command{
-		Name:   "help",
-		Remark: "帮助中心",
+		Name: "help",
+		Note: "帮助中心",
 		Handler: func(client *Client) {
 			var commands = server.getCommands()
 			client.SendBean(newCommandHelp(commands))
 		}})
 
 	server.RegisterCommand(Command{
-		Name:   "topics",
-		Remark: "打印可订阅主题列表",
+		Name: "topics",
+		Note: "打印可订阅主题列表",
 		Handler: func(client *Client) {
 			client.SendBean(newCommandListTopics())
 		}})
 
 	server.RegisterCommand(Command{
-		Name:   "logs",
-		Remark: "打印日志文件列表",
+		Name: "logs",
+		Note: "打印日志文件列表",
 		Handler: func(client *Client) {
 			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
 		},
