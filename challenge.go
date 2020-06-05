@@ -12,9 +12,6 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-// 进程启动的时间
-var startProcessTime = time.Now()
-
 type Challenge struct {
 	Operation           string `json:"op"` // 协议类型
 	Timestamp           int64  `json:"ts"` // 服务器的时间戳
@@ -24,12 +21,13 @@ type Challenge struct {
 }
 
 func newChallenge(gpid string, clientRemoteAddress string) *Challenge {
+	var uptime = time.Now().Sub(startProcessTime)
 	var bean = &Challenge{
 		Operation:           "challenge",
 		Timestamp:           tools.GetTimestamp(),
 		GPID:                gpid,
 		ClientRemoteAddress: clientRemoteAddress,
-		UpTime:              time.Now().Sub(startProcessTime).String(),
+		UpTime:              uptime.String(),
 	}
 
 	return bean

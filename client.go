@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/gonsole/logger"
 	"runtime/debug"
 	"strings"
-	"sync/atomic"
 	"time"
 )
 
@@ -28,12 +27,11 @@ const (
 
 type Client struct {
 	wd            *loom.WaitDispose
-	userID        int64
 	remoteAddress string
 	writeChan     chan []byte
 	messageChan   chan IMessage
 	server        *Server
-	topics        []string
+	topics        map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
@@ -156,25 +154,31 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 }
 
 func loopClientSubscribe(client *Client, bean *Subscribe) {
-	var topics = make([]string, 0, len(client.topics)+1)
-	copy(topics, client.topics)
-	client.topics = append(topics, bean.TopicId)
-	client.SendBean(newSubscribeRe(bean.RequestId, bean.TopicId))
+	var topicId = bean.TopicId
+	var topic = client.server.getTopic(topicId)
+	if topic == nil {
+		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
+		return
+	}
+
+	topic.addClient(client)
+	client.topics[topicId] = struct{}{}
+	client.SendBean(newSubscribeRe(bean.RequestId, topicId))
 }
 
 func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
-	var topics []string
-	if bean.TopicId != "" {
-		topics = make([]string, 0, len(client.topics))
-		for i := 0; i < len(client.topics); i++ {
-			if client.topics[i] != bean.TopicId {
-				topics = append(topics, client.topics[i])
-			}
-		}
+	var topicId = bean.TopicId
+
+	var topic = client.server.getTopic(topicId)
+	if topic == nil {
+		return
 	}
 
-	client.topics = topics
-	client.SendBean(newUnsubscribeRe(bean.RequestId, bean.TopicId))
+	topic.removeClient(client)
+	if _, ok := client.topics[topicId]; ok {
+		delete(client.topics, topicId)
+		client.SendBean(newUnsubscribeRe(bean.RequestId, topicId))
+	}
 }
 
 func loopClientCommandRequest(client *Client, requestId string, command string) {
@@ -207,12 +211,6 @@ func (client *Client) innerSendBytes(data []byte) {
 	}
 }
 
-func (client *Client) SendBytes(data []byte) {
-	if data != nil && len(data) > 0 {
-		client.innerSendBytes(data)
-	}
-}
-
 func (client *Client) SendBean(bean interface{}) {
 	if bean != nil {
 		var jsonBytes, err = json.Marshal(bean)
@@ -231,16 +229,8 @@ func (client *Client) sendMessage(msg IMessage) {
 	}
 }
 
-func (client *Client) GetUserID() int64 {
-	return atomic.LoadInt64(&client.userID)
-}
-
 func (client *Client) GetRemoteAddress() string {
 	return client.remoteAddress
-}
-
-func (client *Client) GetTopics() []string {
-	return client.topics
 }
 
 func (client *Client) Dispose() {

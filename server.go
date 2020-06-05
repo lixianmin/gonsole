@@ -23,7 +23,9 @@ type Server struct {
 	gpid        string
 	upgrader    *websocket.Upgrader
 	messageChan chan IMessage
-	commands    sync.Map
+
+	commands sync.Map
+	topics   sync.Map
 }
 
 func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
@@ -170,6 +172,13 @@ func (server *Server) RegisterCommand(cmd Command) {
 	}
 }
 
+func (server *Server) RegisterTopic(topic *Topic) {
+	if topic != nil && topic.Name != "" && topic.Interval > 0 {
+		server.topics.Store(topic.Name, topic)
+		topic.start()
+	}
+}
+
 func (server *Server) getCommand(name string) Command {
 	var box, ok = server.commands.Load(name)
 	if ok {
@@ -192,6 +201,16 @@ func (server *Server) getCommands() []Command {
 	})
 
 	return list
+}
+
+func (server *Server) getTopic(name string) *Topic {
+	var value, ok = server.topics.Load(name)
+	if !ok {
+		return nil
+	}
+
+	var client, _ = value.(*Topic)
+	return client
 }
 
 func (server *Server) sendMessage(msg IMessage) {

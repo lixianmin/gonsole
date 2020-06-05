@@ -2,7 +2,6 @@ package tools
 
 import (
 	"os"
-	"time"
 )
 
 /********************************************************************
@@ -11,12 +10,6 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-func GetTimestamp() int64 {
-	var nanos = time.Now().UnixNano()
-	var millis = nanos / 1000000
-	return millis
-}
 
 func IsPathExist(path string) bool {
 	_, err := os.Stat(path)
