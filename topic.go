@@ -30,6 +30,8 @@ func (topic *Topic) start() {
 		return
 	}
 
+	topic.clients = make(map[*Client]struct{}, 2)
+
 	go func() {
 		tools.RandomSleep(0, topic.Interval)
 		for {
