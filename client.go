@@ -41,11 +41,12 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 	var messageChan = make(chan IMessage, chanSize)
 
 	var client = &Client{
+		wd:            loom.NewWaitDispose(),
 		remoteAddress: conn.RemoteAddr().String(),
 		writeChan:     make(chan []byte, chanSize),
 		messageChan:   messageChan,
 		server:        server,
-		wd:            loom.NewWaitDispose(),
+		topics:        make(map[string]struct{}),
 	}
 
 	go client.goReadPump(conn, readChan)
