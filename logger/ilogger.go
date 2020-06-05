@@ -1,4 +1,4 @@
-package gonsole
+package logger
 
 import (
 	"fmt"

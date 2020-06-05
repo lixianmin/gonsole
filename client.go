@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gocore/loom"
+	"github.com/lixianmin/gonsole/logger"
 	"runtime/debug"
 	"strings"
 	"sync/atomic"
@@ -32,7 +33,6 @@ type Client struct {
 	writeChan     chan []byte
 	messageChan   chan IMessage
 	server        *Server
-	logger        ILogger
 	topics        []string
 }
 
@@ -47,7 +47,6 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 		writeChan:     make(chan []byte, chanSize),
 		messageChan:   messageChan,
 		server:        server,
-		logger:        logger,
 		wd:            loom.NewWaitDispose(),
 	}
 

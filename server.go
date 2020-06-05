@@ -3,6 +3,7 @@ package gonsole
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gonsole/logger"
 	"html/template"
 	"io/ioutil"
 	"net/http"
