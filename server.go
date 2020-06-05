@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 )
 
 /********************************************************************
@@ -51,6 +52,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 
 	server.registerHandlers(mux)
 	server.registerBuiltinCommands()
+	server.registerBuiltinTopics()
 	go server.goLoop()
 
 	logger.Info("[Start()] Golang Console Server started~")
@@ -166,6 +168,16 @@ func (server *Server) registerBuiltinCommands() {
 	})
 }
 
+func (server *Server) registerBuiltinTopics() {
+	server.RegisterTopic(&Topic{
+		Name:     "summary",
+		Note:     "进程信息",
+		Interval: 5 * time.Second,
+		PrepareData: func() interface{} {
+			return newTopicSummary()
+		}})
+}
+
 func (server *Server) RegisterCommand(cmd Command) {
 	if cmd.Name != "" {
 		server.commands.Store(cmd.Name, cmd)
@@ -173,7 +185,7 @@ func (server *Server) RegisterCommand(cmd Command) {
 }
 
 func (server *Server) RegisterTopic(topic *Topic) {
-	if topic != nil && topic.Name != "" && topic.Interval > 0 {
+	if topic != nil && topic.Name != "" && topic.Interval > 0 && topic.PrepareData != nil {
 		server.topics.Store(topic.Name, topic)
 		topic.start()
 	}

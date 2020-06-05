@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"sync"
 	"time"
@@ -24,6 +25,11 @@ type Topic struct {
 }
 
 func (topic *Topic) start() {
+	if topic.Interval <= 0 || topic.PrepareData == nil {
+		logger.Error("topic.Interval <= 0 || topic.PrepareData == nil")
+		return
+	}
+
 	go func() {
 		tools.RandomSleep(0, topic.Interval)
 		for {
