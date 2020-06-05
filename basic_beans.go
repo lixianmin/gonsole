@@ -1,5 +1,7 @@
 package gonsole
 
+import "github.com/lixianmin/gonsole/tools"
+
 /********************************************************************
 created:    2020-06-02
 author:     lixianmin
@@ -24,7 +26,7 @@ func newBasicResponse(operation string, requestID string) *BasicResponse {
 	var response = &BasicResponse{
 		Operation: operation,
 		RequestID: requestID,
-		Timestamp: GetTimestamp(),
+		Timestamp: tools.GetTimestamp(),
 	}
 
 	return response

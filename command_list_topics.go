@@ -1,5 +1,7 @@
 package gonsole
 
+import "github.com/lixianmin/gonsole/tools"
+
 /********************************************************************
 created:    2019-11-17
 author:     lixianmin
@@ -15,7 +17,7 @@ type CommandListTopics struct {
 func newCommandListTopics() *CommandListTopics {
 	var bean = &CommandListTopics{}
 	bean.Operation = "listTopics"
-	bean.Timestamp = GetTimestamp()
+	bean.Timestamp = tools.GetTimestamp()
 
 	bean.Topics = []string{
 		"待实现",

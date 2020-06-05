@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/tools"
 	"sort"
 )
 
@@ -19,7 +20,7 @@ type CommandHelp struct {
 func newCommandHelp(commands []Command) *CommandHelp {
 	var bean = &CommandHelp{}
 	bean.Operation = "help"
-	bean.Timestamp = GetTimestamp()
+	bean.Timestamp = tools.GetTimestamp()
 
 	// 排序
 	sort.Slice(commands, func(i, j int) bool {

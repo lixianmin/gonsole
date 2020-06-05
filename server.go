@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/gonsole/tools"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -41,7 +42,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 	var messageChan = make(chan IMessage, 32)
 	var server = &Server{
 		args:        args,
-		gpid:        "", // todo 计算gpid
+		gpid:        tools.GetGPID(args.Port),
 		upgrader:    upgrader,
 		messageChan: messageChan,
 	}
@@ -110,7 +111,7 @@ func (server *Server) handleLogFiles(mux *http.ServeMux) {
 		}
 
 		logFilePath = logFilePath[1:]
-		if IsPathExist(logFilePath) {
+		if tools.IsPathExist(logFilePath) {
 			var bytes, err = ioutil.ReadFile(logFilePath)
 			if err == nil {
 				_, _ = writer.Write(bytes)

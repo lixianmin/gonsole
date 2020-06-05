@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/tools"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type Challenge struct {
 func newChallenge(gpid string, clientRemoteAddress string) *Challenge {
 	var bean = &Challenge{
 		Operation:           "challenge",
-		Timestamp:           GetTimestamp(),
+		Timestamp:           tools.GetTimestamp(),
 		GPID:                gpid,
 		ClientRemoteAddress: clientRemoteAddress,
 		UpTime:              time.Now().Sub(startProcessTime).String(),

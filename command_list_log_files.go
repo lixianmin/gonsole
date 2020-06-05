@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/tools"
 	"os"
 	"path/filepath"
 )
@@ -25,7 +26,7 @@ type CommandListLogFiles struct {
 func newCommandListLogFiles(logRoot string) *CommandListLogFiles {
 	var bean = &CommandListLogFiles{}
 	bean.Operation = "listLogFiles"
-	bean.Timestamp = GetTimestamp()
+	bean.Timestamp = tools.GetTimestamp()
 
 	var logFiles []LogFileInfo
 	_ = filepath.Walk(logRoot, func(path string, info os.FileInfo, err error) error {
