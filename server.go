@@ -169,7 +169,7 @@ func (server *Server) registerBuiltinTopics() {
 		Name:     "top",
 		Note:     "进程统计信息",
 		Interval: 5 * time.Second,
-		PrepareData: func() interface{} {
+		BuildData: func() interface{} {
 			return newTopicTop()
 		}})
 }
@@ -181,7 +181,7 @@ func (server *Server) RegisterCommand(cmd *Command) {
 }
 
 func (server *Server) RegisterTopic(topic *Topic) {
-	if topic != nil && topic.Name != "" && topic.Interval > 0 && topic.PrepareData != nil {
+	if topic != nil && topic.Name != "" && topic.Interval > 0 && topic.BuildData != nil {
 		server.topics.Store(topic.Name, topic)
 		topic.start()
 	}

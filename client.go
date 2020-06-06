@@ -170,6 +170,7 @@ func loopClientSubscribe(client *Client, bean *Subscribe) {
 	topic.addClient(client)
 	client.topics[topicId] = struct{}{}
 	client.SendBean(newSubscribeRe(bean.RequestId, topicId))
+	//client.SendBean(topic.BuildData())
 }
 
 func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {

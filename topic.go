@@ -15,34 +15,30 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Topic struct {
-	Name        string             // 名称
-	Note        string             // 描述
-	Interval    time.Duration      // 推送周期
-	PrepareData func() interface{} // 处理方法
+	Name      string             // 名称
+	Note      string             // 描述
+	Interval  time.Duration      // 推送周期
+	BuildData func() interface{} // 创建数据
 
-	lock    sync.Mutex
-	clients map[*Client]struct{}
+	clients sync.Map
 }
 
 func (topic *Topic) start() {
-	if topic.Interval <= 0 || topic.PrepareData == nil {
-		logger.Error("topic.Interval <= 0 || topic.PrepareData == nil")
+	if topic.Interval <= 0 || topic.BuildData == nil {
+		logger.Error("topic.Interval <= 0 || topic.BuildData == nil")
 		return
 	}
-
-	topic.clients = make(map[*Client]struct{}, 2)
 
 	go func() {
 		tools.RandomSleep(0, topic.Interval)
 		for {
 			func() {
-				var data = topic.PrepareData()
-				topic.lock.Lock()
-				defer topic.lock.Unlock()
-
-				for client := range topic.clients {
+				var data = topic.BuildData()
+				topic.clients.Range(func(key, value interface{}) bool {
+					var client = key.(*Client)
 					client.SendBean(data)
-				}
+					return true
+				})
 			}()
 			time.Sleep(topic.Interval)
 		}
@@ -51,18 +47,12 @@ func (topic *Topic) start() {
 
 func (topic *Topic) addClient(client *Client) {
 	if client != nil {
-		topic.lock.Lock()
-		defer topic.lock.Unlock()
-
-		topic.clients[client] = struct{}{}
+		topic.clients.Store(client, nil)
 	}
 }
 
 func (topic *Topic) removeClient(client *Client) {
 	if client != nil {
-		topic.lock.Lock()
-		defer topic.lock.Unlock()
-
-		delete(topic.clients, client)
+		topic.clients.Delete(client)
 	}
 }
