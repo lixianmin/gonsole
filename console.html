@@ -147,7 +147,7 @@
             const myHost = window.location.host + {{.UrlRoot}};
             handlers["help"] = function (obj) {
                 const commands = obj.commands;
-                let result = "<b>内置命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Description</th></tr>";
+                let result = "<b>内置命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Note</th></tr>";
                 for (let i = 0; i < commands.length; i++) {
                     result += "<tr><td>" + commands[i][0] + "</td><td>" + commands[i][1] + "</td>";
                 }
@@ -169,7 +169,13 @@
             };
 
             handlers["listTopics"] = function (obj) {
-                const result = "<b>可订阅主题列表：</b>： <br> <ol><li>" + obj.topics.join("<li>") + "</ol>";
+                const topics = obj.topics;
+                let result = "<b>可订阅主题列表：</b> <br> <table border=\"1\"><tr><th>Topic</th><th>Note</th></tr>";
+                for (let i = 0; i < topics.length; i++) {
+                    result += "<tr><td>" + topics[i][0] + "</td><td>" + topics[i][1] + "</td>";
+                }
+
+                result += "</table>";
                 printWithTimestamp(result)
             };
 

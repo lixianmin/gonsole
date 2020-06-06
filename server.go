@@ -144,7 +144,7 @@ func (server *Server) handleWebsocket(mux *http.ServeMux) {
 }
 
 func (server *Server) registerBuiltinCommands() {
-	server.RegisterCommand(Command{
+	server.RegisterCommand(&Command{
 		Name: "help",
 		Note: "帮助中心",
 		Handler: func(client *Client) {
@@ -152,14 +152,15 @@ func (server *Server) registerBuiltinCommands() {
 			client.SendBean(newCommandHelp(commands))
 		}})
 
-	server.RegisterCommand(Command{
+	server.RegisterCommand(&Command{
 		Name: "topics",
 		Note: "打印可订阅主题列表",
 		Handler: func(client *Client) {
-			client.SendBean(newCommandListTopics())
+			var topics = server.getTopics()
+			client.SendBean(newCommandListTopics(topics))
 		}})
 
-	server.RegisterCommand(Command{
+	server.RegisterCommand(&Command{
 		Name: "logs",
 		Note: "打印日志文件列表",
 		Handler: func(client *Client) {
@@ -170,16 +171,16 @@ func (server *Server) registerBuiltinCommands() {
 
 func (server *Server) registerBuiltinTopics() {
 	server.RegisterTopic(&Topic{
-		Name:     "summary",
-		Note:     "进程信息",
+		Name:     "top",
+		Note:     "进程统计信息",
 		Interval: 5 * time.Second,
 		PrepareData: func() interface{} {
-			return newTopicSummary()
+			return newTopicTop()
 		}})
 }
 
-func (server *Server) RegisterCommand(cmd Command) {
-	if cmd.Name != "" {
+func (server *Server) RegisterCommand(cmd *Command) {
+	if cmd != nil && cmd.Name != "" {
 		server.commands.Store(cmd.Name, cmd)
 	}
 }
@@ -191,20 +192,20 @@ func (server *Server) RegisterTopic(topic *Topic) {
 	}
 }
 
-func (server *Server) getCommand(name string) Command {
+func (server *Server) getCommand(name string) *Command {
 	var box, ok = server.commands.Load(name)
 	if ok {
-		var cmd, _ = box.(Command)
+		var cmd, _ = box.(*Command)
 		return cmd
 	}
 
-	return Command{}
+	return nil
 }
 
-func (server *Server) getCommands() []Command {
-	var list []Command
+func (server *Server) getCommands() []*Command {
+	var list []*Command
 	server.commands.Range(func(key, value interface{}) bool {
-		var cmd, ok = value.(Command)
+		var cmd, ok = value.(*Command)
 		if ok {
 			list = append(list, cmd)
 		}
@@ -216,13 +217,27 @@ func (server *Server) getCommands() []Command {
 }
 
 func (server *Server) getTopic(name string) *Topic {
-	var value, ok = server.topics.Load(name)
-	if !ok {
-		return nil
+	var box, ok = server.topics.Load(name)
+	if ok {
+		var client, _ = box.(*Topic)
+		return client
 	}
 
-	var client, _ = value.(*Topic)
-	return client
+	return nil
+}
+
+func (server *Server) getTopics() []*Topic {
+	var list []*Topic
+	server.topics.Range(func(key, value interface{}) bool {
+		var topic, ok = value.(*Topic)
+		if ok {
+			list = append(list, topic)
+		}
+
+		return true
+	})
+
+	return list
 }
 
 func (server *Server) sendMessage(msg IMessage) {

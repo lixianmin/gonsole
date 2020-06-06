@@ -7,10 +7,18 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"runtime"
+	"strings"
 	"time"
 )
 
-type TopicSummary struct {
+/********************************************************************
+created:    2020-06-05
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+type TopicTop struct {
 	BasicResponse
 	UpTime       string `json:"uptime"`
 	NumGoroutine int    `json:"numGoroutine"`
@@ -21,25 +29,22 @@ type TopicSummary struct {
 	NumGC        uint32 `json:"numGC"`
 }
 
-func newTopicSummary() *TopicSummary {
-	var bean = &TopicSummary{}
-	bean.Operation = "summary"
+func newTopicTop() *TopicTop {
+	var bean = &TopicTop{}
+	bean.Operation = "top"
 	bean.Timestamp = tools.GetTimestamp()
 	bean.NumGoroutine = runtime.NumGoroutine()
 
 	// cpu
 	cpuPercent, err := cpu.Percent(0, true)
 	if err == nil {
-		var text = "["
-		for idx, percent := range cpuPercent {
-			if idx == 0 {
-				text += fmt.Sprintf("%.1f%%", percent)
-			} else {
-				text += fmt.Sprintf(", %.1f%%", percent)
-			}
+		var list = make([]string, 0, len(cpuPercent))
+		for i := range cpuPercent {
+			list = append(list, fmt.Sprintf("%.1f%%", cpuPercent[i]))
 		}
 
-		bean.CpuUsage = text + "]"
+		var text = "[" + strings.Join(list, ", ") + "]"
+		bean.CpuUsage = text
 	}
 
 	// memory

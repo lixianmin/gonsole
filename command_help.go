@@ -17,7 +17,7 @@ type CommandHelp struct {
 	Commands [][]string `json:"commands"`
 }
 
-func newCommandHelp(commands []Command) *CommandHelp {
+func newCommandHelp(commands []*Command) *CommandHelp {
 	var bean = &CommandHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = tools.GetTimestamp()
