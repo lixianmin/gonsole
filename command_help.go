@@ -30,7 +30,10 @@ func newCommandHelp(commands []*Command, topics []*Topic) *CommandHelp {
 			return commands[i].Name < commands[j].Name
 		})
 
-		var list = make([][]string, 0, len(commands))
+		var list = make([][]string, 0, len(commands)+2)
+		list = append(list, []string{"sub xxx", "订阅主题，例：sub top"})
+		list = append(list, []string{"unsub xxx", "取消订阅主题，例：unsub top"})
+
 		for i := 0; i < len(commands); i++ {
 			var item = commands[i]
 			list = append(list, []string{item.Name, item.Note})

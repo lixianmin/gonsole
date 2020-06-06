@@ -162,6 +162,11 @@ func loopClientSubscribe(client *Client, bean *Subscribe) {
 		return
 	}
 
+	if _, ok := client.topics[topicId]; ok {
+		client.SendBean(newBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
+		return
+	}
+
 	topic.addClient(client)
 	client.topics[topicId] = struct{}{}
 	client.SendBean(newSubscribeRe(bean.RequestId, topicId))
@@ -172,14 +177,18 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 
 	var topic = client.server.getTopic(topicId)
 	if topic == nil {
+		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
+		return
+	}
+
+	if _, ok := client.topics[topicId]; !ok {
+		client.SendBean(newBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
 		return
 	}
 
 	topic.removeClient(client)
-	if _, ok := client.topics[topicId]; ok {
-		delete(client.topics, topicId)
-		client.SendBean(newUnsubscribeRe(bean.RequestId, topicId))
-	}
+	delete(client.topics, topicId)
+	client.SendBean(newUnsubscribeRe(bean.RequestId, topicId))
 }
 
 func loopClientCommandRequest(client *Client, requestId string, command string) {
