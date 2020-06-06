@@ -147,12 +147,20 @@
             const myHost = window.location.host + {{.UrlRoot}};
             handlers["help"] = function (obj) {
                 const commands = obj.commands;
-                let result = "<b>内置命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Note</th></tr>";
+                let result = "<br/><b>命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Note</th></tr>";
                 for (let i = 0; i < commands.length; i++) {
                     result += "<tr><td>" + commands[i][0] + "</td><td>" + commands[i][1] + "</td>";
                 }
-
                 result += "</table>";
+
+                const topics = obj.topics;
+                result += "<br/><b>主题列表：</b> <br> <table border=\"1\"><tr><th>Topic</th><th>Note</th></tr>";
+                for (let i = 0; i < topics.length; i++) {
+                    result += "<tr><td>" + topics[i][0] + "</td><td>" + topics[i][1] + "</td>";
+                }
+                result += "</table>";
+
+                result += "<br/>";
 
                 const host = document.location.protocol + "//" + myHost;
                 result += getLinkHtml("pprof", host + "/debug/pprof");
@@ -165,17 +173,6 @@
                 result += "curl -G -k " + host + "/debug/pprof/goroutine?debug=2 > tmp.prof" + tail;
                 result += "</div>";
 
-                printWithTimestamp(result)
-            };
-
-            handlers["listTopics"] = function (obj) {
-                const topics = obj.topics;
-                let result = "<b>可订阅主题列表：</b> <br> <table border=\"1\"><tr><th>Topic</th><th>Note</th></tr>";
-                for (let i = 0; i < topics.length; i++) {
-                    result += "<tr><td>" + topics[i][0] + "</td><td>" + topics[i][1] + "</td>";
-                }
-
-                result += "</table>";
                 printWithTimestamp(result)
             };
 

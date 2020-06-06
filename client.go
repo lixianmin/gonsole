@@ -186,7 +186,7 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 	var texts = strings.Split(command, " ")
 	var name = texts[0]
 	var cmd = client.server.getCommand(name)
-	if cmd.Name == name {
+	if cmd != nil && cmd.Name == name {
 		// 防止panic
 		defer func() {
 			if rec := recover(); rec != nil {

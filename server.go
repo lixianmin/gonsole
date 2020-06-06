@@ -3,6 +3,7 @@ package gonsole
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gocore/loom"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"html/template"
@@ -60,6 +61,7 @@ func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) goLoop() {
+	defer loom.DumpIfPanic()
 	var messageChan <-chan IMessage = server.messageChan
 
 	// 注册的client列表
@@ -149,15 +151,8 @@ func (server *Server) registerBuiltinCommands() {
 		Note: "帮助中心",
 		Handler: func(client *Client) {
 			var commands = server.getCommands()
-			client.SendBean(newCommandHelp(commands))
-		}})
-
-	server.RegisterCommand(&Command{
-		Name: "topics",
-		Note: "打印可订阅主题列表",
-		Handler: func(client *Client) {
 			var topics = server.getTopics()
-			client.SendBean(newCommandListTopics(topics))
+			client.SendBean(newCommandHelp(commands, topics))
 		}})
 
 	server.RegisterCommand(&Command{
