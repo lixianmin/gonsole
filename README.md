@@ -9,5 +9,8 @@
 1. 支持自定义日志：`gonsole.Init(log)`
 
 ----
-#### 0x02 todo list
-2. 在console.html页面，回车应该转到input box中
+#### 0x02 Demo
+1. 直接运行examples/demo/main.go
+1. 在浏览器中输入 http://127.0.0.1:8888/console
+1. 按提示在文件框中输入help命令，查看帮助信息
+1. 可以通过查看main.go的源代码，学习如何注册command和topic
