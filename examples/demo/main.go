@@ -18,9 +18,26 @@ Copyright (C) - All Rights Reserved
 func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
-	gonsole.NewServer(mux, gonsole.ServerArgs{
+	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
 		Port:         webPort,
 		TemplatePath: "../../console.html",
+	})
+
+	server.RegisterCommand(&gonsole.Command{
+		Name: "hi",
+		Note: "打印 hi console",
+		Handler: func(client *gonsole.Client) {
+			client.SendBean("hi console");
+		},
+	})
+
+	server.RegisterTopic(&gonsole.Topic{
+		Name:     "hi",
+		Note:     "广播hi console（每5s）",
+		Interval: 5 * time.Second,
+		BuildData: func() interface{} {
+			return "hi console";
+		},
 	})
 
 	var srv = &http.Server{
