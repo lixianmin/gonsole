@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh_CN">
 <head>
-    <title>Golang Console</title>
+    <title>Console</title>
     <script type="text/javascript">
         Date.prototype.Format = function (fmt) {
             let o = {
@@ -22,6 +22,7 @@
         window.onload = function () {
             let conn;
             const mainPanel = document.getElementById("mainPanel");
+            const inputBox = document.getElementById("inputBox");
 
             function appendLog(item) {
                 let doScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1;
@@ -79,15 +80,31 @@
                 return (size / 1048576.0).toFixed(1) + "M";
             }
 
-            let lastCommand = "";
-            document.getElementById("inputBox").onkeydown = function (evt) {
+            document.onkeydown = function (evt) {
                 if (!conn) {
-                    return false;
+                    return true;
                 }
 
                 // 回车
-                if (evt.keyCode === 13) {
-                    const inputBox = document.getElementById("inputBox");
+                if (evt.key === 'Enter') {
+                    let control = document.activeElement;
+                    if (control !== inputBox) {
+                        inputBox.focus();
+                        // return false的意思是：这个按键事件本js处理了，不再传播这个事件。
+                        // 默认情况下会继续传播按键事件，Enter会导致页面refresh
+                        return false;
+                    }
+                }
+            };
+
+            let lastCommand = "";
+            inputBox.onkeydown = function (evt) {
+                if (!conn) {
+                    return true;
+                }
+
+                // 回车
+                if (evt.key === 'Enter') {
                     const command = inputBox.value.trim();
                     if (command !== "") {
                         inputBox.value = "";
@@ -126,10 +143,10 @@
                         }
 
                         lastCommand = command;
-                        return false;
                     }
-                } else if (evt.keyCode === 38) { // up arrow
-                    const inputBox = document.getElementById("inputBox");
+
+                    return false;
+                } else if (evt.key === 'ArrowUp') {
                     inputBox.value = lastCommand;
 
                     setTimeout(function () {
@@ -138,6 +155,9 @@
                             inputBox.focus();
                         }
                         , 0);
+                    return false;
+                } else {
+                    // printText(evt.key);
                 }
 
                 return true;
@@ -241,7 +261,7 @@
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }
 
-            document.getElementById("inputBox").focus();
+            inputBox.focus();
             printHtml("Input 'help' and press Enter to fetch builtin commands.");
             println();
         };

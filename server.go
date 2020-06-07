@@ -165,10 +165,11 @@ func (server *Server) registerBuiltinCommands() {
 }
 
 func (server *Server) registerBuiltinTopics() {
+	const intervalSeconds = 5
 	server.RegisterTopic(&Topic{
 		Name:     "top",
-		Note:     "进程统计信息",
-		Interval: 5 * time.Second,
+		Note:     fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
+		Interval: intervalSeconds * time.Second,
 		BuildData: func() interface{} {
 			return newTopicTop()
 		}})
