@@ -30,7 +30,7 @@ type Server struct {
 	topics   sync.Map
 }
 
-func NewServer(mux *http.ServeMux, args ServerArgs) *Server {
+func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
 
 	var upgrader = &websocket.Upgrader{
@@ -86,13 +86,13 @@ func (server *Server) goLoop() {
 	}
 }
 
-func (server *Server) registerHandlers(mux *http.ServeMux) {
+func (server *Server) registerHandlers(mux IServeMux) {
 	server.handleConsolePage(mux)
 	server.handleLogFiles(mux)
 	server.handleWebsocket(mux)
 }
 
-func (server *Server) handleConsolePage(mux *http.ServeMux) {
+func (server *Server) handleConsolePage(mux IServeMux) {
 	var tmpl = template.Must(template.ParseFiles(server.args.TemplatePath))
 	var pattern = server.args.UrlRoot + "/console"
 
@@ -108,7 +108,7 @@ func (server *Server) handleConsolePage(mux *http.ServeMux) {
 	})
 }
 
-func (server *Server) handleLogFiles(mux *http.ServeMux) {
+func (server *Server) handleLogFiles(mux IServeMux) {
 	var pattern = "/" + server.args.LogRoot + "/"
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var logFilePath = request.URL.Path
@@ -129,7 +129,7 @@ func (server *Server) handleLogFiles(mux *http.ServeMux) {
 	})
 }
 
-func (server *Server) handleWebsocket(mux *http.ServeMux) {
+func (server *Server) handleWebsocket(mux IServeMux) {
 	// 处理ws消息
 	var pattern = server.args.UrlRoot + "/" + websocketName
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
