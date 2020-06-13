@@ -2,7 +2,7 @@ package gonsole
 
 import (
 	"fmt"
-	"github.com/lixianmin/gocore/convert"
+	"github.com/lixianmin/gone/convert"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"

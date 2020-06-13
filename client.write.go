@@ -3,7 +3,7 @@ package gonsole
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gocore/loom"
+	"github.com/lixianmin/gone/loom"
 	"github.com/lixianmin/gonsole/logger"
 	"time"
 )
