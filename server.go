@@ -3,9 +3,9 @@ package gonsole
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gone/loom"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/loom"
 	"html/template"
 	"io/ioutil"
 	"net/http"

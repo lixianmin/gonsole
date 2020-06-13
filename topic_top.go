@@ -2,8 +2,8 @@ package gonsole
 
 import (
 	"fmt"
-	"github.com/lixianmin/gone/convert"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/convert"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"runtime"

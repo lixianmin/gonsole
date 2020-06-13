@@ -3,8 +3,8 @@ package gonsole
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gone/loom"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/got/loom"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -26,7 +26,7 @@ const (
 )
 
 type Client struct {
-	wd            *loom.WaitDispose
+	wd            *loom.WaitClose
 	remoteAddress string
 	writeChan     chan []byte
 	messageChan   chan IMessage
@@ -41,7 +41,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 	var messageChan = make(chan IMessage, chanSize)
 
 	var client = &Client{
-		wd:            loom.NewWaitDispose(),
+		wd:            loom.NewWaitClose(),
 		remoteAddress: conn.RemoteAddr().String(),
 		writeChan:     make(chan []byte, chanSize),
 		messageChan:   messageChan,
@@ -111,7 +111,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 
 		select {
 		case readChan <- bean:
-		case <-client.wd.DisposeChan:
+		case <-client.wd.CloseChan:
 			return
 		}
 	}
@@ -148,7 +148,7 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 			default:
 				logger.Error("unexpected message type: %T", msg)
 			}
-		case <-client.wd.DisposeChan:
+		case <-client.wd.CloseChan:
 			return
 		}
 	}

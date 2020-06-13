@@ -3,8 +3,8 @@ package gonsole
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gone/loom"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/got/loom"
 	"time"
 )
 

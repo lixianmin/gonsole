@@ -19,3 +19,12 @@ func IsPathExist(path string) bool {
 
 	return true
 }
+
+func EnsureDir(dirname string) error {
+	if _, err := os.Stat(dirname); err != nil {
+		err = os.MkdirAll(dirname, os.ModePerm)
+		return err
+	}
+
+	return nil
+}
