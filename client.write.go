@@ -56,10 +56,10 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 			_ = conn.SetWriteDeadline(time.Now().Add(writeDeadline))
 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				logger.Warn("[goWritePump(%q)] write PingMessage failed, err=%q", client.GetRemoteAddress(), err)
-				client.Dispose()
+				client.Close()
 				return
 			}
-		case <-client.wd.DisposeChan:
+		case <-client.wc.CloseChan:
 			return
 		}
 	}
@@ -80,7 +80,7 @@ func (client *Client) writeOneMessage(conn *websocket.Conn, message []byte) {
 	writer, err := conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		logger.Info("[conn.NextWriter(%q)] err=%q", client.GetRemoteAddress(), err)
-		client.Dispose()
+		client.Close()
 		return
 	}
 
@@ -88,6 +88,6 @@ func (client *Client) writeOneMessage(conn *websocket.Conn, message []byte) {
 
 	if err := writer.Close(); err != nil {
 		logger.Info("[writer.Close(%q)] err=%q", client.GetRemoteAddress(), err)
-		client.Dispose()
+		client.Close()
 	}
 }

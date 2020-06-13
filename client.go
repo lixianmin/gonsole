@@ -26,7 +26,7 @@ const (
 )
 
 type Client struct {
-	wd            *loom.WaitClose
+	wc            *loom.WaitClose
 	remoteAddress string
 	writeChan     chan []byte
 	messageChan   chan IMessage
@@ -41,7 +41,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 	var messageChan = make(chan IMessage, chanSize)
 
 	var client = &Client{
-		wd:            loom.NewWaitClose(),
+		wc:            loom.NewWaitClose(),
 		remoteAddress: conn.RemoteAddr().String(),
 		writeChan:     make(chan []byte, chanSize),
 		messageChan:   messageChan,
@@ -64,7 +64,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 	_ = conn.SetReadDeadline(time.Now().Add(readDeadline))
 	// 据说h5中的websocket会自动回复pong消息，但需要验证
 	// 如果web端无法及时返回pong消息的话，会引起ReadDeadline超时，因此会引发ReadMessage()的websocket.CloseGoingAway
-	// ，此时调用client.Dispose()请求断开链接
+	// ，此时调用client.Close()请求断开链接
 	conn.SetPongHandler(func(string) error {
 		_ = conn.SetReadDeadline(time.Now().Add(readDeadline))
 		return nil
@@ -83,7 +83,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 				logger.Info("[goReadPump(%q)] disconnect normally, err=%q", client.GetRemoteAddress(), err)
 			}
 
-			client.Dispose()
+			client.Close()
 			break
 		}
 
@@ -111,7 +111,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 
 		select {
 		case readChan <- bean:
-		case <-client.wd.CloseChan:
+		case <-client.wc.CloseChan:
 			return
 		}
 	}
@@ -148,7 +148,7 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 			default:
 				logger.Error("unexpected message type: %T", msg)
 			}
-		case <-client.wd.CloseChan:
+		case <-client.wc.CloseChan:
 			return
 		}
 	}
@@ -218,7 +218,7 @@ func loopClientPingData(client *Client, data PingData) {
 func (client *Client) innerSendBytes(data []byte) {
 	select {
 	case client.writeChan <- data:
-	case <-client.wd.DisposeChan:
+	case <-client.wc.CloseChan:
 	}
 }
 
@@ -236,7 +236,7 @@ func (client *Client) SendBean(bean interface{}) {
 func (client *Client) sendMessage(msg IMessage) {
 	select {
 	case client.messageChan <- msg:
-	case <-client.wd.DisposeChan:
+	case <-client.wc.CloseChan:
 	}
 }
 
@@ -244,6 +244,6 @@ func (client *Client) GetRemoteAddress() string {
 	return client.remoteAddress
 }
 
-func (client *Client) Dispose() {
-	client.wd.Dispose()
+func (client *Client) Close() {
+	_ = client.wc.Close()
 }
