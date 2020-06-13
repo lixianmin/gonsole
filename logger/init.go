@@ -1,5 +1,7 @@
 package logger
 
+import "github.com/lixianmin/logo"
+
 /********************************************************************
 created:    2020-04-25
 author:     lixianmin
@@ -7,26 +9,30 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
  *********************************************************************/
 
-var defaultLogger ILogger = &ConsoleLogger{}
+var theLogger logo.ILogger = logo.GetLogger()
 
-func Init(log ILogger) {
+func Init(log logo.ILogger) {
 	if log != nil {
-		defaultLogger = log
+		theLogger = log
 	}
 }
 
-func GetDefaultLogger() ILogger {
-	return defaultLogger
+func GetLogger() logo.ILogger {
+	return theLogger
+}
+
+func Debug(first interface{}, args ...interface{}) {
+	theLogger.Debug(first, args...)
 }
 
 func Info(first interface{}, args ...interface{}) {
-	defaultLogger.Info(first, args...)
+	theLogger.Info(first, args...)
 }
 
 func Warn(first interface{}, args ...interface{}) {
-	defaultLogger.Warn(first, args...)
+	theLogger.Warn(first, args...)
 }
 
 func Error(first interface{}, args ...interface{}) {
-	defaultLogger.Error(first, args...)
+	theLogger.Error(first, args...)
 }
