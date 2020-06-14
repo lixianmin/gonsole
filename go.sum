@@ -8,8 +8,9 @@ github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvK
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/lixianmin/got v0.0.0-20200613011549-bd9679c86919 h1:v9UqRvuIlBgLOG5ZfS/8D0aKGemW+KsfG2Y7rdMhDak=
 github.com/lixianmin/got v0.0.0-20200613011549-bd9679c86919/go.mod h1:yP0ZpItR/qgHBqJTIyMBLIUma92X4C3yocbFAGNLCpo=
-github.com/lixianmin/logo v0.0.0-20200613024105-d25e5c21397c h1:xHstaNEotgxTGelEkssArlmAubvM5e6EbAMFxH8SEM4=
-github.com/lixianmin/logo v0.0.0-20200613024105-d25e5c21397c/go.mod h1:UhmsTmZocAt7pGectpdvowXYwEhD45Eep1w+x3hVEf4=
+github.com/lixianmin/logo v0.0.0-20200614005040-e9581252193b h1:Oa3J/SB+KDTDj5hWGNkMMRZbxYSxvS1kevP38GC/IxI=
+github.com/lixianmin/logo v0.0.0-20200614005040-e9581252193b/go.mod h1:c+S+mwMYiKO2+P9HD9h98wxORTN7O7ryQB5hAyXjI9A=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/shirou/gopsutil v2.19.9+incompatible h1:IrPVlK4nfwW10DF7pW+7YJKws9NkgNzWozwwWv9FsgY=

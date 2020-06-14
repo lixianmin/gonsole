@@ -7,7 +7,7 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/lixianmin/got v0.0.0-20200613011549-bd9679c86919
-	github.com/lixianmin/logo v0.0.0-20200613024105-d25e5c21397c
+	github.com/lixianmin/logo v0.0.0-20200614005040-e9581252193b
 	github.com/shirou/gopsutil v2.19.9+incompatible
 	github.com/stretchr/testify v1.4.0 // indirect
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
