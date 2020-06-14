@@ -56,7 +56,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	server.registerBuiltinTopics()
 	go server.goLoop()
 
-	logger.Info("[Start()] Golang Console Server started~")
+	logger.Info("Golang Console Server started~")
 	return server
 }
 
