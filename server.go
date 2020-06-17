@@ -122,7 +122,7 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 			if err == nil {
 				_, _ = writer.Write(bytes)
 			} else {
-				var text = fmt.Sprintf("%v", err)
+				var text = fmt.Sprintf("err=%q", err)
 				_, _ = writer.Write([]byte(text))
 			}
 		}
