@@ -32,6 +32,7 @@ type Client struct {
 	messageChan   chan IMessage
 	server        *Server
 	topics        map[string]struct{}
+	isLogin       bool
 }
 
 // newClient 创建一个新的client对象
@@ -204,7 +205,7 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 			}
 		}()
 
-		cmd.Handler(client)
+		cmd.Handler(client, texts)
 	} else {
 		client.SendBean(newBadRequestRe(requestId, InternalError, command))
 	}

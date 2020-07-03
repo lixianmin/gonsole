@@ -19,14 +19,16 @@ func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
-		Port:         webPort,
-		TemplatePath: "../../console.html",
+		Port:          webPort,
+		TemplatePath:  "console.html",
+		UserPasswords: map[string]string{"panda": "1029"},
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name: "hi",
-		Note: "打印 hi console",
-		Handler: func(client *gonsole.Client) {
+		Name:     "hi",
+		Note:     "打印 hi console",
+		IsPublic: true,
+		Handler: func(client *gonsole.Client, texts [] string) {
 			client.SendBean("hi console");
 		},
 	})
@@ -35,6 +37,7 @@ func main() {
 		Name:     "hi",
 		Note:     "广播hi console（每5s）",
 		Interval: 5 * time.Second,
+		IsPublic: false,
 		BuildData: func() interface{} {
 			return "hi console";
 		},

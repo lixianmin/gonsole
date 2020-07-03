@@ -1,8 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/logo"
 	"time"
 )
 
@@ -15,7 +13,3 @@ Copyright (C) - All Rights Reserved
 
 // 进程启动的时间
 var startProcessTime = time.Now()
-
-func Init(log logo.ILogger) {
-	logger.Init(log)
-}

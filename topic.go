@@ -18,6 +18,7 @@ type Topic struct {
 	Name      string             // 名称
 	Note      string             // 描述
 	Interval  time.Duration      // 推送周期
+	IsPublic  bool               // 非public方法需要登陆
 	BuildData func() interface{} // 创建数据
 
 	clients sync.Map

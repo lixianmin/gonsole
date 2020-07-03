@@ -18,10 +18,43 @@ type CommandHelp struct {
 	Topics   [][]string `json:"topics"`
 }
 
-func newCommandHelp(commands []*Command, topics []*Topic) *CommandHelp {
+func getHelpCommands(commands []*Command, isLogin bool) []*Command {
+	if isLogin {
+		return commands
+	}
+
+	var publicCommands = make([]*Command, 0, 4)
+	for _, cmd := range commands {
+		if cmd.IsPublic {
+			publicCommands = append(publicCommands, cmd)
+		}
+	}
+
+	return publicCommands
+}
+
+func getHelpTopics(topics []*Topic, isLogin bool) []*Topic {
+	if isLogin {
+		return topics
+	}
+
+	var publicTopics = make([]*Topic, 0, 4)
+	for _, topic := range topics {
+		if topic.IsPublic {
+			publicTopics = append(publicTopics, topic)
+		}
+	}
+
+	return publicTopics
+}
+
+func newCommandHelp(commands []*Command, topics []*Topic, isLogin bool) *CommandHelp {
 	var bean = &CommandHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = tools.GetTimestamp()
+
+	commands = getHelpCommands(commands, isLogin)
+	topics = getHelpTopics(topics, isLogin)
 
 	// commands
 	{

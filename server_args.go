@@ -1,6 +1,9 @@
 package gonsole
 
-import "time"
+import (
+	"github.com/lixianmin/logo"
+	"time"
+)
 
 /********************************************************************
 created:    2020-06-03
@@ -14,10 +17,12 @@ type ServerArgs struct {
 	ReadBufferSize   int
 	WriteBufferSize  int
 
-	Port         int    // 服务端口
-	UrlRoot      string // 项目目录，表现在url中
-	TemplatePath string // console.html模板文件的路径名
-	LogRoot      string // 日志文件根目录
+	Port          int               // 服务端口
+	UrlRoot       string            // 项目目录，表现在url中
+	TemplatePath  string            // console.html模板文件的路径名
+	LogRoot       string            // 日志文件根目录
+	UserPasswords map[string]string // 可以登陆的用户名与密码
+	Logger        logo.ILogger      // 自定义日志对象，默认只输出到控制台
 }
 
 func (args *ServerArgs) checkArgs() {
@@ -39,5 +44,9 @@ func (args *ServerArgs) checkArgs() {
 
 	if args.LogRoot == "" {
 		args.LogRoot = "logs"
+	}
+
+	if args.UserPasswords == nil {
+		args.UserPasswords = make(map[string]string)
 	}
 }

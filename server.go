@@ -32,6 +32,7 @@ type Server struct {
 
 func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
+	logger.Init(args.Logger)
 
 	var upgrader = &websocket.Upgrader{
 		HandshakeTimeout:  args.HandshakeTimeout,
@@ -147,18 +148,28 @@ func (server *Server) handleWebsocket(mux IServeMux) {
 
 func (server *Server) registerBuiltinCommands() {
 	server.RegisterCommand(&Command{
-		Name: "help",
-		Note: "帮助中心",
-		Handler: func(client *Client) {
+		Name:     "help",
+		Note:     "帮助中心",
+		IsPublic: true,
+		Handler: func(client *Client, texts []string) {
 			var commands = server.getCommands()
 			var topics = server.getTopics()
-			client.SendBean(newCommandHelp(commands, topics))
+			client.SendBean(newCommandHelp(commands, topics, client.isLogin))
 		}})
 
 	server.RegisterCommand(&Command{
-		Name: "logs",
-		Note: "打印日志文件列表",
-		Handler: func(client *Client) {
+		Name:     "login",
+		Note:     "登陆命令：login username password",
+		IsPublic: true,
+		Handler: func(client *Client, texts []string) {
+			client.SendBean(newCommandLogin(client, texts, server.args.UserPasswords))
+		}})
+
+	server.RegisterCommand(&Command{
+		Name:     "logs",
+		Note:     "打印日志文件列表",
+		IsPublic: false,
+		Handler: func(client *Client, texts []string) {
 			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
 		},
 	})
@@ -170,6 +181,7 @@ func (server *Server) registerBuiltinTopics() {
 		Name:     "top",
 		Note:     fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
 		Interval: intervalSeconds * time.Second,
+		IsPublic: true,
 		BuildData: func() interface{} {
 			return newTopicTop()
 		}})
