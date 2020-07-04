@@ -2,6 +2,7 @@
 <html lang="zh_CN">
 <head>
     <title>Console</title>
+    <script type="application/javascript" src="sha256.js"></script>
     <script type="text/javascript">
         Date.prototype.Format = function (fmt) {
             let o = {
@@ -133,6 +134,18 @@
                             };
 
                             sendBean(bean);
+                        } else if (texts.length === 3 && texts[0] === "login") {
+                            const username = texts[1];
+                            const password = texts[2];
+
+                            const key = "hey pet!";
+                            const digest = sha256.hmac(key, password);
+
+                            const bean = {
+                                op: "command",
+                                command: "login " + username + " " + digest,
+                            };
+                            sendBean(bean)
                         } else {
                             const bean = {
                                 op: "command",

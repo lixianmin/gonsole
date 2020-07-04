@@ -158,7 +158,7 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 func loopClientSubscribe(client *Client, bean *Subscribe) {
 	var topicId = bean.TopicId
 	var topic = client.server.getTopic(topicId)
-	if topic == nil {
+	if topic == nil || !(topic.IsPublic || client.isLogin) {
 		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
 		return
 	}
@@ -197,7 +197,8 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 	var texts = strings.Split(command, " ")
 	var name = texts[0]
 	var cmd = client.server.getCommand(name)
-	if cmd != nil && cmd.Name == name {
+	// 要么是public方法，要么是login了
+	if cmd != nil && cmd.Name == name && (cmd.IsPublic || client.isLogin) {
 		// 防止panic
 		defer func() {
 			if rec := recover(); rec != nil {

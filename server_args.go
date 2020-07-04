@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/logo"
 	"time"
 )
@@ -48,5 +49,11 @@ func (args *ServerArgs) checkArgs() {
 
 	if args.UserPasswords == nil {
 		args.UserPasswords = make(map[string]string)
+	} else {
+		const key = "hey pet!";
+		for k, v := range args.UserPasswords {
+			var digest = tools.HmacSha256(key, v)
+			args.UserPasswords[k] = digest
+		}
 	}
 }

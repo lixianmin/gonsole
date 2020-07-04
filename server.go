@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -89,6 +90,7 @@ func (server *Server) goLoop() {
 
 func (server *Server) registerHandlers(mux IServeMux) {
 	server.handleConsolePage(mux)
+	server.handleSha256Js(mux)
 	server.handleLogFiles(mux)
 	server.handleWebsocket(mux)
 }
@@ -106,6 +108,26 @@ func (server *Server) handleConsolePage(mux IServeMux) {
 		data.UrlRoot = server.args.UrlRoot
 		data.WebsocketName = websocketName
 		_ = tmpl.Execute(writer, data)
+	})
+}
+
+func (server *Server) handleSha256Js(mux IServeMux) {
+	var pattern = server.args.UrlRoot + "/sha256.js"
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		var path = request.URL.Path
+		if len(path) < 1 {
+			return
+		}
+
+		var root = filepath.Dir(server.args.TemplatePath)
+		var filename = filepath.Join(root, path)
+		var bytes, err = ioutil.ReadFile(filename)
+		if err == nil {
+			_, _ = writer.Write(bytes)
+		} else {
+			var text = fmt.Sprintf("err=%q", err)
+			_, _ = writer.Write([]byte(text))
+		}
 	})
 }
 

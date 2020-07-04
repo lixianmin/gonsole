@@ -30,13 +30,13 @@ func newCommandListLogFiles(logRoot string) *CommandListLogFiles {
 
 	var logFiles []LogFileInfo
 	_ = filepath.Walk(logRoot, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
+		if info != nil && !info.IsDir() {
 			logFiles = append(logFiles, LogFileInfo{
 				Size: info.Size(),
 				Path: path,
 			})
 		}
-		
+
 		return nil
 	})
 
