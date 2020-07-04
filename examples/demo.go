@@ -29,7 +29,12 @@ func main() {
 		Note:     "打印 hi console",
 		IsPublic: true,
 		Handler: func(client *gonsole.Client, texts [] string) {
-			client.SendBean("hi console");
+			var bean struct {
+				Text string
+			}
+
+			bean.Text = "hello <br/> world"
+			client.SendBean(bean)
 		},
 	})
 

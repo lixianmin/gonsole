@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
 	"runtime/debug"
 	"strings"
@@ -226,7 +227,7 @@ func (client *Client) innerSendBytes(data []byte) {
 
 func (client *Client) SendBean(bean interface{}) {
 	if bean != nil {
-		var jsonBytes, err = json.Marshal(bean)
+		var jsonBytes, err = tools.MarshalUnescape(bean)
 		if err == nil {
 			client.innerSendBytes(jsonBytes)
 		} else {
