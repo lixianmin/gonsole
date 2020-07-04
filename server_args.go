@@ -36,7 +36,7 @@ func (args *ServerArgs) checkArgs() {
 	}
 
 	if args.WriteBufferSize <= 0 {
-		args.WriteBufferSize = 2048
+		args.WriteBufferSize = 4096
 	}
 
 	if args.TemplatePath == "" {
