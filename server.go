@@ -203,7 +203,7 @@ func (server *Server) registerBuiltinTopics() {
 		Name:     "top",
 		Note:     fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
 		Interval: intervalSeconds * time.Second,
-		IsPublic: true,
+		IsPublic: false,
 		BuildData: func() interface{} {
 			return newTopicTop()
 		}})

@@ -37,7 +37,7 @@ func main() {
 		Name:     "hi",
 		Note:     "广播hi console（每5s）",
 		Interval: 5 * time.Second,
-		IsPublic: false,
+		IsPublic: true,
 		BuildData: func() interface{} {
 			return "hi console";
 		},
