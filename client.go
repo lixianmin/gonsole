@@ -8,6 +8,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -34,6 +35,7 @@ type Client struct {
 	server        *Server
 	topics        map[string]struct{}
 	isLogin       bool
+	Attachment    sync.Map
 }
 
 // newClient 创建一个新的client对象
