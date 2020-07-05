@@ -28,14 +28,15 @@ const (
 )
 
 type Client struct {
-	wc            *loom.WaitClose
-	remoteAddress string
-	writeChan     chan []byte
-	messageChan   chan IMessage
-	server        *Server
-	topics        map[string]struct{}
-	isLogin       bool
-	Attachment    sync.Map
+	wc             *loom.WaitClose
+	remoteAddress  string
+	writeChan      chan []byte
+	messageChan    chan IMessage
+	server         *Server
+	topics         map[string]struct{}
+	isLogin        bool
+	onCloseHandler func()
+	Attachment     sync.Map
 }
 
 // newClient 创建一个新的client对象
@@ -153,6 +154,9 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 				logger.Error("unexpected message type: %T", msg)
 			}
 		case <-client.wc.CloseChan:
+			if nil != client.onCloseHandler {
+				client.onCloseHandler()
+			}
 			return
 		}
 	}
@@ -236,6 +240,10 @@ func (client *Client) SendBean(bean interface{}) {
 			logger.Warn("[SendBean()] Can not marshal bean=%v, err=%s", bean, err)
 		}
 	}
+}
+
+func (client *Client) OnClose(handler func()) {
+	client.onCloseHandler = handler
 }
 
 func (client *Client) sendMessage(msg IMessage) {
