@@ -110,7 +110,8 @@
                     if (command !== "") {
                         inputBox.value = "";
 
-                        const texts = command.split("\\s+");  // 支持连续多个空格
+                        const texts = command.split(/\s+/);  // 支持连续多个空格
+                        console.info(texts)
                         if (texts.length === 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
                             const bean = {
                                 op: texts[0],
