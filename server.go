@@ -112,7 +112,7 @@ func (server *Server) handleConsolePage(mux IServeMux) {
 }
 
 func (server *Server) handleSha256Js(mux IServeMux) {
-	var pattern = server.args.UrlRoot + "/sha256.js"
+	var pattern = server.args.UrlRoot + "/sha256.min.js"
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var path = request.URL.Path
 		if len(path) < 1 {

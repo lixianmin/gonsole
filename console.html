@@ -2,7 +2,7 @@
 <html lang="zh_CN">
 <head>
     <title>Console</title>
-    <script type="application/javascript" src="sha256.js"></script>
+    <script type="application/javascript" src="sha256.min.js"></script>
     <script type="text/javascript">
         Date.prototype.Format = function (fmt) {
             let o = {
@@ -110,7 +110,7 @@
                     if (command !== "") {
                         inputBox.value = "";
 
-                        const texts = command.split(" ");
+                        const texts = command.split("\\s+");  // 支持连续多个空格
                         if (texts.length === 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
                             const bean = {
                                 op: texts[0],
