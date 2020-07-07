@@ -28,7 +28,7 @@ func newCommandListLogFiles(logRoot string) *CommandListLogFiles {
 	bean.Operation = "listLogFiles"
 	bean.Timestamp = tools.GetTimestamp()
 
-	var logFiles []LogFileInfo
+	var logFiles = make([]LogFileInfo, 0, 4)
 	_ = filepath.Walk(logRoot, func(path string, info os.FileInfo, err error) error {
 		if info != nil && !info.IsDir() {
 			logFiles = append(logFiles, LogFileInfo{
