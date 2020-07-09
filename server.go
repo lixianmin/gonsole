@@ -176,15 +176,15 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, texts []string) {
 			var commands = server.getCommands()
 			var topics = server.getTopics()
-			client.SendBean(newCommandHelp(commands, topics, client.isLogin))
+			client.SendBean(newCommandHelp(commands, topics, client.isAuthorized))
 		}})
 
 	server.RegisterCommand(&Command{
-		Name:     "login",
-		Note:     "登陆命令：login username password",
+		Name:     "auth",
+		Note:     "认证后开启更多命令：auth username password",
 		IsPublic: true,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newCommandLogin(client, texts, server.args.UserPasswords))
+			client.SendBean(newCommandAuth(client, texts, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{

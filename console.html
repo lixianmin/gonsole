@@ -134,7 +134,7 @@
                             };
 
                             sendBean(bean);
-                        } else if (texts.length === 3 && texts[0] === "login") {
+                        } else if (texts.length === 3 && texts[0] === "auth") {
                             const username = texts[1];
                             const password = texts[2];
 
@@ -143,7 +143,7 @@
 
                             const bean = {
                                 op: "command",
-                                command: "login " + username + " " + digest,
+                                command: "auth " + username + " " + digest,
                             };
                             sendBean(bean)
                         } else {

@@ -18,8 +18,8 @@ type CommandHelp struct {
 	Topics   [][]string `json:"topics"`
 }
 
-func getHelpCommands(commands []*Command, isLogin bool) []*Command {
-	if isLogin {
+func getHelpCommands(commands []*Command, isAuthorized bool) []*Command {
+	if isAuthorized {
 		return commands
 	}
 
@@ -33,8 +33,8 @@ func getHelpCommands(commands []*Command, isLogin bool) []*Command {
 	return publicCommands
 }
 
-func getHelpTopics(topics []*Topic, isLogin bool) []*Topic {
-	if isLogin {
+func getHelpTopics(topics []*Topic, isAuthorized bool) []*Topic {
+	if isAuthorized {
 		return topics
 	}
 
@@ -48,13 +48,13 @@ func getHelpTopics(topics []*Topic, isLogin bool) []*Topic {
 	return publicTopics
 }
 
-func newCommandHelp(commands []*Command, topics []*Topic, isLogin bool) *CommandHelp {
+func newCommandHelp(commands []*Command, topics []*Topic, isAuthorized bool) *CommandHelp {
 	var bean = &CommandHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = tools.GetTimestamp()
 
-	commands = getHelpCommands(commands, isLogin)
-	topics = getHelpTopics(topics, isLogin)
+	commands = getHelpCommands(commands, isAuthorized)
+	topics = getHelpTopics(topics, isAuthorized)
 
 	// commands
 	{

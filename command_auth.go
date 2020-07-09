@@ -11,18 +11,18 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type CommandLogin struct {
+type CommandAuth struct {
 	BasicResponse
 	Text string `json:"text"`
 }
 
-func newCommandLogin(client *Client, texts []string, userPasswords map[string]string) *CommandLogin {
-	var bean = &CommandLogin{}
-	bean.Operation = "login"
+func newCommandAuth(client *Client, texts []string, userPasswords map[string]string) *CommandAuth {
+	var bean = &CommandAuth{}
+	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()
 
 	if len(texts) < 3 {
-		bean.Text = "格式：login username password"
+		bean.Text = "格式：auth username password"
 		return bean
 	}
 
@@ -30,11 +30,11 @@ func newCommandLogin(client *Client, texts []string, userPasswords map[string]st
 	var password = texts[2]
 	if password1, ok := userPasswords[username]; !ok || password1 != password {
 		bean.Text = "用户名或密码错误"
-		client.isLogin = false
+		client.isAuthorized = false
 		return bean
 	}
 
-	bean.Text = "登陆成功"
-	client.isLogin = true
+	bean.Text = "验证成功"
+	client.isAuthorized = true
 	return bean
 }

@@ -34,7 +34,7 @@ type Client struct {
 	messageChan    chan IMessage
 	server         *Server
 	topics         map[string]struct{}
-	isLogin        bool
+	isAuthorized   bool
 	onCloseHandler func()
 	Attachment     sync.Map
 }
@@ -52,7 +52,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 		messageChan:   messageChan,
 		server:        server,
 		topics:        make(map[string]struct{}),
-		isLogin:       server.args.IsDefaultLogin,
+		isAuthorized:  server.args.IsDefaultAuthorized,
 	}
 
 	go client.goReadPump(conn, readChan)
@@ -166,7 +166,7 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 func loopClientSubscribe(client *Client, bean *Subscribe) {
 	var topicId = bean.TopicId
 	var topic = client.server.getTopic(topicId)
-	if topic == nil || !(topic.IsPublic || client.isLogin) {
+	if topic == nil || !(topic.IsPublic || client.isAuthorized) {
 		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
 		return
 	}
@@ -205,8 +205,8 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 	var texts = strings.Split(command, " ")
 	var name = texts[0]
 	var cmd = client.server.getCommand(name)
-	// 要么是public方法，要么是login了
-	if cmd != nil && cmd.Name == name && (cmd.IsPublic || client.isLogin) {
+	// 要么是public方法，要么是authorized了
+	if cmd != nil && cmd.Name == name && (cmd.IsPublic || client.isAuthorized) {
 		// 防止panic
 		defer func() {
 			if rec := recover(); rec != nil {
