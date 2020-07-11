@@ -144,8 +144,6 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 				loopClientUnsubscribe(client, bean)
 			case *CommandRequest:
 				loopClientCommandRequest(client, bean.RequestId, bean.Command)
-			case *PingData:
-				loopClientPingData(client, *bean)
 			default:
 				logger.Error("unexpected bean type: %T", bean)
 			}
@@ -218,10 +216,6 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 	} else {
 		client.SendBean(newBadRequestRe(requestId, InternalError, command))
 	}
-}
-
-func loopClientPingData(client *Client, data PingData) {
-	client.SendBean(newPingDataRe(data.RequestId))
 }
 
 // 这个不使用启goroutine去写client.writeChan，虽然不卡死了，但是无法保证顺序了，这就完蛋了

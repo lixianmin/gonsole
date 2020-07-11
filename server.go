@@ -195,6 +195,15 @@ func (server *Server) registerBuiltinCommands() {
 			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
 		},
 	})
+
+	//server.RegisterCommand(&Command{
+	//	Name:     "ping",
+	//	Note:     "Ping一下服务器是不是通的",
+	//	IsPublic: true,
+	//	Handler: func(client *Client, texts []string) {
+	//		client.SendBean(newBasicResponse("pong", ""))
+	//	},
+	//})
 }
 
 func (server *Server) registerBuiltinTopics() {

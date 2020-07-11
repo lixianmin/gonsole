@@ -18,7 +18,6 @@ func registerBeanCreators() {
 	beanCreators["command"] = func() IBean { return &CommandRequest{} }
 	beanCreators["sub"] = func() IBean { return &Subscribe{} }
 	beanCreators["unsub"] = func() IBean { return &Unsubscribe{} }
-	beanCreators["ping"] = func() IBean { return &PingData{} }
 }
 
 func createBean(beanType string) IBean {

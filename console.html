@@ -50,6 +50,7 @@
             }
 
             let totalReceivedSize = 0;
+            let lastCommand = "";
 
             function printWithTimestamp(html) {
                 const current = getHumanReadableSize(html.length);
@@ -98,7 +99,6 @@
                 }
             };
 
-            let lastCommand = "";
             inputBox.onkeydown = function (evt) {
                 if (!conn) {
                     return true;
@@ -124,13 +124,6 @@
                                 op: "unsub",
                                 rid: "request-id",
                                 authorization: texts[1],
-                            };
-
-                            sendBean(bean);
-                        } else if (texts.length === 1 && (texts[0] === "ping")) {
-                            const bean = {
-                                op: "ping",
-                                rid: "",
                             };
 
                             sendBean(bean);
