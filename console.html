@@ -149,23 +149,23 @@
                             sendBean(bean);
                         }
 
-                        historyIndex = history.push(command) - 1;
+                        historyIndex = history.push(command);
                     }
 
                     return false;
                 } else if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
+                    const isArrowUp = evt.key === 'ArrowUp';
                     let isChanged = false;
-                    if (evt.key === 'ArrowUp' && historyIndex >= 0) {
-                        inputBox.value = history[historyIndex];
-                        historyIndex = historyIndex - 1;
+                    if (isArrowUp && historyIndex > 0) {
+                        historyIndex -= 1;
                         isChanged = true;
-                    } else if (evt.key === 'ArrowDown' && historyIndex + 1 < history.length) {
-                        inputBox.value = history[historyIndex + 1];
-                        historyIndex = historyIndex + 1;
+                    } else if (!isArrowUp && historyIndex + 1 < history.length) {
+                        historyIndex += 1;
                         isChanged = true;
                     }
 
                     if (isChanged) {
+                        inputBox.value = history[historyIndex];
                         setTimeout(function () {
                                 let position = inputBox.value.length;
                                 inputBox.setSelectionRange(position, position);
