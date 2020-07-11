@@ -50,7 +50,8 @@
             }
 
             let totalReceivedSize = 0;
-            let lastCommand = "";
+            let historyIndex = -1;
+            let history = Array();
 
             function printWithTimestamp(html) {
                 const current = getHumanReadableSize(html.length);
@@ -148,19 +149,31 @@
                             sendBean(bean);
                         }
 
-                        lastCommand = command;
+                        historyIndex = history.push(command) - 1;
                     }
 
                     return false;
-                } else if (evt.key === 'ArrowUp') {
-                    inputBox.value = lastCommand;
+                } else if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
+                    let isChanged = false;
+                    if (evt.key === 'ArrowUp' && historyIndex >= 0) {
+                        inputBox.value = history[historyIndex];
+                        historyIndex = historyIndex - 1;
+                        isChanged = true;
+                    } else if (evt.key === 'ArrowDown' && historyIndex + 1 < history.length) {
+                        inputBox.value = history[historyIndex + 1];
+                        historyIndex = historyIndex + 1;
+                        isChanged = true;
+                    }
 
-                    setTimeout(function () {
-                            let position = inputBox.value.length;
-                            inputBox.setSelectionRange(position, position);
-                            inputBox.focus();
-                        }
-                        , 0);
+                    if (isChanged) {
+                        setTimeout(function () {
+                                let position = inputBox.value.length;
+                                inputBox.setSelectionRange(position, position);
+                                inputBox.focus();
+                            }
+                            , 0);
+                    }
+
                     return false;
                 } else {
                     // printText(evt.key);
