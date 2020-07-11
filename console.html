@@ -232,6 +232,17 @@
                 printWithTimestamp(result);
             };
 
+            handlers["listHistoryCommands"] = function (obj) {
+                const count = history.length;
+                const items = new Array(count);
+                for (let i = 0; i < count; i++) {
+                    items[i] = "<li>" + history[i] + "</li>";
+                }
+
+                let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                printWithTimestamp(result);
+            };
+
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;
                 const protocol = isHttps ? "wss://" : "ws://";

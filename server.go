@@ -189,10 +189,19 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "logs",
-		Note:     "打印日志文件列表",
+		Note:     "日志文件列表",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
+		},
+	})
+
+	server.RegisterCommand(&Command{
+		Name:     "history",
+		Note:     "历史命令列表",
+		IsPublic: true,
+		Handler: func(client *Client, texts []string) {
+			client.SendBean(newBasicResponse("listHistoryCommands", ""))
 		},
 	})
 
