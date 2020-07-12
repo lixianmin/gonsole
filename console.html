@@ -127,16 +127,16 @@
                     if (command !== "") {
                         inputBox.value = "";
 
-                        const texts = command.split(/\s+/);  // 支持连续多个空格
-                        const textsLength = texts.length;
-
                         // 检查是不是调用history命令
-                        if (textsLength === 1 && command.startsWith("!")) {
+                        if (command.startsWith("!")) {
                             const index = parseInt(command.substr(1)) - 1;
                             if (!isNaN(index) && index >= 0 && index < history.length) {
                                 command = history[index];
                             }
                         }
+
+                        let texts = command.split(/\s+/);  // 支持连续多个空格
+                        let textsLength = texts.length;
 
                         if (textsLength === 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
                             const bean = {
