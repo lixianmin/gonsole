@@ -25,6 +25,26 @@
             const mainPanel = document.getElementById("mainPanel");
             const inputBox = document.getElementById("inputBox");
 
+            let totalReceivedSize = 0;
+            let history = Array();
+            let historyIndex = -1;
+
+            // 将history存储到localStorage中
+            if (window.localStorage) {
+                const key = "history";
+
+                const json = localStorage.getItem(key);
+                const jsonObj = JSON.parse(json);
+                if (jsonObj) {
+                    history = jsonObj;
+                    historyIndex = history.length - 1;
+                }
+
+                window.onunload = function () {
+                    localStorage.setItem(key, JSON.stringify(history.slice(-100)));
+                };
+            }
+
             function appendLog(item) {
                 let doScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1;
                 mainPanel.appendChild(item);
@@ -48,10 +68,6 @@
             function println() {
                 printHtml("<br/>");
             }
-
-            let totalReceivedSize = 0;
-            let historyIndex = -1;
-            let history = Array();
 
             function printWithTimestamp(html) {
                 const current = getHumanReadableSize(html.length);
