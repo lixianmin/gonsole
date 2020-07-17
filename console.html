@@ -308,8 +308,18 @@
         };
     </script>
     <style type="text/css">
+        html {
+            background-color: #002b36;
+            color: #839496;
+            margin: 1em;
+            font-size: 1.5em;
+        }
+
+        table { border-width: 1px; border-color: #729ea5;border-collapse: collapse;}
+        th { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
+        td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
+
         #mainPanel {
-            background: white;
             margin: 0;
             padding: 0.5em 0.5em 0.5em 0.5em;
             position: absolute;
@@ -335,8 +345,7 @@
 <body>
 <div id="mainPanel"></div>
 <form id="form">
-    {{/*<label for="inputBox" style="height:40px;font-size:20px;">Enter commands:</label>*/}}
-    <input id="inputBox" type="text" value="" style="width:100%;height:40px;font-size:26px;"/>
+    <input id="inputBox" type="text" value="" style="width:100%;height:1.8em;font-size:1.7em;"/>
 </form>
 </body>
 </html>
