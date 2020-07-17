@@ -27,7 +27,7 @@ func newChallenge(gpid string, clientRemoteAddress string) *Challenge {
 		Timestamp:           tools.GetTimestamp(),
 		GPID:                gpid,
 		ClientRemoteAddress: clientRemoteAddress,
-		UpTime:              uptime.String(),
+		UpTime:              tools.FormatDuration(uptime),
 	}
 
 	return bean

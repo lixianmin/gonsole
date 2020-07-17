@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/got/osx"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -140,7 +141,7 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 		}
 
 		logFilePath = logFilePath[1:]
-		if tools.IsPathExist(logFilePath) {
+		if osx.IsPathExist(logFilePath) {
 			var bytes, err = ioutil.ReadFile(logFilePath)
 			if err == nil {
 				_, _ = writer.Write(bytes)
