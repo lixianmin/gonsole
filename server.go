@@ -205,6 +205,15 @@ func (server *Server) registerBuiltinCommands() {
 		},
 	})
 
+	server.RegisterCommand(&Command{
+		Name:     "top",
+		Note:     "广播进程统计信息",
+		IsPublic: true,
+		Handler: func(client *Client, texts []string) {
+			client.SendBean(newTopicTop())
+		},
+	})
+
 	//server.RegisterCommand(&Command{
 	//	Name:     "ping",
 	//	Note:     "Ping一下服务器是不是通的",
