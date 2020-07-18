@@ -209,7 +209,7 @@ func (server *Server) registerBuiltinCommands() {
 	server.RegisterCommand(&Command{
 		Name:     "top",
 		Note:     "广播进程统计信息",
-		IsPublic: true,
+		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newTopicTop())
 		},
