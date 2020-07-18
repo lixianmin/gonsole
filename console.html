@@ -323,7 +323,7 @@
         a:hover {color: #cb4b16;}
 
         table { border-width: 1px; border-color: #729ea5;border-collapse: collapse;}
-        th { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
+        th { background-color:#004949; border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
         td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
 
         #mainPanel {
@@ -347,12 +347,16 @@
             overflow: hidden;
         }
 
+        #inputBox {
+            width:100%;height:1.8em;font-size:1.7em; background-color: #073642; color: #859900
+        }
+
     </style>
 </head>
 <body>
 <div id="mainPanel"></div>
 <form id="form">
-    <input id="inputBox" type="text" value="" style="width:100%;height:1.8em;font-size:1.7em; background-color: #073642; color: #859900"/>
+    <input id="inputBox" type="text" value=""/>
 </form>
 </body>
 </html>
