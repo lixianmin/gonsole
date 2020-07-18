@@ -213,14 +213,14 @@
             const myHost = window.location.host + {{.UrlRoot}};
             handlers["help"] = function (obj) {
                 const commands = obj.commands;
-                let result = "<br/><b>命令列表：</b> <br> <table border=\"1\"><tr><th>Command</th><th>Note</th></tr>";
+                let result = "<br/><b>命令列表：</b> <br> <table><tr><th>Command</th><th>Note</th></tr>";
                 for (let i = 0; i < commands.length; i++) {
                     result += "<tr><td>" + commands[i][0] + "</td><td>" + commands[i][1] + "</td>";
                 }
                 result += "</table>";
 
                 const topics = obj.topics;
-                result += "<br/><b>主题列表：</b> <br> <table border=\"1\"><tr><th>Topic</th><th>Note</th></tr>";
+                result += "<br/><b>主题列表：</b> <br> <table><tr><th>Topic</th><th>Note</th></tr>";
                 for (let i = 0; i < topics.length; i++) {
                     result += "<tr><td>" + topics[i][0] + "</td><td>" + topics[i][1] + "</td>";
                 }
@@ -255,7 +255,7 @@
                 }
 
                 let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-                result += "<table border=\"1\"> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
+                result += "<table> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
                 printWithTimestamp(result);
             };
 
@@ -311,12 +311,7 @@
     </script>
     <style type="text/css">
         /*http://thomasf.github.io/solarized-css/*/
-        html {
-            background-color: #002b36;
-            color: #839496;
-            margin: 1em;
-            font-size: 1.5em;
-        }
+        html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.5em;}
 
         a {color: #b58900;}
         a:visited {color: #cb4b16;}
@@ -326,30 +321,9 @@
         th { background-color:#004949; border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
         td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
 
-        #mainPanel {
-            margin: 0;
-            padding: 0.5em 0.5em 0.5em 0.5em;
-            position: absolute;
-            top: 0.5em;
-            left: 0.5em;
-            right: 0.5em;
-            bottom: 3em;
-            overflow: auto;
-        }
-
-        #form {
-            padding: 0 0.5em 0 0.5em;
-            margin: 0;
-            position: absolute;
-            bottom: 1em;
-            left: 1px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        #inputBox {
-            width:100%;height:1.8em;font-size:1.7em; background-color: #073642; color: #859900
-        }
+        #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
+        #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
+        #inputBox {width:100%;height:1.8em;font-size:1.7em; background-color: #073642; color: #859900}
 
     </style>
 </head>
