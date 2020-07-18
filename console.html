@@ -25,6 +25,7 @@
             const mainPanel = document.getElementById("mainPanel");
             const inputBox = document.getElementById("inputBox");
 
+            let currentReceivedSize = 0;
             let totalReceivedSize = 0;
             let history = Array();
             let historyIndex = -1;
@@ -70,7 +71,7 @@
             }
 
             function printWithTimestamp(html) {
-                const current = getHumanReadableSize(html.length);
+                const current = getHumanReadableSize(currentReceivedSize);
                 const total = getHumanReadableSize(totalReceivedSize);
                 printHtml("[" + (new Date()).Format("hh:mm:ss.S") + " (" + current + "/" + total + ") ] " + html);
             }
@@ -281,10 +282,11 @@
 
                 conn.onmessage = function (evt) {
                     const data = evt.data;
-                    totalReceivedSize += data.length;
+                    currentReceivedSize = data.length;
+                    totalReceivedSize += currentReceivedSize;
                     const messages = data.split('\n');
                     for (let i = 0; i < messages.length; i++) {
-                        const message = messages[i]
+                        const message = messages[i];
                         if (message === "") {
                             continue
                         }
