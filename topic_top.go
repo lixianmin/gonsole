@@ -59,6 +59,6 @@ func newTopicTop() *TopicTop {
 		bean.TotalMemory = convert.ToHuman(vm.Total)
 	}
 
-	bean.UpTime = time.Now().Sub(startProcessTime).String()
+	bean.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
 	return bean
 }
