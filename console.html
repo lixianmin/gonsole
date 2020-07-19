@@ -27,8 +27,12 @@
 
             let currentReceivedSize = 0;
             let totalReceivedSize = 0;
+
             let history = Array();
             let historyIndex = -1;
+
+            let username = "";
+            let isAuthorizing = false;
 
             // 将history存储到localStorage中
             if (window.localStorage) {
@@ -44,6 +48,10 @@
                 window.onunload = function () {
                     localStorage.setItem(key, JSON.stringify(history.slice(-100)));
                 };
+            }
+
+            function addHistory(command) {
+                historyIndex = history.push(command);
             }
 
             function appendLog(item) {
@@ -147,10 +155,18 @@
                             };
 
                             sendBean(bean);
-                        } else if (textsLength >= 3 && texts[0] === "auth") {
-                            const username = texts[1];
-                            const password = texts[2];
+                            addHistory(command);
+                        } else if (textsLength >= 2 && texts[0] === "auth") {
+                            username = texts[1];
+                            isAuthorizing = true;
+                            inputBox.type = "password";
+                            printWithTimestamp(command + "<br/> <h3>Please input password：</h3><br/>");
+                            addHistory(command);
+                        } else if (isAuthorizing && textsLength>=1) {
+                            isAuthorizing = false;
+                            inputBox.type = "text";
 
+                            const password = texts[0];
                             const key = "hey pet!";
                             const digest = sha256.hmac(key, password);
 
@@ -158,7 +174,8 @@
                                 op: "command",
                                 command: "auth " + username + " " + digest,
                             };
-                            sendBean(bean)
+
+                            sendBean(bean);
                         } else {
                             const bean = {
                                 op: "command",
@@ -166,9 +183,8 @@
                             };
 
                             sendBean(bean);
+                            addHistory(command);
                         }
-
-                        historyIndex = history.push(command);
                     }
 
                     return false;
