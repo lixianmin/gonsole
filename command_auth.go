@@ -22,7 +22,7 @@ func newCommandAuth(client *Client, texts []string, userPasswords map[string]str
 	bean.Timestamp = tools.GetTimestamp()
 
 	if len(texts) < 3 {
-		bean.Text = "格式：auth username password"
+		bean.Text = "格式：auth username"
 		return bean
 	}
 
