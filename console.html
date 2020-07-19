@@ -139,7 +139,7 @@
                         let texts = command.split(/\s+/);  // 支持连续多个空格
                         let textsLength = texts.length;
 
-                        if (textsLength === 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
+                        if (textsLength >= 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
                             const bean = {
                                 op: texts[0],
                                 rid: "request-id",
@@ -147,15 +147,7 @@
                             };
 
                             sendBean(bean);
-                        } else if (textsLength === 1 && (texts[0] === "unsub")) {
-                            const bean = {
-                                op: "unsub",
-                                rid: "request-id",
-                                authorization: texts[1],
-                            };
-
-                            sendBean(bean);
-                        } else if (textsLength === 3 && texts[0] === "auth") {
+                        } else if (textsLength >= 3 && texts[0] === "auth") {
                             const username = texts[1];
                             const password = texts[2];
 
@@ -311,7 +303,7 @@
     </script>
     <style type="text/css">
         /*http://thomasf.github.io/solarized-css/*/
-        html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.5em;}
+        html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.2em;}
 
         a {color: #b58900;}
         a:visited {color: #cb4b16;}
@@ -323,7 +315,7 @@
 
         #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
         #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
-        #inputBox {width:100%;height:1.8em;font-size:1.7em; background-color: #073642; color: #859900}
+        #inputBox {width:100%;height:1.6em;font-size:1.5em; background-color: #073642; color: #859900}
 
     </style>
 </head>
