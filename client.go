@@ -146,6 +146,9 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 				loopClientCommandRequest(client, bean.RequestId, bean.Command)
 			case *HintRequest:
 				client.SendBean(newHintResponse(bean.Head, client.server.getCommands(), client.isAuthorized))
+			case *Ping:
+				var pong = &Pong{BasicResponse{Operation: "pong"}}
+				client.SendBean(pong)
 			default:
 				logger.Error("unexpected bean type: %T", bean)
 			}

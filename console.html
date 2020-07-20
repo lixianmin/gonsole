@@ -325,6 +325,10 @@
                 }
             };
 
+            // ping/pong保活
+            setInterval(function () {conn.send("{\"op\":\"ping\"}");}, 2000);
+            handlers['pong'] = function (obj) {};
+
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;
                 const protocol = isHttps ? "wss://" : "ws://";
