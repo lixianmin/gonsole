@@ -226,13 +226,17 @@
 
                     return false;
                 } else if (evt.key === 'Tab') {
-                    const bean = {
-                        op: "hint",
-                        head: inputBox.value.trim(),
-                    };
+                    const text = inputBox.value.trim();
+                    if (text.length > 0) {
+                        const bean = {
+                            op: "hint",
+                            head: text,
+                        };
 
-                    const data = JSON.stringify(bean);
-                    conn.send(data);
+                        const data = JSON.stringify(bean);
+                        conn.send(data);
+                    }
+
                     return false;
                 } else {
                     // printText(evt.key);
@@ -268,7 +272,8 @@
                 result += "curl -G -k " + host + "/debug/pprof/goroutine?debug=2 > tmp.prof" + tail;
                 result += "</div>";
 
-                printWithTimestamp(result)
+                printWithTimestamp(result);
+                println();
             };
 
             handlers["listLogFiles"] = function (obj) {
@@ -287,6 +292,7 @@
                 let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
                 result += "<table> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
                 printWithTimestamp(result);
+                println();
             };
 
             handlers["listHistoryCommands"] = function (obj) {
@@ -342,8 +348,8 @@
                             handler(obj);
                         } else {
                             printWithTimestamp("<b>server返回：</b>" + message);
+                            println();
                         }
-                        println();
                     }
                 };
             } else {
