@@ -34,6 +34,9 @@
             let username = "";
             let isAuthorizing = false;
 
+            const handlers = [];
+            const myHost = window.location.host + {{.UrlRoot}};
+
             // 将history存储到localStorage中
             if (window.localStorage) {
                 const key = "history";
@@ -217,8 +220,6 @@
                 return true;
             };
 
-            const handlers = [];
-            const myHost = window.location.host + {{.UrlRoot}};
             handlers["help"] = function (obj) {
                 const commands = obj.commands;
                 let result = "<br/><b>命令列表：</b> <br> <table><tr><th>Command</th><th>Note</th></tr>";
