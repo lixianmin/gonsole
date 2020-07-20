@@ -165,7 +165,7 @@
                             inputBox.type = "password";
                             printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
                             addHistory(command);
-                        } else if (isAuthorizing && textsLength>=1) {
+                        } else if (isAuthorizing && textsLength >= 1) {
                             isAuthorizing = false;
                             inputBox.type = "text";
 
@@ -212,6 +212,15 @@
                             , 0);
                     }
 
+                    return false;
+                } else if (evt.key === 'Tab') {
+                    const bean = {
+                        op: "hint",
+                        head: inputBox.value.trim(),
+                    };
+
+                    const data = JSON.stringify(bean);
+                    conn.send(data);
                     return false;
                 } else {
                     // printText(evt.key);
@@ -277,6 +286,23 @@
 
                 let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
                 printWithTimestamp(result);
+            };
+
+            handlers['hintResponse'] = function (obj) {
+                const hints = obj.hints;
+                const count = hints.length;
+
+                if (count === 1) {
+                    inputBox.value = hints[0];
+                } else {
+                    const items = new Array(count);
+                    for (let i = 0; i < count; i++) {
+                        items[i] = "<li>" + hints[i] + "</li>";
+                    }
+
+                    const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                    printWithTimestamp(result);
+                }
             };
 
             if (window["WebSocket"]) {

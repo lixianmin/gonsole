@@ -144,6 +144,8 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 				loopClientUnsubscribe(client, bean)
 			case *CommandRequest:
 				loopClientCommandRequest(client, bean.RequestId, bean.Command)
+			case *HintRequest:
+				client.SendBean(newHintResponse(bean.Head, client.server.getCommands(), client.isAuthorized))
 			default:
 				logger.Error("unexpected bean type: %T", bean)
 			}
