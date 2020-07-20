@@ -309,16 +309,17 @@
             handlers['hintResponse'] = function (obj) {
                 const hints = obj.hints;
                 const count = hints.length;
-                inputBox.value = longestCommonPrefix(hints);
+                if (count > 0) {
+                    inputBox.value = longestCommonPrefix(hints);
+                    if (count > 1) {
+                        const items = new Array(count);
+                        for (let i = 0; i < count; i++) {
+                            items[i] = "<li>" + hints[i] + "</li>";
+                        }
 
-                if (count > 1) {
-                    const items = new Array(count);
-                    for (let i = 0; i < count; i++) {
-                        items[i] = "<li>" + hints[i] + "</li>";
+                        const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                        printWithTimestamp(result);
                     }
-
-                    const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
-                    printWithTimestamp(result);
                 }
             };
 
