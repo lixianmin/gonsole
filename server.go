@@ -208,10 +208,21 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "top",
-		Note:     "广播进程统计信息",
+		Note:     "返回进程统计信息",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newTopicTop())
+		},
+	})
+
+	server.RegisterCommand(&Command{
+		Name:     "date",
+		Note:     "打印当前日期",
+		IsPublic: true,
+		Handler: func(client *Client, texts []string) {
+			const layout = "Mon 2006-01-02 15:04:05"
+			var text = time.Now().Format(layout)
+			client.SendBean(text)
 		},
 	})
 
