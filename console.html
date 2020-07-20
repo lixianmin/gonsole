@@ -111,6 +111,18 @@
                 return (size / 1048576.0).toFixed(1) + "M";
             }
 
+            function longestCommonPrefix(strs) {
+                if (strs.length < 2) return strs.join();
+                let str = strs[0];
+                for (let i = 1; i < strs.length; i++) {
+                    for (let j = str.length; j > 0; j--) {
+                        if (str !== strs[i].substr(0, j)) str = str.substr(0, j - 1);
+                        else break
+                    }
+                }
+                return str
+            }
+
             document.onkeydown = function (evt) {
                 if (!conn) {
                     return true;
@@ -291,10 +303,9 @@
             handlers['hintResponse'] = function (obj) {
                 const hints = obj.hints;
                 const count = hints.length;
+                inputBox.value = longestCommonPrefix(hints);
 
-                if (count === 1) {
-                    inputBox.value = hints[0];
-                } else {
+                if (count > 1) {
                     const items = new Array(count);
                     for (let i = 0; i < count; i++) {
                         items[i] = "<li>" + hints[i] + "</li>";

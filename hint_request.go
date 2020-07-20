@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/tools"
+	"sort"
 	"strings"
 )
 
@@ -34,6 +35,10 @@ func newHintResponse(head string, commands []*Command, isAuthorized bool) *HintR
 			hints = append(hints, cmd.Name)
 		}
 	}
+
+	sort.Slice(hints, func(i, j int) bool {
+		return hints[i] < hints[j]
+	})
 
 	bean.Hints = hints
 	return bean
