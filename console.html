@@ -304,6 +304,7 @@
 
                 let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
                 printWithTimestamp(result);
+                println();
             };
 
             handlers['hintResponse'] = function (obj) {
@@ -319,6 +320,7 @@
 
                         const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
                         printWithTimestamp(result);
+                        println();
                     }
                 }
             };
