@@ -6,8 +6,8 @@ import (
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
+	"regexp"
 	"runtime/debug"
-	"strings"
 	"sync"
 	"time"
 )
@@ -26,6 +26,8 @@ const (
 	readDeadline  = 60 * time.Second
 	writeDeadline = 60 * time.Second
 )
+
+var commandPattern, _ = regexp.Compile(`\s+`)
 
 type Client struct {
 	wc             *loom.WaitClose
@@ -205,7 +207,7 @@ func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
 }
 
 func loopClientCommandRequest(client *Client, requestId string, command string) {
-	var texts = strings.Split(command, " ")
+	var texts = commandPattern.Split(command, -1)
 	var name = texts[0]
 	var cmd = client.server.getCommand(name)
 	// 要么是public方法，要么是authorized了
