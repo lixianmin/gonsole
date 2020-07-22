@@ -325,6 +325,11 @@
                 }
             };
 
+            handlers['html'] = function (obj) {
+                printWithTimestamp("<b>server响应：</b>" + obj.html);
+                println();
+            };
+
             // ping/pong保活
             setInterval(function () {conn.send("{\"op\":\"ping\"}");}, 2000);
             handlers['pong'] = function (obj) {};

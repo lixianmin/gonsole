@@ -81,11 +81,11 @@ func (server *Server) goLoop() {
 
 				var remoteAddress = client.GetRemoteAddress()
 				client.SendBean(newChallenge(server.gpid, remoteAddress))
-				logger.Info("[goLoop(%q)] client connected.", remoteAddress)
+				logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 			case DetachClient:
 				delete(clients, msg.Client)
 			default:
-				logger.Error("[goLoop()] Invalid msg=%v", msg)
+				logger.Error("Invalid msg=%v", msg)
 			}
 		}
 	}

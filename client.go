@@ -233,13 +233,29 @@ func (client *Client) innerSendBytes(data []byte) {
 	}
 }
 
+func (client *Client) SendHtml(html string) {
+	var bean = HtmlResponse{
+		BasicResponse: BasicResponse{
+			Operation: "html",
+		},
+		Html: html,
+	}
+
+	var jsonBytes, err = tools.MarshalUnescape(bean)
+	if err == nil {
+		client.innerSendBytes(jsonBytes)
+	} else {
+		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
+	}
+}
+
 func (client *Client) SendBean(bean interface{}) {
 	if bean != nil {
-		var jsonBytes, err = tools.MarshalUnescape(bean)
+		var jsonBytes, err = json.Marshal(bean)
 		if err == nil {
 			client.innerSendBytes(jsonBytes)
 		} else {
-			logger.Warn("[SendBean()] Can not marshal bean=%v, err=%s", bean, err)
+			logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
 		}
 	}
 }
