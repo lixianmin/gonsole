@@ -104,10 +104,12 @@ func (server *Server) handleConsolePage(mux IServeMux) {
 
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var data struct {
+			Title         string
 			UrlRoot       string
 			WebsocketName string
 		}
 
+		data.Title = server.args.Title
 		data.UrlRoot = server.args.UrlRoot
 		data.WebsocketName = websocketName
 		_ = tmpl.Execute(writer, data)
