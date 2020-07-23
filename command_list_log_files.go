@@ -1,11 +1,12 @@
 package gonsole
 
 import (
+	"bufio"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/timex"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 /********************************************************************
@@ -28,31 +29,29 @@ type CommandListLogFiles struct {
 }
 
 func readFileSample(filePath string, fileSize int64) string {
-	const halfSize = 128
-	if fileSize < 2*halfSize {
-		var data, err = ioutil.ReadFile(filePath)
-		if err != nil {
-			return ""
-		}
-
-		return string(data)
-	} else {
-		fin, err := os.Open(filePath)
-		if err != nil {
-			return ""
-		}
-
-		defer fin.Close()
-
-		var data [halfSize]byte
-		_, err = fin.Read(data[0:])
-		var head = string(data[0:])
-		_, err = fin.ReadAt(data[0:], fileSize-halfSize)
-		var tail = string(data[0:])
-
-		var sample = head + "\n......\n" + tail
-		return sample
+	fin, err := os.Open(filePath)
+	if err != nil {
+		return ""
 	}
+
+	defer fin.Close()
+
+	var reader = bufio.NewReader(fin)
+	var sb strings.Builder
+	sb.Grow(512)
+
+	const sampleLines = 5
+	for i := 0; i < sampleLines; i++ {
+		var line, err = reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		sb.WriteString(line)
+		sb.WriteString("<br/>")
+	}
+
+	var sample = sb.String()
+	return sample
 }
 
 func newCommandListLogFiles(logRoot string) *CommandListLogFiles {

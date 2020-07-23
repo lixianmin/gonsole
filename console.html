@@ -316,7 +316,7 @@
                     const fi = logFiles[i];
                     totalSize += fi.size;
                     let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = `<tr> <td>${i+1}</td> <td>${sizeText}</td> <td><a href="${host}/${fi.path}">${fi.path}</a></td> <td>${fi.mod_time}</td> </tr>`;
+                    links[i] = `<tr> <td>${i+1}</td> <td>${sizeText}</td> <td><div class="tooltip"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tooltiptext">${fi.sample}</span></div></td> <td>${fi.mod_time}</td> </tr>`;
                 }
 
                 let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
@@ -414,6 +414,25 @@
         table { border-width: 1px; border-color: #729ea5;border-collapse: collapse;}
         th { background-color:#004949; border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
         td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
+
+        /*https://www.runoob.com/css/css-tooltip.html*/
+        .tooltip { position: relative; display: inline-block; border-bottom: 1px dotted black; }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 1000px;
+            background: #005959;
+            border-radius: 6px;
+            padding: 6px 6px;
+
+            /* 定位 */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
+        }
+
+        .tooltip:hover .tooltiptext { visibility: visible; }
 
         #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
         #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
