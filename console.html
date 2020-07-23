@@ -20,6 +20,15 @@
             return fmt;
         };
 
+        function copyToClipboard(text) {
+            let box = document.getElementById("inputBox");
+            const lastValue = box.value;
+            box.value = text;
+            box.select();
+            document.execCommand("Copy");
+            box.value = lastValue;
+        }
+
         window.onload = function () {
             let conn;
             const mainPanel = document.getElementById("mainPanel");
@@ -198,9 +207,9 @@
                             if (localStorage) {
                                 const key = "autoLoginUser";
                                 const item = {
-                                  username: username,
-                                  password: password,
-                                  expireTime: new Date().getTime() + {{.AutoLoginLimit}},
+                                    username: username,
+                                    password: password,
+                                    expireTime: new Date().getTime() + {{.AutoLoginLimit}},
                                 };
 
                                 const data = JSON.stringify(item);
@@ -316,7 +325,9 @@
                     const fi = logFiles[i];
                     totalSize += fi.size;
                     let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = `<tr> <td>${i+1}</td> <td>${sizeText}</td> <td><div class="tooltip"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tooltiptext">${fi.sample}</span></div></td> <td>${fi.mod_time}</td> </tr>`;
+                    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
+                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
+                                </div></td> <td>${fi.mod_time}</td> </tr>`;
                 }
 
                 let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
@@ -406,6 +417,7 @@
     <style type="text/css">
         /*http://thomasf.github.io/solarized-css/*/
         html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.2em;}
+        .copy_button { background-color: #008CBA; border: none; color: white; }
 
         a {color: #b58900;}
         a:visited {color: #cb4b16;}
@@ -416,15 +428,15 @@
         td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
 
         /*https://www.runoob.com/css/css-tooltip.html*/
-        .tooltip { position: relative; display: inline-block; border-bottom: 1px dotted black; }
+        .tips { position: relative; display: inline-block; border-bottom: 1px dotted black; }
 
-        .tooltip .tooltiptext {
+        .tips .tips_text {
             visibility: hidden; display: inline-block; white-space: nowrap; background: #005959; border-radius: 6px; padding: 6px 6px;
             /* 定位 */
             position: absolute; z-index: 1; top: -5px;left: 105%;
         }
 
-        .tooltip:hover .tooltiptext { visibility: visible; }
+        .tips:hover .tips_text { visibility: visible; }
 
         #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
         #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}

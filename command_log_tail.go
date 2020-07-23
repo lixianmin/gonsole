@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"fmt"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/mathx"
 	"strconv"
@@ -38,6 +39,6 @@ func fetchLogTail(note string, texts []string, maxTailNum int) string {
 	}
 
 	var lines = tools.ReadFileTail(fullPath, num)
-	var message = strings.Join(lines, "<br/>")
+	var message = fmt.Sprintf("<br/> 返回行数：%d <br/>", len(lines)) + strings.Join(lines, "<br/>")
 	return message
 }
