@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/got/mathx"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -171,15 +172,21 @@ func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *ht
 		return
 	}
 
-	if start < 0 || start >= info.Size() || end < 0 || end >= info.Size() {
+	var fileSize = info.Size()
+	if start >= fileSize || start > end {
 		writer.WriteHeader(http.StatusBadRequest)
-		_, _ = writer.Write([]byte(fmt.Sprintf("out of index, length:%d", info.Size())))
+		_, _ = writer.Write([]byte(fmt.Sprintf("out of index, length:%d", fileSize)))
 		return
 	}
 
-	if end == 0 {
-		end = info.Size() - 1
+	// [-1, -1] 是请求最后一个字节
+	if start < 0 {
+		start = fileSize + start
+		end = fileSize + end
 	}
+
+	start = mathx.ClampInt64(start, 0, fileSize-1)
+	end = mathx.ClampInt64(end, start, fileSize-1)
 
 	var header = writer.Header()
 	header.Add("Accept-ranges", "bytes")
