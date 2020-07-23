@@ -1,0 +1,41 @@
+package gonsole
+
+import (
+	"github.com/lixianmin/gonsole/tools"
+	"strconv"
+	"strings"
+)
+
+/********************************************************************
+created:    2020-07-23
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
+func fetchLogTail(note string, texts []string) string {
+	if len(texts) == 1 {
+		return note
+	}
+
+	var fullPath = ""
+	var num = 20
+	var err error
+
+	if len(texts) == 2 {
+		fullPath = texts[1]
+	} else if len(texts) == 4 && texts[1] == "-n" {
+		num, err = strconv.Atoi(texts[2])
+		if err != nil {
+			return note
+		}
+
+		fullPath = texts[3]
+	} else {
+		return note
+	}
+
+	var lines = tools.ReadFileTail(fullPath, num)
+	var message = strings.Join(lines, "<br/>")
+	return message
+}

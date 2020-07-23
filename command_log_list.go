@@ -23,7 +23,7 @@ type LogFileInfo struct {
 	Sample  string `json:"sample"`
 }
 
-type CommandListLogFiles struct {
+type CommandLogList struct {
 	BasicResponse
 	LogFiles []LogFileInfo `json:"logFiles"`
 }
@@ -54,9 +54,9 @@ func readFileSample(filePath string, fileSize int64) string {
 	return sample
 }
 
-func newCommandListLogFiles(logRoot string) *CommandListLogFiles {
-	var bean = &CommandListLogFiles{}
-	bean.Operation = "listLogFiles"
+func newCommandLogList(logRoot string) *CommandLogList {
+	var bean = &CommandLogList{}
+	bean.Operation = "log.list"
 	bean.Timestamp = tools.GetTimestamp()
 
 	var logFiles = make([]LogFileInfo, 0, 4)

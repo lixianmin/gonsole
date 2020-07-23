@@ -249,10 +249,20 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "log.list",
-		Note:     "日志文件列表",
+		Note:     "获取日志文件列表",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newCommandListLogFiles(server.args.LogRoot))
+			client.SendBean(newCommandLogList(server.args.LogRoot))
+		},
+	})
+
+	const logTailNote = "获取日志文件最后部分：log.tail [-n num] filename"
+	server.RegisterCommand(&Command{
+		Name:     "log.tail",
+		Note:     logTailNote,
+		IsPublic: false,
+		Handler: func(client *Client, texts []string) {
+			client.SendHtml(fetchLogTail(logTailNote, texts))
 		},
 	})
 
@@ -284,15 +294,6 @@ func (server *Server) registerBuiltinCommands() {
 			client.SendBean(text)
 		},
 	})
-
-	//server.RegisterCommand(&Command{
-	//	Name:     "ping",
-	//	Note:     "Ping一下服务器是不是通的",
-	//	IsPublic: true,
-	//	Handler: func(client *Client, texts []string) {
-	//		client.SendBean(newBasicResponse("pong", ""))
-	//	},
-	//})
 }
 
 func (server *Server) registerBuiltinTopics() {
