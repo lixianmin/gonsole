@@ -139,6 +139,7 @@ func (server *Server) handleSha256Js(mux IServeMux) {
 	})
 }
 
+// 这个方法在gin中由于pattern不一样，需要被重写
 func (server *Server) handleLogFiles(mux IServeMux) {
 	var pattern = "/" + server.args.LogRoot + "/"
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
@@ -148,12 +149,12 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 		}
 
 		logFilePath = logFilePath[1:]
-		readFileByRange(logFilePath, writer, request)
+		RequestFileByRange(logFilePath, writer, request)
 	})
 }
 
 // https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/
-func readFileByRange(fullPath string, writer http.ResponseWriter, request *http.Request) {
+func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *http.Request) {
 	var start, end int64
 	_, _ = fmt.Sscanf(request.Header.Get("Range"), "bytes=%d-%d", &start, &end)
 	file, err := os.Open(fullPath)
