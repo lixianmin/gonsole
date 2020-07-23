@@ -19,16 +19,16 @@ func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
-		Port:                webPort,
-		TemplatePath:        "console.html",
-		UserPasswords:       map[string]string{"panda": "1029"},
-		IsDefaultAuthorized: true,
+		AutoLoginLimit: time.Second * 60,
+		Port:           webPort,
+		TemplatePath:   "console.html",
+		UserPasswords:  map[string]string{"panda": "1029"},
 	})
 
 	server.RegisterCommand(&gonsole.Command{
 		Name:     "hi",
 		Note:     "打印 hi console",
-		IsPublic: true,
+		IsPublic: false,
 		Handler: func(client *gonsole.Client, texts [] string) {
 			var bean struct {
 				Text string

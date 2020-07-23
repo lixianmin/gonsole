@@ -99,18 +99,21 @@ func (server *Server) registerHandlers(mux IServeMux) {
 }
 
 func (server *Server) handleConsolePage(mux IServeMux) {
-	var tmpl = template.Must(template.ParseFiles(server.args.TemplatePath))
-	var pattern = server.args.UrlRoot + "/console"
+	var args = server.args
+	var tmpl = template.Must(template.ParseFiles(args.TemplatePath))
+	var pattern = args.UrlRoot + "/console"
 
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var data struct {
-			Title         string
-			UrlRoot       string
-			WebsocketName string
+			AutoLoginLimit int64
+			Title          string
+			UrlRoot        string
+			WebsocketName  string
 		}
 
-		data.Title = server.args.Title
-		data.UrlRoot = server.args.UrlRoot
+		data.AutoLoginLimit = int64(args.AutoLoginLimit / time.Millisecond)
+		data.Title = args.Title
+		data.UrlRoot = args.UrlRoot
 		data.WebsocketName = websocketName
 		_ = tmpl.Execute(writer, data)
 	})

@@ -38,9 +38,8 @@
             const myHost = window.location.host + {{.UrlRoot}};
 
             // 将history存储到localStorage中
-            if (window.localStorage) {
+            if (localStorage) {
                 const key = "history";
-
                 const json = localStorage.getItem(key);
                 const jsonObj = JSON.parse(json);
                 if (jsonObj) {
@@ -123,6 +122,18 @@
                 return str
             }
 
+            function login(username, password) {
+                const key = "hey pet!";
+                const digest = sha256.hmac(key, password);
+
+                const bean = {
+                    op: "command",
+                    command: "auth " + username + " " + digest,
+                };
+
+                sendBean(bean);
+            }
+
             document.onkeydown = function (evt) {
                 if (!conn) {
                     return true;
@@ -182,15 +193,19 @@
                             inputBox.type = "text";
 
                             const password = texts[0];
-                            const key = "hey pet!";
-                            const digest = sha256.hmac(key, password);
+                            login(username, password);
 
-                            const bean = {
-                                op: "command",
-                                command: "auth " + username + " " + digest,
-                            };
+                            if (localStorage) {
+                                const key = "autoLoginUser";
+                                const item = {
+                                  username: username,
+                                  password: password,
+                                  expireTime: new Date().getTime() + {{.AutoLoginLimit}},
+                                };
 
-                            sendBean(bean);
+                                const data = JSON.stringify(item);
+                                localStorage.setItem(key, data);
+                            }
                         } else {
                             const bean = {
                                 op: "command",
@@ -243,6 +258,21 @@
                 }
 
                 return true;
+            };
+
+            handlers['challenge'] = function (obj) {
+                printWithTimestamp("<b>server响应：</b>" + JSON.stringify(obj));
+                println();
+
+                // 测试是否可以自动登录
+                if (localStorage) {
+                    const key = "autoLoginUser";
+                    const json = localStorage.getItem(key);
+                    const jsonObj = JSON.parse(json);
+                    if (jsonObj && new Date().getTime() < jsonObj.expireTime) {
+                        login(jsonObj.username, jsonObj.password);
+                    }
+                }
             };
 
             handlers["help"] = function (obj) {

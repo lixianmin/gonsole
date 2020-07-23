@@ -54,7 +54,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 		messageChan:   messageChan,
 		server:        server,
 		topics:        make(map[string]struct{}),
-		isAuthorized:  server.args.IsDefaultAuthorized,
+		isAuthorized:  false,
 	}
 
 	go client.goReadPump(conn, readChan)

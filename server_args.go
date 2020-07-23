@@ -18,14 +18,14 @@ type ServerArgs struct {
 	ReadBufferSize   int
 	WriteBufferSize  int
 
-	IsDefaultAuthorized bool              // client是否默认登录（用于DEV环境方便调试）
-	Logger              logo.ILogger      // 自定义日志对象，默认只输出到控制台
-	LogRoot             string            // 日志文件根目录
-	Port                int               // 服务端口
-	TemplatePath        string            // console.html模板文件的路径名
-	Title               string            // 网页的title
-	UrlRoot             string            // 项目目录，表现在url中
-	UserPasswords       map[string]string // 可以登陆的用户名与密码
+	AutoLoginLimit time.Duration     // 如果手动登录过，则在时限内自动登录
+	Logger         logo.ILogger      // 自定义日志对象，默认只输出到控制台
+	LogRoot        string            // 日志文件根目录
+	Port           int               // 服务端口
+	TemplatePath   string            // console.html模板文件的路径名
+	Title          string            // 网页的title
+	UrlRoot        string            // 项目目录，表现在url中
+	UserPasswords  map[string]string // 可以登陆的用户名与密码
 }
 
 func (args *ServerArgs) checkArgs() {
