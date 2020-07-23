@@ -2,6 +2,7 @@ package tools
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 )
@@ -81,7 +82,7 @@ func searchOffset(fin *os.File, num int) (int64, error) {
 		}
 
 		if n != int(stepSize) {
-			panic("faint!")
+			return 0, fmt.Errorf("n=%d, stepSize=%d", n, stepSize)
 		}
 
 		for j := n - 1; j >= 0; j-- {
