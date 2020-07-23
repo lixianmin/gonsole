@@ -249,7 +249,7 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "log.list",
-		Note:     "获取日志文件列表",
+		Note:     "日志文件列表",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newCommandLogList(server.args.LogRoot))
@@ -257,13 +257,13 @@ func (server *Server) registerBuiltinCommands() {
 	})
 
 	const maxTailNum = 1000
-	var logTailNote = fmt.Sprintf("获取日志文件最后部分：log.tail [-n num (<=%d)] filename", maxTailNum)
+	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] filename", maxTailNum)
 	server.RegisterCommand(&Command{
-		Name:     "log.tail",
-		Note:     logTailNote,
+		Name:     "tail",
+		Note:     tailNote,
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendHtml(fetchLogTail(logTailNote, texts, maxTailNum))
+			client.SendHtml(readTail(tailNote, texts, maxTailNum))
 		},
 	})
 
