@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/mathx"
 	"strconv"
 	"strings"
 )
@@ -13,7 +14,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func fetchLogTail(note string, texts []string) string {
+func fetchLogTail(note string, texts []string, maxTailNum int) string {
 	if len(texts) == 1 {
 		return note
 	}
@@ -30,6 +31,7 @@ func fetchLogTail(note string, texts []string) string {
 			return note
 		}
 
+		num = mathx.MinInt(num, maxTailNum)
 		fullPath = texts[3]
 	} else {
 		return note

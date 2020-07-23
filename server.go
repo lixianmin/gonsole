@@ -256,13 +256,14 @@ func (server *Server) registerBuiltinCommands() {
 		},
 	})
 
-	const logTailNote = "获取日志文件最后部分：log.tail [-n num] filename"
+	const maxTailNum = 1000
+	var logTailNote = fmt.Sprintf("获取日志文件最后部分：log.tail [-n num (<=%d)] filename", maxTailNum)
 	server.RegisterCommand(&Command{
 		Name:     "log.tail",
 		Note:     logTailNote,
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendHtml(fetchLogTail(logTailNote, texts))
+			client.SendHtml(fetchLogTail(logTailNote, texts, maxTailNum))
 		},
 	})
 
