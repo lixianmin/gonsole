@@ -241,7 +241,7 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "auth",
-		Note:     "认证后开启更多命令：auth username password",
+		Note:     "认证后开启更多命令：auth username，然后根据提示输入password",
 		IsPublic: true,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newCommandAuth(client, texts, server.args.UserPasswords))
