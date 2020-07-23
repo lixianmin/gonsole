@@ -419,17 +419,9 @@
         .tooltip { position: relative; display: inline-block; border-bottom: 1px dotted black; }
 
         .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 1000px;
-            background: #005959;
-            border-radius: 6px;
-            padding: 6px 6px;
-
+            visibility: hidden; display: inline-block; white-space: nowrap; background: #005959; border-radius: 6px; padding: 6px 6px;
             /* 定位 */
-            position: absolute;
-            z-index: 1;
-            top: -5px;
-            left: 105%;
+            position: absolute; z-index: 1; top: -5px;left: 105%;
         }
 
         .tooltip:hover .tooltiptext { visibility: visible; }
