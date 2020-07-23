@@ -278,7 +278,7 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:     "top",
-		Note:     "返回进程统计信息",
+		Note:     "打印进程统计信息",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
 			client.SendBean(newTopicTop())
