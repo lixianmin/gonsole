@@ -316,11 +316,11 @@
                     const fi = logFiles[i];
                     totalSize += fi.size;
                     let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = "<tr><td>" + sizeText + "</td><td><a href=\"" + host + "/" + fi.path + "\">" + fi.path + "</a></li></td>";
+                    links[i] = `<tr> <td>${i+1}</td> <td>${sizeText}</td> <td><a href="${host}/${fi.path}">${fi.path}</a></td> <td>${fi.mod_time}</td> </tr>`;
                 }
 
                 let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-                result += "<table> <tr><th>Size</th><th>Name</th></tr>" + links.join("") + "</table>";
+                result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
                 printWithTimestamp(result);
                 println();
             };
