@@ -92,7 +92,7 @@ func writeTableHead(sb *strings.Builder, item reflect.Value) int {
 		var field = itemType.Field(i)
 		sb.WriteString("<th>")
 		sb.WriteString(field.Name)
-		sb.WriteString("<th/>")
+		sb.WriteString("</th>")
 	}
 
 	sb.WriteString("</tr>")
