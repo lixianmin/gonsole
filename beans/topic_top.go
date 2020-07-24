@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"fmt"
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
 	"github.com/shirou/gopsutil/cpu"
@@ -19,7 +20,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TopicTop struct {
-	BasicResponse
+	beans.BasicResponse
 	UpTime       string `json:"uptime"`
 	NumGoroutine int    `json:"numGoroutine"`
 	CpuUsage     string `json:"cpu"`

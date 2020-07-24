@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"sort"
 	"strings"
@@ -14,12 +15,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type HintRequest struct {
-	BasicRequest
+	beans.BasicRequest
 	Head string `json:"head"`
 }
 
 type HintResponse struct {
-	BasicResponse
+	beans.BasicResponse
 	Hints []string `json:"hints"`
 }
 

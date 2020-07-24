@@ -1,4 +1,4 @@
-package gonsole
+package beans
 
 /********************************************************************
 created:    2019-11-16
@@ -22,6 +22,6 @@ func newSubscribeRe(requestId string, topicId string) *SubscribeRe {
 		TopicId: topicId,
 	}
 
-	res.BasicResponse = *newBasicResponse("subscribeRe", requestId)
+	res.BasicResponse = *NewBasicResponse("subscribeRe", requestId)
 	return res
 }

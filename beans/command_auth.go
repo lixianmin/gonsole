@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 )
 
@@ -12,11 +13,11 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandAuth struct {
-	BasicResponse
+	beans.BasicResponse
 	Text string `json:"text"`
 }
 
-func newCommandAuth(client *Client, texts []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(client *Client, texts []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
 	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()

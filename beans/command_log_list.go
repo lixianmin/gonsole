@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"bufio"
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/timex"
 	"os"
@@ -24,7 +25,7 @@ type LogFileInfo struct {
 }
 
 type CommandLogList struct {
-	BasicResponse
+	beans.BasicResponse
 	LogFiles []LogFileInfo `json:"logFiles"`
 }
 

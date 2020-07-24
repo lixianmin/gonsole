@@ -1,13 +1,18 @@
 package gonsole
 
+import "github.com/lixianmin/gonsole/beans"
+
 /********************************************************************
-created:    2020-07-22
+created:    2020-07-20
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type HtmlResponse struct {
-	BasicResponse
-	Html string `json:"html"`
+type Ping struct {
+	beans.BasicRequest
+}
+
+type Pong struct {
+	beans.BasicResponse
 }

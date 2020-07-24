@@ -1,15 +1,15 @@
 package gonsole
 
-import (
-	"time"
-)
+import "github.com/lixianmin/gonsole/beans"
 
 /********************************************************************
-created:    2020-06-03
+created:    2019-11-16
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-// 进程启动的时间
-var startProcessTime = time.Now()
+type CommandRequest struct {
+	beans.BasicRequest
+	Command string `json:"command"`
+}

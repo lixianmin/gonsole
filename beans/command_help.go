@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"sort"
 )
@@ -13,7 +14,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandHelp struct {
-	BasicResponse
+	beans.BasicResponse
 	Commands [][]string `json:"commands"`
 	Topics   [][]string `json:"topics"`
 }

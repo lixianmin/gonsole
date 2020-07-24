@@ -1,5 +1,7 @@
 package gonsole
 
+import "github.com/lixianmin/gonsole/beans"
+
 /********************************************************************
 created:    2019-11-16
 author:     lixianmin
@@ -8,12 +10,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Unsubscribe struct {
-	BasicRequest
+	beans.BasicRequest
 	TopicId string `json:"topic"`
 }
 
 type UnsubscribeRe struct {
-	BasicResponse
+	beans.BasicResponse
 	TopicId string `json:"topic"`
 }
 
@@ -22,6 +24,6 @@ func newUnsubscribeRe(requestId string, topicId string) *UnsubscribeRe {
 		TopicId: topicId,
 	}
 
-	res.BasicResponse = *newBasicResponse("unsubscribeRe", requestId)
+	res.BasicResponse = *beans.NewBasicResponse("unsubscribeRe", requestId)
 	return res
 }
