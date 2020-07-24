@@ -3,6 +3,7 @@ package gonsole
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/got/loom"
 	"time"
@@ -23,7 +24,7 @@ Copyright (C) - All Rights Reserved
 		goroutine中调用，因此pingTicker只能放到goWritePump()中, https://godoc.org/github.com/gorilla/websocket#hdr-Concurrency
 	4.
 */
-func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
+func (client *Client) goWritePump(conn *websocket.Conn, readChan chan ifs.Bean) {
 	defer loom.DumpIfPanic()
 
 	var pingTicker = time.NewTicker(pingPeriod)
@@ -65,7 +66,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan IBean) {
 	}
 }
 
-func (client *Client) writeOneBean(conn *websocket.Conn, pushBean IBean) {
+func (client *Client) writeOneBean(conn *websocket.Conn, pushBean ifs.Bean) {
 	var jsonBytes, err = json.Marshal(pushBean)
 	if nil != err {
 		logger.Error("[writeOneBean()] Failed to Marshal pushBean=%v, err=%s", pushBean, err)

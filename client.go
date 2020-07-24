@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
@@ -45,7 +46,7 @@ type Client struct {
 // newClient 创建一个新的client对象
 func newClient(server *Server, conn *websocket.Conn) *Client {
 	const chanSize = 8
-	var readChan = make(chan IBean, chanSize)
+	var readChan = make(chan ifs.Bean, chanSize)
 	var messageChan = make(chan IMessage, chanSize)
 
 	var client = &Client{
@@ -64,7 +65,7 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 	return client
 }
 
-func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
+func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- ifs.Bean) {
 	defer loom.DumpIfPanic()
 
 	const maxMessageSize = 65536
@@ -132,7 +133,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 		发送数据到writeChan，但是由于生产者、消费者由同一个loop处理，导致在生产的过程中无法同时消费，因此导致了deadlock
 	2.因为是主循环，所以相关的容器类会放到这里，比如topics
 */
-func (client *Client) goLoop(readChan <-chan IBean) {
+func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 	defer loom.DumpIfPanic()
 	// 本client订阅的topic列表
 	var messageChan <-chan IMessage = client.messageChan

@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 )
 
 /********************************************************************
@@ -11,22 +12,22 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var beanCreators = map[string]func() IBean{}
+var beanCreators = map[string]func() ifs.Bean{}
 
 func init() {
 	registerBeanCreators()
 }
 
 func registerBeanCreators() {
-	beanCreators["challenge"] = func() IBean { return &beans.Challenge{} }
-	beanCreators["command"] = func() IBean { return &beans.CommandRequest{} }
-	beanCreators["hint"] = func() IBean { return &beans.HintRequest{} }
-	beanCreators["ping"] = func() IBean { return &beans.Ping{} }
-	beanCreators["sub"] = func() IBean { return &beans.Subscribe{} }
-	beanCreators["unsub"] = func() IBean { return &beans.Unsubscribe{} }
+	beanCreators["challenge"] = func() ifs.Bean { return &beans.Challenge{} }
+	beanCreators["command"] = func() ifs.Bean { return &beans.CommandRequest{} }
+	beanCreators["hint"] = func() ifs.Bean { return &beans.HintRequest{} }
+	beanCreators["ping"] = func() ifs.Bean { return &beans.Ping{} }
+	beanCreators["sub"] = func() ifs.Bean { return &beans.Subscribe{} }
+	beanCreators["unsub"] = func() ifs.Bean { return &beans.Unsubscribe{} }
 }
 
-func createBean(beanType string) IBean {
+func createBean(beanType string) ifs.Bean {
 	var creator, ok = beanCreators[beanType]
 	if ok {
 		var bean = creator()

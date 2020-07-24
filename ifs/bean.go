@@ -1,19 +1,11 @@
-package gonsole
-
-import "net/http"
+package ifs
 
 /********************************************************************
-created:    2020-06-03
+created:    2020-07-24
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-
-
-type IMessage interface {
-}
-
-type IServeMux interface {
-	HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request))
+type Bean interface {
 }
