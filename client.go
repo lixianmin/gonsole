@@ -35,7 +35,7 @@ type Client struct {
 	wc             *loom.WaitClose
 	remoteAddress  string
 	writeChan      chan []byte
-	messageChan    chan IMessage
+	messageChan    chan ifs.IMessage
 	server         *Server
 	topics         map[string]struct{}
 	isAuthorized   bool
@@ -47,7 +47,7 @@ type Client struct {
 func newClient(server *Server, conn *websocket.Conn) *Client {
 	const chanSize = 8
 	var readChan = make(chan ifs.Bean, chanSize)
-	var messageChan = make(chan IMessage, chanSize)
+	var messageChan = make(chan ifs.IMessage, chanSize)
 
 	var client = &Client{
 		wc:            loom.NewWaitClose(),
@@ -136,7 +136,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- ifs.Bean)
 func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 	defer loom.DumpIfPanic()
 	// 本client订阅的topic列表
-	var messageChan <-chan IMessage = client.messageChan
+	var messageChan <-chan ifs.IMessage = client.messageChan
 
 	for {
 		select {
@@ -270,7 +270,7 @@ func (client *Client) OnClose(handler func()) {
 	client.onCloseHandler = handler
 }
 
-func (client *Client) sendMessage(msg IMessage) {
+func (client *Client) sendMessage(msg ifs.IMessage) {
 	select {
 	case client.messageChan <- msg:
 	case <-client.wc.CloseChan:

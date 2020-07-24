@@ -31,7 +31,7 @@ type Server struct {
 	args        ServerArgs
 	gpid        string
 	upgrader    *websocket.Upgrader
-	messageChan chan IMessage
+	messageChan chan ifs.IMessage
 
 	commands sync.Map
 	topics   sync.Map
@@ -51,7 +51,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	// todo: 不应该无条件的接受CheckOrigin
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-	var messageChan = make(chan IMessage, 32)
+	var messageChan = make(chan ifs.IMessage, 32)
 	var server = &Server{
 		args:        args,
 		gpid:        tools.GetGPID(args.Port),
@@ -70,7 +70,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 
 func (server *Server) goLoop() {
 	defer loom.DumpIfPanic()
-	var messageChan <-chan IMessage = server.messageChan
+	var messageChan <-chan ifs.IMessage = server.messageChan
 
 	// 注册的client列表
 	var clients = make(map[*Client]struct{}, 16)
@@ -372,7 +372,7 @@ func (server *Server) getTopics() []ifs.Topic {
 	return list
 }
 
-func (server *Server) sendMessage(msg IMessage) {
+func (server *Server) sendMessage(msg ifs.IMessage) {
 	server.messageChan <- msg
 }
 
