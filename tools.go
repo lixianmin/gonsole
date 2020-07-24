@@ -40,6 +40,7 @@ func ToHtmlTable(list interface{}) string {
 	var numField = writeTableHead(&sb, listValue.Index(0))
 	for i := 0; i < count; i++ {
 		var item = listValue.Index(i)
+		item = reflect.Indirect(item)
 		sb.WriteString("<tr>")
 
 		// 写入序号
@@ -86,6 +87,7 @@ func writeTableHead(sb *strings.Builder, item reflect.Value) int {
 	sb.WriteString("<tr> <th></th>")
 
 	// 每一列的名字
+	item = reflect.Indirect(item)
 	var itemType = item.Type()
 	var numField = itemType.NumField()
 	for i := 0; i < numField; i++ {
