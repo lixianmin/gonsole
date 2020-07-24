@@ -107,7 +107,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- ifs.Bean)
 			continue
 		}
 
-		var bean = createBean(basicBean.Operation)
+		var bean = beans.CreateBean(basicBean.Operation)
 		if bean == nil {
 			logger.Warn("[goReadPump(%q)] Invalid bean.Operation=", client.GetRemoteAddress(), basicBean.Operation)
 			continue
