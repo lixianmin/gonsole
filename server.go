@@ -274,7 +274,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     "历史命令列表",
 		IsPublic: true,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(beans.NewBasicResponse("listHistoryCommands", ""))
+			client.SendBean(beans.NewBasicResponse("history", ""))
 		},
 	})
 

@@ -39,6 +39,6 @@ func ReadTail(note string, texts []string, maxTailNum int) string {
 	}
 
 	var lines = tools.ReadFileTail(fullPath, num)
-	var message = fmt.Sprintf("<br/> 返回行数：%d <br/>", len(lines)) + strings.Join(lines, "<br/>")
+	var message = fmt.Sprintf("<br> 返回行数：%d <br>", len(lines)) + strings.Join(lines, "<br>")
 	return message
 }
