@@ -1,7 +1,7 @@
-package gonsole
+package beans
 
 import (
-	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 	"sort"
 	"strings"
@@ -15,16 +15,16 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type HintRequest struct {
-	beans.BasicRequest
+	BasicRequest
 	Head string `json:"head"`
 }
 
 type HintResponse struct {
-	beans.BasicResponse
+	BasicResponse
 	Hints []string `json:"hints"`
 }
 
-func newHintResponse(head string, commands []*Command, isAuthorized bool) *HintResponse {
+func NewHintResponse(head string, commands []ifs.Command, isAuthorized bool) *HintResponse {
 	var bean = &HintResponse{}
 	bean.Operation = "hintResponse"
 	bean.Timestamp = tools.GetTimestamp()
@@ -32,8 +32,8 @@ func newHintResponse(head string, commands []*Command, isAuthorized bool) *HintR
 	head = strings.TrimSpace(head)
 	var hints = make([]string, 0, len(commands))
 	for _, cmd := range commands {
-		if (isAuthorized || cmd.IsPublic) && strings.HasPrefix(cmd.Name, head) {
-			hints = append(hints, cmd.Name)
+		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
+			hints = append(hints, cmd.GetName())
 		}
 	}
 

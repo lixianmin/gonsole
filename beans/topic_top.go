@@ -1,8 +1,7 @@
-package gonsole
+package beans
 
 import (
 	"fmt"
-	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
 	"github.com/shirou/gopsutil/cpu"
@@ -20,7 +19,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TopicTop struct {
-	beans.BasicResponse
+	BasicResponse
 	UpTime       string `json:"uptime"`
 	NumGoroutine int    `json:"numGoroutine"`
 	CpuUsage     string `json:"cpu"`
@@ -30,7 +29,7 @@ type TopicTop struct {
 	NumGC        uint32 `json:"numGC"`
 }
 
-func newTopicTop() *TopicTop {
+func NewTopicTop() *TopicTop {
 	var bean = &TopicTop{}
 	bean.Operation = "top"
 	bean.Timestamp = tools.GetTimestamp()

@@ -1,4 +1,4 @@
-package gonsole
+package beans
 
 import (
 	"github.com/lixianmin/gonsole/tools"
@@ -20,7 +20,7 @@ type Challenge struct {
 	UpTime              string `json:"uptime"`
 }
 
-func newChallenge(gpid string, clientRemoteAddress string) *Challenge {
+func NewChallenge(gpid string, clientRemoteAddress string) *Challenge {
 	var uptime = time.Now().Sub(startProcessTime)
 	var bean = &Challenge{
 		Operation:           "challenge",

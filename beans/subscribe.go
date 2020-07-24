@@ -17,7 +17,7 @@ type SubscribeRe struct {
 	TopicId string `json:"topic"`
 }
 
-func newSubscribeRe(requestId string, topicId string) *SubscribeRe {
+func NewSubscribeRe(requestId string, topicId string) *SubscribeRe {
 	var res = &SubscribeRe{
 		TopicId: topicId,
 	}

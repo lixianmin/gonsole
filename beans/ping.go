@@ -1,6 +1,4 @@
-package gonsole
-
-import "github.com/lixianmin/gonsole/beans"
+package beans
 
 /********************************************************************
 created:    2020-07-20
@@ -10,9 +8,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Ping struct {
-	beans.BasicRequest
+	BasicRequest
 }
 
 type Pong struct {
-	beans.BasicResponse
+	BasicResponse
 }

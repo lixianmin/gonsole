@@ -1,7 +1,7 @@
-package gonsole
+package beans
 
 import (
-	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 	"sort"
 )
@@ -14,19 +14,19 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandHelp struct {
-	beans.BasicResponse
+	BasicResponse
 	Commands [][]string `json:"commands"`
 	Topics   [][]string `json:"topics"`
 }
 
-func getHelpCommands(commands []*Command, isAuthorized bool) []*Command {
+func getHelpCommands(commands []ifs.Command, isAuthorized bool) []ifs.Command {
 	if isAuthorized {
 		return commands
 	}
 
-	var publicCommands = make([]*Command, 0, 4)
+	var publicCommands = make([]ifs.Command, 0, 4)
 	for _, cmd := range commands {
-		if cmd.IsPublic {
+		if cmd.CheckPublic() {
 			publicCommands = append(publicCommands, cmd)
 		}
 	}
@@ -34,14 +34,14 @@ func getHelpCommands(commands []*Command, isAuthorized bool) []*Command {
 	return publicCommands
 }
 
-func getHelpTopics(topics []*Topic, isAuthorized bool) []*Topic {
+func getHelpTopics(topics []ifs.Topic, isAuthorized bool) []ifs.Topic {
 	if isAuthorized {
 		return topics
 	}
 
-	var publicTopics = make([]*Topic, 0, 4)
+	var publicTopics = make([]ifs.Topic, 0, 4)
 	for _, topic := range topics {
-		if topic.IsPublic {
+		if topic.CheckPublic() {
 			publicTopics = append(publicTopics, topic)
 		}
 	}
@@ -49,7 +49,7 @@ func getHelpTopics(topics []*Topic, isAuthorized bool) []*Topic {
 	return publicTopics
 }
 
-func newCommandHelp(commands []*Command, topics []*Topic, isAuthorized bool) *CommandHelp {
+func NewCommandHelp(commands []ifs.Command, topics []ifs.Topic, isAuthorized bool) *CommandHelp {
 	var bean = &CommandHelp{}
 	bean.Operation = "help"
 	bean.Timestamp = tools.GetTimestamp()
@@ -61,7 +61,7 @@ func newCommandHelp(commands []*Command, topics []*Topic, isAuthorized bool) *Co
 	{
 		// 排序
 		sort.Slice(commands, func(i, j int) bool {
-			return commands[i].Name < commands[j].Name
+			return commands[i].GetName() < commands[j].GetName()
 		})
 
 		var list = make([][]string, 0, len(commands)+2)
@@ -70,7 +70,7 @@ func newCommandHelp(commands []*Command, topics []*Topic, isAuthorized bool) *Co
 
 		for i := 0; i < len(commands); i++ {
 			var item = commands[i]
-			list = append(list, []string{item.Name, item.Note})
+			list = append(list, []string{item.GetName(), item.GetNote()})
 		}
 
 		bean.Commands = list
@@ -80,13 +80,13 @@ func newCommandHelp(commands []*Command, topics []*Topic, isAuthorized bool) *Co
 	{
 		// 排序
 		sort.Slice(topics, func(i, j int) bool {
-			return topics[i].Name < topics[j].Name
+			return topics[i].GetName() < topics[j].GetName()
 		})
 
 		var list = make([][]string, 0, len(topics))
 		for i := 0; i < len(topics); i++ {
 			var item = topics[i]
-			list = append(list, []string{item.Name, item.Note})
+			list = append(list, []string{item.GetName(), item.GetNote()})
 		}
 
 		bean.Topics = list

@@ -15,7 +15,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func readTail(note string, texts []string, maxTailNum int) string {
+func ReadTail(note string, texts []string, maxTailNum int) string {
 	if len(texts) == 1 {
 		return note
 	}

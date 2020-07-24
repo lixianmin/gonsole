@@ -57,3 +57,15 @@ func (topic *Topic) removeClient(client *Client) {
 		topic.clients.Delete(client)
 	}
 }
+
+func (topic *Topic) GetName() string {
+	return topic.Name
+}
+
+func (topic *Topic) GetNote() string {
+	return topic.Note
+}
+
+func (topic *Topic) CheckPublic() bool {
+	return topic.IsPublic
+}

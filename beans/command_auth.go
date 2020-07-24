@@ -1,7 +1,7 @@
-package gonsole
+package beans
 
 import (
-	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 )
 
@@ -13,11 +13,11 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandAuth struct {
-	beans.BasicResponse
+	BasicResponse
 	Text string `json:"text"`
 }
 
-func NewCommandAuth(client *Client, texts []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(client ifs.Client, texts []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
 	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()
@@ -31,11 +31,11 @@ func NewCommandAuth(client *Client, texts []string, userPasswords map[string]str
 	var password = texts[2]
 	if password1, ok := userPasswords[username]; !ok || password1 != password {
 		bean.Text = "用户名或密码错误"
-		client.isAuthorized = false
+		client.SetAuthorized(false)
 		return bean
 	}
 
 	bean.Text = "验证成功"
-	client.isAuthorized = true
+	client.SetAuthorized(true)
 	return bean
 }

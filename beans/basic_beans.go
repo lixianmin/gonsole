@@ -1,4 +1,4 @@
-package gonsole
+package beans
 
 import "github.com/lixianmin/gonsole/tools"
 

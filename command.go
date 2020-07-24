@@ -13,3 +13,15 @@ type Command struct {
 	IsPublic bool                                  // 非public方法需要登陆
 	Handler  func(client *Client, texts [] string) // 处理方法
 }
+
+func (cmd *Command) GetName() string {
+	return cmd.Name
+}
+
+func (cmd *Command) GetNote() string {
+	return cmd.Note
+}
+
+func (cmd *Command) CheckPublic() bool {
+	return cmd.IsPublic
+}

@@ -1,6 +1,4 @@
-package gonsole
-
-import "github.com/lixianmin/gonsole/beans"
+package beans
 
 /********************************************************************
 created:    2019-11-16
@@ -10,6 +8,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandRequest struct {
-	beans.BasicRequest
+	BasicRequest
 	Command string `json:"command"`
 }

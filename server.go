@@ -3,6 +3,8 @@ package gonsole
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
@@ -81,7 +83,7 @@ func (server *Server) goLoop() {
 				clients[client] = struct{}{}
 
 				var remoteAddress = client.GetRemoteAddress()
-				client.SendBean(newChallenge(server.gpid, remoteAddress))
+				client.SendBean(beans.NewChallenge(server.gpid, remoteAddress))
 				logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 			case DetachClient:
 				delete(clients, msg.Client)
@@ -236,7 +238,7 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, texts []string) {
 			var commands = server.getCommands()
 			var topics = server.getTopics()
-			client.SendBean(newCommandHelp(commands, topics, client.isAuthorized))
+			client.SendBean(beans.NewCommandHelp(commands, topics, client.isAuthorized))
 		}})
 
 	server.RegisterCommand(&Command{
@@ -244,7 +246,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     "认证后开启更多命令：auth username，然后根据提示输入password",
 		IsPublic: true,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newCommandAuth(client, texts, server.args.UserPasswords))
+			client.SendBean(beans.NewCommandAuth(client, texts, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
@@ -252,7 +254,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     "日志文件列表",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newCommandLogList(server.args.LogRoot))
+			client.SendBean(beans.NewCommandLogList(server.args.LogRoot))
 		},
 	})
 
@@ -263,7 +265,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     tailNote,
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendHtml(readTail(tailNote, texts, maxTailNum))
+			client.SendHtml(beans.ReadTail(tailNote, texts, maxTailNum))
 		},
 	})
 
@@ -272,7 +274,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     "历史命令列表",
 		IsPublic: true,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newBasicResponse("listHistoryCommands", ""))
+			client.SendBean(beans.NewBasicResponse("listHistoryCommands", ""))
 		},
 	})
 
@@ -281,7 +283,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:     "打印进程统计信息",
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendBean(newTopicTop())
+			client.SendBean(beans.NewTopicTop())
 		},
 	})
 
@@ -305,7 +307,7 @@ func (server *Server) registerBuiltinTopics() {
 		Interval: intervalSeconds * time.Second,
 		IsPublic: false,
 		BuildData: func() interface{} {
-			return newTopicTop()
+			return beans.NewTopicTop()
 		}})
 }
 
@@ -332,8 +334,8 @@ func (server *Server) getCommand(name string) *Command {
 	return nil
 }
 
-func (server *Server) getCommands() []*Command {
-	var list []*Command
+func (server *Server) getCommands() []ifs.Command {
+	var list []ifs.Command
 	server.commands.Range(func(key, value interface{}) bool {
 		var cmd, ok = value.(*Command)
 		if ok {
@@ -356,8 +358,8 @@ func (server *Server) getTopic(name string) *Topic {
 	return nil
 }
 
-func (server *Server) getTopics() []*Topic {
-	var list []*Topic
+func (server *Server) getTopics() []ifs.Topic {
+	var list []ifs.Topic
 	server.topics.Range(func(key, value interface{}) bool {
 		var topic, ok = value.(*Topic)
 		if ok {

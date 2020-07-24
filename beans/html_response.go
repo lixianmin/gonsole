@@ -1,6 +1,4 @@
-package gonsole
-
-import "github.com/lixianmin/gonsole/beans"
+package beans
 
 /********************************************************************
 created:    2020-07-22
@@ -10,6 +8,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type HtmlResponse struct {
-	beans.BasicResponse
+	BasicResponse
 	Html string `json:"html"`
 }

@@ -1,5 +1,9 @@
 package gonsole
 
+import (
+	"github.com/lixianmin/gonsole/beans"
+)
+
 /********************************************************************
 created:    2019-11-16
 author:     lixianmin
@@ -14,12 +18,12 @@ func init() {
 }
 
 func registerBeanCreators() {
-	beanCreators["challenge"] = func() IBean { return &Challenge{} }
-	beanCreators["command"] = func() IBean { return &CommandRequest{} }
-	beanCreators["hint"] = func() IBean { return &HintRequest{} }
-	beanCreators["ping"] = func() IBean { return &Ping{} }
-	beanCreators["sub"] = func() IBean { return &Subscribe{} }
-	beanCreators["unsub"] = func() IBean { return &Unsubscribe{} }
+	beanCreators["challenge"] = func() IBean { return &beans.Challenge{} }
+	beanCreators["command"] = func() IBean { return &beans.CommandRequest{} }
+	beanCreators["hint"] = func() IBean { return &beans.HintRequest{} }
+	beanCreators["ping"] = func() IBean { return &beans.Ping{} }
+	beanCreators["sub"] = func() IBean { return &beans.Subscribe{} }
+	beanCreators["unsub"] = func() IBean { return &beans.Unsubscribe{} }
 }
 
 func createBean(beanType string) IBean {

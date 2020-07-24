@@ -1,8 +1,7 @@
-package gonsole
+package beans
 
 import (
 	"bufio"
-	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/timex"
 	"os"
@@ -25,7 +24,7 @@ type LogFileInfo struct {
 }
 
 type CommandLogList struct {
-	beans.BasicResponse
+	BasicResponse
 	LogFiles []LogFileInfo `json:"logFiles"`
 }
 
@@ -55,7 +54,7 @@ func readFileSample(filePath string, fileSize int64) string {
 	return sample
 }
 
-func newCommandLogList(logRoot string) *CommandLogList {
+func NewCommandLogList(logRoot string) *CommandLogList {
 	var bean = &CommandLogList{}
 	bean.Operation = "log.list"
 	bean.Timestamp = tools.GetTimestamp()

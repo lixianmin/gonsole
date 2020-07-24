@@ -3,6 +3,7 @@ package gonsole
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
@@ -98,7 +99,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- IBean) {
 		// 只要读到消息了，就可以重置readDeadline
 		_ = conn.SetReadDeadline(time.Now().Add(readDeadline))
 
-		var basicBean = BasicRequest{}
+		var basicBean = beans.BasicRequest{}
 		err = json.Unmarshal(message, &basicBean)
 		if err != nil {
 			logger.Warn("[goReadPump(%q)] Invalid message, err=%q, message=%q", client.GetRemoteAddress(), err, message)
@@ -140,16 +141,16 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 		select {
 		case bean := <-readChan:
 			switch bean := bean.(type) {
-			case *Subscribe:
+			case *beans.Subscribe:
 				loopClientSubscribe(client, bean)
-			case *Unsubscribe:
+			case *beans.Unsubscribe:
 				loopClientUnsubscribe(client, bean)
-			case *CommandRequest:
+			case *beans.CommandRequest:
 				loopClientCommandRequest(client, bean.RequestId, bean.Command)
-			case *HintRequest:
-				client.SendBean(newHintResponse(bean.Head, client.server.getCommands(), client.isAuthorized))
-			case *Ping:
-				var pong = &Pong{BasicResponse{Operation: "pong"}}
+			case *beans.HintRequest:
+				client.SendBean(beans.NewHintResponse(bean.Head, client.server.getCommands(), client.isAuthorized))
+			case *beans.Ping:
+				var pong = &beans.Pong{beans.BasicResponse{Operation: "pong"}}
 				client.SendBean(pong)
 			default:
 				logger.Error("unexpected bean type: %T", bean)
@@ -168,42 +169,42 @@ func (client *Client) goLoop(readChan <-chan IBean) {
 	}
 }
 
-func loopClientSubscribe(client *Client, bean *Subscribe) {
+func loopClientSubscribe(client *Client, bean *beans.Subscribe) {
 	var topicId = bean.TopicId
 	var topic = client.server.getTopic(topicId)
 	if topic == nil || !(topic.IsPublic || client.isAuthorized) {
-		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
+		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
 		return
 	}
 
 	if _, ok := client.topics[topicId]; ok {
-		client.SendBean(newBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
+		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
 		return
 	}
 
 	topic.addClient(client)
 	client.topics[topicId] = struct{}{}
-	client.SendBean(newSubscribeRe(bean.RequestId, topicId))
+	client.SendBean(beans.NewSubscribeRe(bean.RequestId, topicId))
 	//client.SendBean(topic.BuildData())
 }
 
-func loopClientUnsubscribe(client *Client, bean *Unsubscribe) {
+func loopClientUnsubscribe(client *Client, bean *beans.Unsubscribe) {
 	var topicId = bean.TopicId
 
 	var topic = client.server.getTopic(topicId)
 	if topic == nil {
-		client.SendBean(newBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
+		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
 		return
 	}
 
 	if _, ok := client.topics[topicId]; !ok {
-		client.SendBean(newBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
+		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
 		return
 	}
 
 	topic.removeClient(client)
 	delete(client.topics, topicId)
-	client.SendBean(newUnsubscribeRe(bean.RequestId, topicId))
+	client.SendBean(beans.NewUnsubscribeRe(bean.RequestId, topicId))
 }
 
 func loopClientCommandRequest(client *Client, requestId string, command string) {
@@ -221,7 +222,7 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 
 		cmd.Handler(client, texts)
 	} else {
-		client.SendBean(newBadRequestRe(requestId, InternalError, command))
+		client.SendBean(beans.NewBadRequestRe(requestId, InternalError, command))
 	}
 }
 
@@ -234,8 +235,8 @@ func (client *Client) innerSendBytes(data []byte) {
 }
 
 func (client *Client) SendHtml(html string) {
-	var bean = HtmlResponse{
-		BasicResponse: BasicResponse{
+	var bean = beans.HtmlResponse{
+		BasicResponse: beans.BasicResponse{
 			Operation: "html",
 		},
 		Html: html,
@@ -258,6 +259,10 @@ func (client *Client) SendBean(bean interface{}) {
 			logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
 		}
 	}
+}
+
+func (client *Client) SetAuthorized(b bool) {
+	client.isAuthorized = b
 }
 
 func (client *Client) OnClose(handler func()) {
