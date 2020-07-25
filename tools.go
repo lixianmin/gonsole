@@ -37,12 +37,13 @@ func ToHtmlTable(data interface{}) string {
 func toHtmlTableStruct(item reflect.Value) string {
 	var sb strings.Builder
 	sb.Grow(256)
+	
 	sb.WriteString("<table><tr>")
-
 	var numField = writeTableHead(&sb, item)
+
+	sb.WriteString("<tr>")
 	for j := 0; j < numField; j++ {
 		var field = item.Field(j)
-		sb.WriteString("<tr>")
 		writeTableData(&sb, field)
 	}
 
