@@ -22,13 +22,19 @@
 
 ##### 01 帮助中心 help
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/help.png?raw=true"  style="zoom:60%" />
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/help.png?raw=true"  style="zoom:50%" />
 
 
 
 ##### 02 日志列表 log.list
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/log.list.png?raw=true"  style="zoom:60%" />
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/log.list.png?raw=true"  style="zoom:50%" />
+
+
+
+##### 03 命令输入框
+
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/inputbox.png?raw=true"  style="zoom:50%" />
 
 
 
@@ -49,10 +55,10 @@ func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
-		AutoLoginLimit: time.Hour,							// 一小时内不需要重新认证
-		Port:           webPort,							// webserver端口
-		TemplatePath:   "console.html",						// 页面文件模板
-		UserPasswords:  map[string]string{"panda": "1984"},	// 认证使用的用户名密码
+		AutoLoginLimit: time.Hour,                          // 一小时内不需要重新认证
+		Port:           webPort,                            // webserver端口
+		TemplatePath:   "console.html",                     // 页面文件模板
+		UserPasswords:  map[string]string{"panda": "1984"}, // 认证使用的用户名密码
 	})
 
 	server.RegisterCommand(&gonsole.Command{
