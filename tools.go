@@ -37,14 +37,9 @@ func ToHtmlTable(data interface{}) string {
 func toHtmlTableStruct(item reflect.Value) string {
 	var sb strings.Builder
 	sb.Grow(256)
-	sb.WriteString("<table>")
+	sb.WriteString("<table><tr>")
 
 	var numField = writeTableHead(&sb, item)
-	sb.WriteString("<tr>")
-
-	// 写入序号
-	sb.WriteString("<td>1")
-
 	for j := 0; j < numField; j++ {
 		var field = item.Field(j)
 		writeTableData(&sb, field)
@@ -63,8 +58,9 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 
 	var sb strings.Builder
 	sb.Grow(256)
-	sb.WriteString("<table>")
 
+	// 表头：第一列用于显示序号
+	sb.WriteString("<table><tr><th>")
 	var numField = writeTableHead(&sb, listValue.Index(0))
 	for i := 0; i < count; i++ {
 		var item = listValue.Index(i)
@@ -86,9 +82,6 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 }
 
 func writeTableHead(sb *strings.Builder, item reflect.Value) int {
-	// 第一列用于显示序号
-	sb.WriteString("<tr> <th>")
-
 	// 每一列的名字
 	item = reflect.Indirect(item)
 	var itemType = item.Type()
