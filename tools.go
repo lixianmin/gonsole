@@ -42,6 +42,7 @@ func toHtmlTableStruct(item reflect.Value) string {
 	var numField = writeTableHead(&sb, item)
 	for j := 0; j < numField; j++ {
 		var field = item.Field(j)
+		sb.WriteString("<tr>")
 		writeTableData(&sb, field)
 	}
 
@@ -65,10 +66,9 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	for i := 0; i < count; i++ {
 		var item = listValue.Index(i)
 		item = reflect.Indirect(item)
-		sb.WriteString("<tr>")
 
 		// 写入序号
-		_, _ = fmt.Fprintf(&sb, "<td>%d", i+1)
+		_, _ = fmt.Fprintf(&sb, "<tr><td>%d", i+1)
 
 		for j := 0; j < numField; j++ {
 			var field = item.Field(j)
