@@ -21,13 +21,41 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ToHtmlTable(list interface{}) string {
-	var listValue = reflect.ValueOf(list)
-	if listValue.Kind() != reflect.Slice {
-		logger.Error("list should be slice")
+func ToHtmlTable(data interface{}) string {
+	var dataValue = reflect.Indirect(reflect.ValueOf(data))
+	switch dataValue.Kind() {
+	case reflect.Slice:
+		return toHtmlTableSlice(dataValue)
+	case reflect.Struct:
+		return toHtmlTableStruct(dataValue)
+	default:
+		logger.Error("data should be slice")
 		return ""
 	}
+}
 
+func toHtmlTableStruct(item reflect.Value) string {
+	var sb strings.Builder
+	sb.Grow(256)
+	sb.WriteString("<table>")
+
+	var numField = writeTableHead(&sb, item)
+	sb.WriteString("<tr>")
+
+	// 写入序号
+	sb.WriteString("<td>1")
+
+	for j := 0; j < numField; j++ {
+		var field = item.Field(j)
+		writeTableData(&sb, field)
+	}
+
+	sb.WriteString("</table>")
+	var html = sb.String()
+	return html
+}
+
+func toHtmlTableSlice(listValue reflect.Value) string {
 	var count = listValue.Len()
 	if count == 0 {
 		return ""
@@ -44,37 +72,12 @@ func ToHtmlTable(list interface{}) string {
 		sb.WriteString("<tr>")
 
 		// 写入序号
-		_, _ = fmt.Fprintf(&sb, "<td>%d</td>", i+1)
+		_, _ = fmt.Fprintf(&sb, "<td>%d", i+1)
 
 		for j := 0; j < numField; j++ {
 			var field = item.Field(j)
-			sb.WriteString("<td>")
-
-			var kind = field.Kind()
-			switch kind {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				_, _ = fmt.Fprintf(&sb, "%d", field.Int())
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				_, _ = fmt.Fprintf(&sb, "%d", field.Uint())
-			case reflect.Float32, reflect.Float64:
-				_, _ = fmt.Fprintf(&sb, "%.3f", field.Float())
-			case reflect.String:
-				var v = field.String()
-				sb.WriteString(v)
-			case reflect.Struct:
-				var t, ok = field.Interface().(time.Time)
-				if ok {
-					var v = timex.FormatTime(t)
-					sb.WriteString(v)
-					break
-				}
-				fallthrough
-			default:
-				logger.Error("invalid type=%+v", field.Interface())
-			}
-			sb.WriteString("</td>")
+			writeTableData(&sb, field)
 		}
-		sb.WriteString("</tr>")
 	}
 
 	sb.WriteString("</table>")
@@ -84,7 +87,7 @@ func ToHtmlTable(list interface{}) string {
 
 func writeTableHead(sb *strings.Builder, item reflect.Value) int {
 	// 第一列用于显示序号
-	sb.WriteString("<tr> <th></th>")
+	sb.WriteString("<tr> <th>")
 
 	// 每一列的名字
 	item = reflect.Indirect(item)
@@ -94,11 +97,36 @@ func writeTableHead(sb *strings.Builder, item reflect.Value) int {
 		var field = itemType.Field(i)
 		sb.WriteString("<th>")
 		sb.WriteString(field.Name)
-		sb.WriteString("</th>")
 	}
 
-	sb.WriteString("</tr>")
 	return numField
+}
+
+func writeTableData(sb *strings.Builder, item reflect.Value) {
+	sb.WriteString("<td>")
+
+	var kind = item.Kind()
+	switch kind {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		_, _ = fmt.Fprintf(sb, "%d", item.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		_, _ = fmt.Fprintf(sb, "%d", item.Uint())
+	case reflect.Float32, reflect.Float64:
+		_, _ = fmt.Fprintf(sb, "%.3f", item.Float())
+	case reflect.String:
+		var v = item.String()
+		sb.WriteString(v)
+	case reflect.Struct:
+		var t, ok = item.Interface().(time.Time)
+		if ok {
+			var v = timex.FormatTime(t)
+			sb.WriteString(v)
+			break
+		}
+		fallthrough
+	default:
+		logger.Error("invalid item type=%+v", item.Interface())
+	}
 }
 
 // https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/

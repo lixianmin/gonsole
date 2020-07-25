@@ -20,7 +20,19 @@ type TestHtml struct {
 	CreateTime time.Time
 }
 
-func TestToHtmlTable(t *testing.T) {
+func TestToHtmlTableStruct(t *testing.T) {
+	var item = TestHtml{
+		Height:     10.29,
+		Age:        98,
+		Name:       "pet",
+		CreateTime: time.Now(),
+	}
+
+	var html = ToHtmlTable(item)
+	fmt.Println(html)
+}
+
+func TestToHtmlTableSlice(t *testing.T) {
 	var list = []TestHtml{{
 		Height:     10.29,
 		Age:        98,
