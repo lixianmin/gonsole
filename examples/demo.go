@@ -19,10 +19,10 @@ func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
-		AutoLoginLimit: time.Hour * 60,
-		Port:           webPort,
-		TemplatePath:   "console.html",
-		UserPasswords:  map[string]string{"panda": "1029"},
+		AutoLoginLimit: time.Hour,							// 一小时内不需要重新认证
+		Port:           webPort,							// webserver端口
+		TemplatePath:   "console.html",						// 页面文件模板
+		UserPasswords:  map[string]string{"panda": "1984"},	// 认证使用的用户名密码
 	})
 
 	server.RegisterCommand(&gonsole.Command{
@@ -34,7 +34,7 @@ func main() {
 				Text string
 			}
 
-			bean.Text = "hello <br/> world"
+			bean.Text = "hello world"
 			client.SendBean(bean)
 		},
 	})
