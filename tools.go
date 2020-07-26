@@ -37,7 +37,7 @@ func ToHtmlTable(data interface{}) string {
 func toHtmlTableStruct(item reflect.Value) string {
 	var sb strings.Builder
 	sb.Grow(256)
-	
+
 	sb.WriteString("<table><tr>")
 	var numField = writeTableHead(&sb, item)
 
@@ -101,6 +101,12 @@ func writeTableData(sb *strings.Builder, item reflect.Value) {
 
 	var kind = item.Kind()
 	switch kind {
+	case reflect.Bool:
+		if item.Bool() {
+			sb.WriteString("true")
+		} else {
+			sb.WriteString("false")
+		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		_, _ = fmt.Fprintf(sb, "%d", item.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:

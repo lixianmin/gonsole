@@ -18,6 +18,7 @@ type TestHtml struct {
 	Age        int
 	Name       string
 	CreateTime time.Time
+	IsMan      bool
 }
 
 func TestToHtmlTableStruct(t *testing.T) {
@@ -26,6 +27,7 @@ func TestToHtmlTableStruct(t *testing.T) {
 		Age:        98,
 		Name:       "pet",
 		CreateTime: time.Now(),
+		IsMan:      true,
 	}
 
 	var html = ToHtmlTable(item)
@@ -38,11 +40,13 @@ func TestToHtmlTableSlice(t *testing.T) {
 		Age:        98,
 		Name:       "pet",
 		CreateTime: time.Now(),
+		IsMan:      false,
 	}, {
 		Height:     5.6,
 		Age:        85,
 		Name:       "滴滴",
 		CreateTime: time.Now(),
+		IsMan:      false,
 	}}
 
 	var html = ToHtmlTable(list)
