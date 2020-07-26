@@ -14,7 +14,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ReadFileTail(fullPath string, num int) []string {
+func ReadTailLines(fullPath string, num int) []string {
 	if num <= 0 {
 		return nil
 	}

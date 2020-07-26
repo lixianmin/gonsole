@@ -196,14 +196,25 @@ func (server *Server) registerBuiltinCommands() {
 		},
 	})
 
-	const maxTailNum = 1000
+	const maxHeadNum = 1000
+	var headNote = fmt.Sprintf("打印文件头：tail [-n num (<=%d)] filename", maxHeadNum)
+	server.RegisterCommand(&Command{
+		Name:     "head",
+		Note:     headNote,
+		IsPublic: false,
+		Handler: func(client *Client, texts []string) {
+			client.SendHtml(beans.ReadFileHead(headNote, texts, maxHeadNum))
+		},
+	})
+
+	const maxTailNum = maxHeadNum
 	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] filename", maxTailNum)
 	server.RegisterCommand(&Command{
 		Name:     "tail",
 		Note:     tailNote,
 		IsPublic: false,
 		Handler: func(client *Client, texts []string) {
-			client.SendHtml(beans.ReadTail(tailNote, texts, maxTailNum))
+			client.SendHtml(beans.ReadFileTail(tailNote, texts, maxTailNum))
 		},
 	})
 

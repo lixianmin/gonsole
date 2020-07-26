@@ -15,7 +15,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ReadTail(note string, texts []string, maxTailNum int) string {
+func ReadFileTail(note string, texts []string, maxNum int) string {
 	if len(texts) == 1 {
 		return note
 	}
@@ -32,13 +32,13 @@ func ReadTail(note string, texts []string, maxTailNum int) string {
 			return note
 		}
 
-		num = mathx.MinInt(num, maxTailNum)
+		num = mathx.MinInt(num, maxNum)
 		fullPath = texts[3]
 	} else {
 		return note
 	}
 
-	var lines = tools.ReadFileTail(fullPath, num)
+	var lines = tools.ReadTailLines(fullPath, num)
 	var message = fmt.Sprintf("<br> 返回行数：%d <br>", len(lines)) + strings.Join(lines, "<br>")
 	return message
 }
