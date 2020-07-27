@@ -39,7 +39,7 @@ func parseReadFileArgs(texts [] string, maxNum int) (fullPath string, num int, e
 		return
 	}
 
-	fullPath = fs.Args()[0]
+	fullPath = fs.Arg(0)
 	num = mathx.MinInt(num, maxNum)
 	return
 }
