@@ -1,10 +1,10 @@
 package beans
 
 import (
+	"flag"
 	"fmt"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/mathx"
-	"strconv"
 	"strings"
 )
 
@@ -31,20 +31,15 @@ func ReadFileTail(note string, texts []string, maxNum int) string {
 }
 
 func parseReadFileArgs(texts [] string, maxNum int) (fullPath string, num int, err error) {
-	fullPath = ""
-	num = 20
+	var fs = flag.NewFlagSet("fs", flag.ContinueOnError)
+	fs.IntVar(&num, "n", 20, "返回n行")
 
-	if len(texts) == 2 {
-		fullPath = texts[1]
-	} else if len(texts) == 4 && texts[1] == "-n" {
-		num, err = strconv.Atoi(texts[2])
-		if err != nil {
-			return
-		}
-
-		num = mathx.MinInt(num, maxNum)
-		fullPath = texts[3]
+	err = fs.Parse(texts[1:])
+	if err != nil || fs.NArg() == 0 {
+		return
 	}
 
+	fullPath = fs.Args()[0]
+	num = mathx.MinInt(num, maxNum)
 	return
 }
