@@ -209,8 +209,8 @@ func loopClientUnsubscribe(client *Client, bean *beans.Unsubscribe) {
 }
 
 func loopClientCommandRequest(client *Client, requestId string, command string) {
-	var texts = commandPattern.Split(command, -1)
-	var name = texts[0]
+	var args = commandPattern.Split(command, -1)
+	var name = args[0]
 	var cmd = client.server.getCommand(name)
 	// 要么是public方法，要么是authorized了
 	if cmd != nil && cmd.Name == name && (cmd.IsPublic || client.isAuthorized) {
@@ -221,7 +221,7 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 			}
 		}()
 
-		cmd.Handler(client, texts)
+		cmd.Handler(client, args)
 	} else {
 		client.SendBean(beans.NewBadRequestRe(requestId, InternalError, command))
 	}

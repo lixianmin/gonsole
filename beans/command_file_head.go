@@ -14,12 +14,12 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ReadFileHead(note string, texts []string, maxNum int) string {
-	if len(texts) == 1 {
+func ReadFileHead(note string, args []string, maxNum int) string {
+	if len(args) == 1 {
 		return note
 	}
 
-	var fullPath, num, err = parseReadFileArgs(texts, maxNum)
+	var fullPath, num, err = parseReadFileArgs(args, maxNum)
 	if err != nil {
 		return note
 	}

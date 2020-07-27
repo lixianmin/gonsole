@@ -29,7 +29,7 @@ func main() {
 		Name:     "hi",
 		Note:     "打印 hi console",
 		IsPublic: false,
-		Handler: func(client *gonsole.Client, texts [] string) {
+		Handler: func(client *gonsole.Client, args [] string) {
 			var bean struct {
 				Text string
 			}

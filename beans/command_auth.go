@@ -17,18 +17,18 @@ type CommandAuth struct {
 	Text string `json:"text"`
 }
 
-func NewCommandAuth(client ifs.Client, texts []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(client ifs.Client, args []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
 	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()
 
-	if len(texts) < 3 {
+	if len(args) < 3 {
 		bean.Text = "格式：auth username"
 		return bean
 	}
 
-	var username = texts[1]
-	var password = texts[2]
+	var username = args[1]
+	var password = args[2]
 	if password1, ok := userPasswords[username]; !ok || password1 != password {
 		bean.Text = "用户名或密码错误"
 		client.SetAuthorized(false)

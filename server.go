@@ -173,7 +173,7 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "help",
 		Note:     "帮助中心",
 		IsPublic: true,
-		Handler: func(client *Client, texts []string) {
+		Handler: func(client *Client, args []string) {
 			var commands = server.getCommands()
 			var topics = server.getTopics()
 			client.SendBean(beans.NewCommandHelp(commands, topics, client.isAuthorized))
@@ -183,15 +183,15 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "auth",
 		Note:     "认证后开启更多命令：auth username，然后根据提示输入password",
 		IsPublic: true,
-		Handler: func(client *Client, texts []string) {
-			client.SendBean(beans.NewCommandAuth(client, texts, server.args.UserPasswords))
+		Handler: func(client *Client, args []string) {
+			client.SendBean(beans.NewCommandAuth(client, args, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
 		Name:     "log.list",
 		Note:     "日志文件列表",
 		IsPublic: false,
-		Handler: func(client *Client, texts []string) {
+		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewCommandLogList(server.args.LogRoot))
 		},
 	})
@@ -202,8 +202,8 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "head",
 		Note:     headNote,
 		IsPublic: false,
-		Handler: func(client *Client, texts []string) {
-			client.SendHtml(beans.ReadFileHead(headNote, texts, maxHeadNum))
+		Handler: func(client *Client, args []string) {
+			client.SendHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
 		},
 	})
 
@@ -213,8 +213,8 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "tail",
 		Note:     tailNote,
 		IsPublic: false,
-		Handler: func(client *Client, texts []string) {
-			client.SendHtml(beans.ReadFileTail(tailNote, texts, maxTailNum))
+		Handler: func(client *Client, args []string) {
+			client.SendHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
 		},
 	})
 
@@ -222,7 +222,7 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "history",
 		Note:     "历史命令列表",
 		IsPublic: true,
-		Handler: func(client *Client, texts []string) {
+		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewBasicResponse("history", ""))
 		},
 	})
@@ -231,7 +231,7 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "top",
 		Note:     "打印进程统计信息",
 		IsPublic: false,
-		Handler: func(client *Client, texts []string) {
+		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewTopicTop())
 		},
 	})
@@ -240,7 +240,7 @@ func (server *Server) registerBuiltinCommands() {
 		Name:     "date",
 		Note:     "打印当前日期",
 		IsPublic: true,
-		Handler: func(client *Client, texts []string) {
+		Handler: func(client *Client, args []string) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
 			client.SendBean(text)
