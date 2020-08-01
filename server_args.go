@@ -19,6 +19,7 @@ type ServerArgs struct {
 	WriteBufferSize  int
 
 	AutoLoginLimit time.Duration     // 如果手动登录过，则在时限内自动登录
+	EnablePProf    bool              // 激活pprof
 	Logger         logo.ILogger      // 自定义日志对象，默认只输出到控制台
 	LogRoot        string            // 日志文件根目录
 	Port           int               // 服务端口
