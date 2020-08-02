@@ -104,9 +104,12 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			var commandHelp = beans.FetchCommandHelp(server.getCommands(), client.isAuthorized)
+			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
+
 			var topicHelp = beans.FetchTopicHelp(server.getTopics(), client.isAuthorized)
-			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s <br/><b>主题列表：</b> <br> %s",
-				ToHtmlTable(commandHelp), ToHtmlTable(topicHelp))
+			if len(topicHelp) > 0 {
+				result += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
+			}
 
 			if server.args.EnablePProf {
 				result += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
