@@ -2,7 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/randx"
 	"sync"
 	"time"
 )
@@ -32,7 +32,9 @@ func (topic *Topic) start() {
 	}
 
 	go func() {
-		tools.RandomSleep(0, topic.Interval)
+		var d = randx.Duration(0, topic.Interval)
+		time.Sleep(d)
+
 		for {
 			func() {
 				var data = topic.BuildData()
