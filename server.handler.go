@@ -192,6 +192,15 @@ func (server *Server) registerBuiltinCommands() {
 			client.SendBean(text)
 		},
 	})
+
+	server.RegisterCommand(&Command{
+		Name:      "deadlock.detect",
+		Note:      "按IO wait时间倒序打印goroutine，辅助死锁排查",
+		isBuiltin: true,
+		Handler: func(client *Client, args []string) {
+			client.SendHtml(beans.DeadlockDetect())
+		},
+	})
 }
 
 func (server *Server) registerBuiltinTopics() {

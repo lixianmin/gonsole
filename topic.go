@@ -19,10 +19,10 @@ type Topic struct {
 	Note      string             // 描述
 	Interval  time.Duration      // 推送周期
 	IsPublic  bool               // 非public方法需要登陆
+	isBuiltin bool               // 是否为内置主题，排序时内置主题排在前面
 	BuildData func() interface{} // 创建数据
 
-	isBuiltin bool // 是否为内置主题，排序时内置主题排在前面
-	clients   sync.Map
+	clients sync.Map
 }
 
 func (topic *Topic) start() {

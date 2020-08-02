@@ -19,10 +19,10 @@ func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux, gonsole.ServerArgs{
-		AutoLoginLimit: time.Hour,                          // 一小时内不需要重新认证
-		Port:           webPort,                            // webserver端口
-		TemplatePath:   "console.html",                     // 页面文件模板
-		UserPasswords:  map[string]string{"panda": "1984"}, // 认证使用的用户名密码
+		AutoLoginLimit: 24 * time.Hour,                      // 一天内不需要重新认证
+		Port:           webPort,                             // webserver端口
+		TemplatePath:   "console.html",                      // 页面文件模板
+		UserPasswords:  map[string]string{"xmli": "123456"}, // 认证使用的用户名密码
 		EnablePProf:    true,
 	})
 

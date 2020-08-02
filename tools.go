@@ -3,15 +3,12 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/mathx"
-	"github.com/lixianmin/got/timex"
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
-	"strings"
-	"time"
 )
 
 /********************************************************************
@@ -22,111 +19,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func ToHtmlTable(data interface{}) string {
-	var dataValue = reflect.Indirect(reflect.ValueOf(data))
-	switch dataValue.Kind() {
-	case reflect.Slice:
-		return toHtmlTableSlice(dataValue)
-	case reflect.Struct:
-		return toHtmlTableStruct(dataValue)
-	default:
-		logger.Error("data should be slice")
-		return ""
-	}
-}
-
-func toHtmlTableStruct(item reflect.Value) string {
-	var sb strings.Builder
-	sb.Grow(256)
-
-	sb.WriteString("<table><tr>")
-	var numField = writeTableHead(&sb, item)
-
-	sb.WriteString("<tr>")
-	for j := 0; j < numField; j++ {
-		var field = item.Field(j)
-		writeTableData(&sb, field)
-	}
-
-	sb.WriteString("</table>")
-	var html = sb.String()
-	return html
-}
-
-func toHtmlTableSlice(listValue reflect.Value) string {
-	var count = listValue.Len()
-	if count == 0 {
-		return ""
-	}
-
-	var sb strings.Builder
-	sb.Grow(256)
-
-	// 表头：第一列用于显示序号
-	sb.WriteString("<table><tr><th>")
-	var numField = writeTableHead(&sb, listValue.Index(0))
-	for i := 0; i < count; i++ {
-		var item = listValue.Index(i)
-		item = reflect.Indirect(item)
-
-		// 写入序号
-		_, _ = fmt.Fprintf(&sb, "<tr><td>%d", i+1)
-
-		for j := 0; j < numField; j++ {
-			var field = item.Field(j)
-			writeTableData(&sb, field)
-		}
-	}
-
-	sb.WriteString("</table>")
-	var html = sb.String()
-	return html
-}
-
-func writeTableHead(sb *strings.Builder, item reflect.Value) int {
-	// 每一列的名字
-	item = reflect.Indirect(item)
-	var itemType = item.Type()
-	var numField = itemType.NumField()
-	for i := 0; i < numField; i++ {
-		var field = itemType.Field(i)
-		sb.WriteString("<th>")
-		sb.WriteString(field.Name)
-	}
-
-	return numField
-}
-
-func writeTableData(sb *strings.Builder, item reflect.Value) {
-	sb.WriteString("<td>")
-
-	var kind = item.Kind()
-	switch kind {
-	case reflect.Bool:
-		if item.Bool() {
-			sb.WriteString("true")
-		} else {
-			sb.WriteString("false")
-		}
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		_, _ = fmt.Fprintf(sb, "%d", item.Int())
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		_, _ = fmt.Fprintf(sb, "%d", item.Uint())
-	case reflect.Float32, reflect.Float64:
-		_, _ = fmt.Fprintf(sb, "%.3f", item.Float())
-	case reflect.String:
-		var v = item.String()
-		sb.WriteString(v)
-	case reflect.Struct:
-		var t, ok = item.Interface().(time.Time)
-		if ok {
-			var v = timex.FormatTime(t)
-			sb.WriteString(v)
-			break
-		}
-		fallthrough
-	default:
-		logger.Error("invalid item type=%+v", item.Interface())
-	}
+	return tools.ToHtmlTable(data)
 }
 
 // https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/
