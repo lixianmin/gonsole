@@ -47,18 +47,19 @@ func DeadlockDetect() string {
 			}
 
 			item.Count += 1
-			found := titlePattern.FindString(title)
-			if found != "" {
-				item.Text = title + "\n" + body
-				waitTime, _ := strconv.Atoi(found)
+			//title = "goroutine 105 [IO wait, 17 minutes]:"
+			match := titlePattern.FindStringSubmatch(title)
+			if match != nil {
+				item.Text = title + "<br>" + body
+				waitTime, _ := strconv.Atoi(match[1])
 				item.waitTime = waitTime
 			} else if item.Text == "" {
-				item.Text = title + "\n" + body
+				item.Text = title + "<br>" + body
 			}
 		} else {
-			found := funcPattern.FindString(line)
-			if found != "" {
-				list = append(list, found)
+			match := funcPattern.FindStringSubmatch(line)
+			if match != nil {
+				list = append(list, match[1])
 			} else {
 				list = append(list, line)
 			}
