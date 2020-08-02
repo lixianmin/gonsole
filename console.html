@@ -103,10 +103,6 @@
                 conn.send(data);
             }
 
-            function getLinkHtml(name, url) {
-                return "<div><a href=\"" + url + "\">" + name + "</a></div>";
-            }
-
             function getHumanReadableSize(size) {
                 if (size < 1024) {
                     return size + "B";
@@ -181,17 +177,28 @@
 
                         let texts = command.split(/\s+/);  // 支持连续多个空格
                         let textsLength = texts.length;
+                        const name = texts[0];
 
-                        if (textsLength >= 2 && (texts[0] === "sub" || texts[0] === "unsub")) {
+                        if (name === 'help') {
+                            const host = document.location.protocol + "//" + myHost;
                             const bean = {
-                                op: texts[0],
+                                op: "command",
+                                command: name + " " + host,
+                            };
+
+                            sendBean(bean);
+                            addHistory(command);
+                        }
+                        else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
+                            const bean = {
+                                op: name,
                                 rid: "request-id",
                                 topic: texts[1],
                             };
 
                             sendBean(bean);
                             addHistory(command);
-                        } else if (textsLength >= 2 && texts[0] === "auth") {
+                        } else if (textsLength >= 2 && name === "auth") {
                             username = texts[1];
                             isAuthorizing = true;
                             inputBox.type = "password";
@@ -201,7 +208,7 @@
                             isAuthorizing = false;
                             inputBox.type = "text";
 
-                            const password = texts[0];
+                            const password = name;
                             login(username, password);
 
                             if (localStorage) {
@@ -282,37 +289,6 @@
                         login(jsonObj.username, jsonObj.password);
                     }
                 }
-            };
-
-            handlers["help"] = function (obj) {
-                const commands = obj.commands;
-                let result = "<br/><b>命令列表：</b> <br> <table><tr><th>Command</th><th>Note</th></tr>";
-                for (let i = 0; i < commands.length; i++) {
-                    result += "<tr><td>" + commands[i][0] + "</td><td>" + commands[i][1] + "</td>";
-                }
-                result += "</table>";
-
-                const topics = obj.topics;
-                result += "<br/><b>主题列表：</b> <br> <table><tr><th>Topic</th><th>Note</th></tr>";
-                for (let i = 0; i < topics.length; i++) {
-                    result += "<tr><td>" + topics[i][0] + "</td><td>" + topics[i][1] + "</td>";
-                }
-                result += "</table>";
-                result += "<br/>";
-
-                const host = document.location.protocol + "//" + myHost;
-                result += getLinkHtml("pprof", host + "/debug/pprof");
-                result += getLinkHtml("文档参考", "https://github.com/lixianmin/writer/blob/master/golang/pprof.md");
-
-                result += "<div>";
-                const tail = "<br>";
-                result += "go tool pprof " + host + "/debug/pprof/profile" + tail; // 30-second CPU profile
-                result += "go tool pprof " + host + "/debug/pprof/heap" + tail;    // heap profile
-                result += "curl -G -k " + host + "/debug/pprof/goroutine?debug=2 > tmp.prof" + tail;
-                result += "</div>";
-
-                printWithTimestamp(result);
-                println();
             };
 
             handlers["log.list"] = function (obj) {

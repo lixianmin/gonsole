@@ -98,27 +98,37 @@ func (server *Server) handleWebsocket(mux IServeMux) {
 
 func (server *Server) registerBuiltinCommands() {
 	server.RegisterCommand(&Command{
-		Name:     "help",
-		Note:     "帮助中心",
-		IsPublic: true,
+		Name:      "help",
+		Note:      "帮助中心",
+		IsPublic:  true,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
-			var commands = server.getCommands()
-			var topics = server.getTopics()
-			client.SendBean(beans.NewCommandHelp(commands, topics, client.isAuthorized))
+			var commandHelp = beans.FetchCommandHelp(server.getCommands(), client.isAuthorized)
+			var topicHelp = beans.FetchTopicHelp(server.getTopics(), client.isAuthorized)
+			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s <br/><b>主题列表：</b> <br> %s",
+				ToHtmlTable(commandHelp), ToHtmlTable(topicHelp))
+
+			if server.args.EnablePProf {
+				result += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
+			}
+
+			client.SendHtml(result)
 		}})
 
 	server.RegisterCommand(&Command{
-		Name:     "auth",
-		Note:     "认证后开启更多命令：auth username，然后根据提示输入password",
-		IsPublic: true,
+		Name:      "auth",
+		Note:      "认证后开启更多命令：auth username，然后根据提示输入password",
+		IsPublic:  true,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewCommandAuth(client, args, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
-		Name:     "log.list",
-		Note:     "日志文件列表",
-		IsPublic: false,
+		Name:      "log.list",
+		Note:      "日志文件列表",
+		IsPublic:  false,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewCommandLogList(server.args.LogRoot))
 		},
@@ -127,9 +137,10 @@ func (server *Server) registerBuiltinCommands() {
 	const maxHeadNum = 1000
 	var headNote = fmt.Sprintf("打印文件头：tail [-n num (<=%d)] filename", maxHeadNum)
 	server.RegisterCommand(&Command{
-		Name:     "head",
-		Note:     headNote,
-		IsPublic: false,
+		Name:      "head",
+		Note:      headNote,
+		IsPublic:  false,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
 		},
@@ -138,36 +149,40 @@ func (server *Server) registerBuiltinCommands() {
 	const maxTailNum = maxHeadNum
 	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] filename", maxTailNum)
 	server.RegisterCommand(&Command{
-		Name:     "tail",
-		Note:     tailNote,
-		IsPublic: false,
+		Name:      "tail",
+		Note:      tailNote,
+		IsPublic:  false,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
 		},
 	})
 
 	server.RegisterCommand(&Command{
-		Name:     "history",
-		Note:     "历史命令列表",
-		IsPublic: true,
+		Name:      "history",
+		Note:      "历史命令列表",
+		IsPublic:  true,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewBasicResponse("history", ""))
 		},
 	})
 
 	server.RegisterCommand(&Command{
-		Name:     "top",
-		Note:     "打印进程统计信息",
-		IsPublic: false,
+		Name:      "top",
+		Note:      "打印进程统计信息",
+		IsPublic:  false,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			client.SendBean(beans.NewTopicTop())
 		},
 	})
 
 	server.RegisterCommand(&Command{
-		Name:     "date",
-		Note:     "打印当前日期",
-		IsPublic: true,
+		Name:      "date",
+		Note:      "打印当前日期",
+		IsPublic:  true,
+		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
@@ -179,10 +194,11 @@ func (server *Server) registerBuiltinCommands() {
 func (server *Server) registerBuiltinTopics() {
 	const intervalSeconds = 5
 	server.RegisterTopic(&Topic{
-		Name:     "top",
-		Note:     fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
-		Interval: intervalSeconds * time.Second,
-		IsPublic: false,
+		Name:      "top",
+		Note:      fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
+		Interval:  intervalSeconds * time.Second,
+		IsPublic:  false,
+		isBuiltin: true,
 		BuildData: func() interface{} {
 			return beans.NewTopicTop()
 		}})

@@ -137,8 +137,8 @@ func (server *Server) getTopic(name string) *Topic {
 	return nil
 }
 
-func (server *Server) getTopics() []ifs.Topic {
-	var list []ifs.Topic
+func (server *Server) getTopics() []ifs.Command {
+	var list []ifs.Command
 	server.topics.Range(func(key, value interface{}) bool {
 		var topic, ok = value.(*Topic)
 		if ok {

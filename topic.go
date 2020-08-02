@@ -21,7 +21,8 @@ type Topic struct {
 	IsPublic  bool               // 非public方法需要登陆
 	BuildData func() interface{} // 创建数据
 
-	clients sync.Map
+	isBuiltin bool // 是否为内置主题，排序时内置主题排在前面
+	clients   sync.Map
 }
 
 func (topic *Topic) start() {
@@ -68,4 +69,8 @@ func (topic *Topic) GetNote() string {
 
 func (topic *Topic) CheckPublic() bool {
 	return topic.IsPublic
+}
+
+func (topic *Topic) CheckBuiltin() bool {
+	return topic.isBuiltin
 }
