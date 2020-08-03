@@ -24,6 +24,7 @@ type DeadItem struct {
 	Count    int
 	Text     string
 	waitTime int
+	title    string
 }
 
 func DeadlockDetect() string {
@@ -59,8 +60,9 @@ func DeadlockDetect() string {
 			if match != nil {
 				item.Text = title + "<br>" + body
 				waitTime, _ := strconv.Atoi(match[1])
-				if waitTime > item.waitTime {
+				if waitTime >= item.waitTime {
 					item.waitTime = waitTime
+					item.title = title
 				}
 			} else if item.Text == "" {
 				item.Text = title + "<br>" + body
@@ -96,7 +98,13 @@ func DeadlockDetect() string {
 			return false
 		}
 
-		return a.Count < b.Count
+		if a.Count < b.Count {
+			return true
+		} else if a.Count > b.Count {
+			return false
+		}
+
+		return a.title < b.title
 	})
 
 	return tools.ToHtmlTable(items)
