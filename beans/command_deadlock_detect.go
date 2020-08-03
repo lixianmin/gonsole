@@ -31,14 +31,21 @@ func DeadlockDetect() string {
 	var list = make([]string, 0, 8)
 	var itemMap = make(map[string]*DeadItem, 16)
 
+	// 匹配title
 	var titlePattern, _ = regexp.Compile(`goroutine.*\[.*?(\d+) minutes\]:`)
-	var funcPattern, _ = regexp.Compile(`\s*(.*)\(.*\)`)
+
+	// 匹配一个调用方法
+	//var funcPattern, _ = regexp.Compile(`\s*(.*)\(.*\)`)
 
 	var err = readPProfGoroutineByLine(func(line string) {
 		if strings.HasPrefix(line, "goroutine") {
+			// 此分支是一条记录的开始
 			title = line
 		} else if strings.TrimSpace(line) == "" {
+			// 此分支是一条记录的结束
 			body := strings.Join(list, "<br>")
+			body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;")
+
 			list = list[:0]
 			item, ok := itemMap[body]
 			if !ok {
@@ -47,22 +54,26 @@ func DeadlockDetect() string {
 			}
 
 			item.Count += 1
-			//title = "goroutine 105 [IO wait, 17 minutes]:"
+			// title = "goroutine 105 [IO wait, 17 minutes]:"
 			match := titlePattern.FindStringSubmatch(title)
 			if match != nil {
 				item.Text = title + "<br>" + body
 				waitTime, _ := strconv.Atoi(match[1])
-				item.waitTime = waitTime
+				if waitTime > item.waitTime {
+					item.waitTime = waitTime
+				}
 			} else if item.Text == "" {
 				item.Text = title + "<br>" + body
 			}
 		} else {
-			match := funcPattern.FindStringSubmatch(line)
-			if match != nil {
-				list = append(list, match[1])
-			} else {
-				list = append(list, line)
-			}
+			// 此分支处理调用栈的数据行
+			//match := funcPattern.FindStringSubmatch(line)
+			//if match != nil {
+			//	list = append(list, match[1])
+			//} else {
+			//	list = append(list, line)
+			//}
+			list = append(list, line)
 		}
 	})
 
@@ -72,7 +83,9 @@ func DeadlockDetect() string {
 
 	items := make([]*DeadItem, 0, len(itemMap))
 	for _, v := range itemMap {
-		items = append(items, v)
+		if v.waitTime > 0 {
+			items = append(items, v)
+		}
 	}
 
 	sort.Slice(items, func(i, j int) bool {
