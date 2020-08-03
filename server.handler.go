@@ -195,14 +195,14 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:      "deadlock.detect",
-		Note:      "按IO wait时间倒序打印goroutine，辅助死锁排查",
+		Note:      "按IO wait时间打印goroutine，辅助死锁排查",
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
 			var html = beans.DeadlockDetect()
 			if html != "" {
 				client.SendHtml(html)
 			} else {
-				client.SendBean("暂时没有等待时间过长的goroutine")
+				client.SendBean("暂时没有等待时间超长的goroutine")
 			}
 		},
 	})

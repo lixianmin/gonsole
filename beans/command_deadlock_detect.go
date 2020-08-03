@@ -44,7 +44,7 @@ func DeadlockDetect() string {
 		} else if strings.TrimSpace(line) == "" {
 			// 此分支是一条记录的结束
 			body := strings.Join(list, "<br>")
-			body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;")
+			body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
 
 			list = list[:0]
 			item, ok := itemMap[body]
@@ -91,12 +91,12 @@ func DeadlockDetect() string {
 	sort.Slice(items, func(i, j int) bool {
 		a, b := items[i], items[j]
 		if a.waitTime < b.waitTime {
-			return false
-		} else if a.waitTime > b.waitTime {
 			return true
+		} else if a.waitTime > b.waitTime {
+			return false
 		}
 
-		return a.Count > b.Count
+		return a.Count < b.Count
 	})
 
 	return tools.ToHtmlTable(items)
