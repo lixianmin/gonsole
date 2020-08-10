@@ -188,8 +188,7 @@
 
                             sendBean(bean);
                             addHistory(command);
-                        }
-                        else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
+                        } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
                             const bean = {
                                 op: name,
                                 rid: "request-id",
@@ -231,6 +230,8 @@
                             sendBean(bean);
                             addHistory(command);
                         }
+                    } else {
+                        printWithTimestamp('');
                     }
 
                     return false;
