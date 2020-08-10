@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/gonsole/tools"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -177,7 +178,8 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
-			client.SendBean(beans.NewTopicTop())
+			var html = tools.ToHtmlTable(beans.NewTopicTopData())
+			client.SendHtml(html)
 		},
 	})
 

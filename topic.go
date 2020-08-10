@@ -34,6 +34,8 @@ func (topic *Topic) start() {
 		return
 	}
 
+	topic.clients.d = make(map[*Client]struct{})
+
 	go func() {
 		time.Sleep(randx.Duration(0, topic.Interval))
 

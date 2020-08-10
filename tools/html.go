@@ -131,8 +131,9 @@ func writeTableData(sb *strings.Builder, fieldType reflect.StructField, fieldVal
 			sb.WriteString(v)
 			break
 		}
+		// 如果是不认识的struct，就打印错误输出
 		fallthrough
 	default:
-		logger.Error("invalid fieldValue type=%+v", fieldValue.Interface())
+		logger.Error("invalid fieldValue kind=%d, type=%+v", kind, fieldValue.Interface())
 	}
 }

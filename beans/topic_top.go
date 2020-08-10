@@ -20,11 +20,15 @@ Copyright (C) - All Rights Reserved
 
 type TopicTop struct {
 	BasicResponse
+	TopicTopBody
+}
+
+type TopicTopBody struct {
 	UpTime       string `json:"uptime"`
-	NumGoroutine int    `json:"numGoroutine"`
 	CpuUsage     string `json:"cpu"`
-	Sys          string `json:"sys"`
+	SysMemory    string `json:"sys"`
 	TotalMemory  string `json:"total"`
+	NumGoroutine int    `json:"numGoroutine"`
 	PauseTotalNs uint64 `json:"pauseTotalNs"`
 	NumGC        uint32 `json:"numGC"`
 }
@@ -33,7 +37,14 @@ func NewTopicTop() *TopicTop {
 	var bean = &TopicTop{}
 	bean.Operation = "top"
 	bean.Timestamp = tools.GetTimestamp()
-	bean.NumGoroutine = runtime.NumGoroutine()
+	bean.TopicTopBody = *NewTopicTopData()
+
+	return bean
+}
+
+func NewTopicTopData() *TopicTopBody {
+	var body = &TopicTopBody{}
+	body.NumGoroutine = runtime.NumGoroutine()
 
 	// cpu
 	cpuPercent, err := cpu.Percent(0, true)
@@ -44,21 +55,21 @@ func NewTopicTop() *TopicTop {
 		}
 
 		var text = "[" + strings.Join(list, ", ") + "]"
-		bean.CpuUsage = text
+		body.CpuUsage = text
 	}
 
 	// memory
 	var memStats = runtime.MemStats{}
 	runtime.ReadMemStats(&memStats)
-	bean.Sys = convert.ToHuman(memStats.Sys)
-	bean.PauseTotalNs = memStats.PauseTotalNs
-	bean.NumGC = memStats.NumGC
+	body.SysMemory = convert.ToHuman(memStats.Sys)
+	body.PauseTotalNs = memStats.PauseTotalNs
+	body.NumGC = memStats.NumGC
 
 	vm, err := mem.VirtualMemory()
 	if err == nil {
-		bean.TotalMemory = convert.ToHuman(vm.Total)
+		body.TotalMemory = convert.ToHuman(vm.Total)
 	}
 
-	bean.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
-	return bean
+	body.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
+	return body
 }
