@@ -22,7 +22,10 @@ type Topic struct {
 	isBuiltin bool               // 是否为内置主题，排序时内置主题排在前面
 	BuildData func() interface{} // 创建数据
 
-	clients sync.Map
+	clients struct {
+		sync.RWMutex
+		d map[*Client]struct{}
+	}
 }
 
 func (topic *Topic) start() {
@@ -32,18 +35,18 @@ func (topic *Topic) start() {
 	}
 
 	go func() {
-		var d = randx.Duration(0, topic.Interval)
-		time.Sleep(d)
+		time.Sleep(randx.Duration(0, topic.Interval))
 
 		for {
-			func() {
+			topic.clients.RLock()
+			var count = len(topic.clients.d)
+			if count > 0 {
 				var data = topic.BuildData()
-				topic.clients.Range(func(key, value interface{}) bool {
-					var client = key.(*Client)
+				for client := range topic.clients.d {
 					client.SendBean(data)
-					return true
-				})
-			}()
+				}
+			}
+			topic.clients.RUnlock()
 			time.Sleep(topic.Interval)
 		}
 	}()
@@ -51,13 +54,17 @@ func (topic *Topic) start() {
 
 func (topic *Topic) addClient(client *Client) {
 	if client != nil {
-		topic.clients.Store(client, nil)
+		topic.clients.Lock()
+		topic.clients.d[client] = struct{}{}
+		topic.clients.Unlock()
 	}
 }
 
 func (topic *Topic) removeClient(client *Client) {
 	if client != nil {
-		topic.clients.Delete(client)
+		topic.clients.Lock()
+		delete(topic.clients.d, client)
+		topic.clients.Unlock()
 	}
 }
 
