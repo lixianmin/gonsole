@@ -234,6 +234,7 @@
                         printWithTimestamp('');
                     }
 
+                    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
                     return false;
                 } else if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
                     const isArrowUp = evt.key === 'ArrowUp';
