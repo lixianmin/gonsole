@@ -1,7 +1,9 @@
 package beans
 
 import (
+	"fmt"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/timex"
 	"time"
 )
 
@@ -27,7 +29,7 @@ func NewChallenge(gpid string, clientRemoteAddress string) *Challenge {
 		Timestamp:           tools.GetTimestamp(),
 		GPID:                gpid,
 		ClientRemoteAddress: clientRemoteAddress,
-		UpTime:              tools.FormatDuration(uptime),
+		UpTime:              fmt.Sprintf("%s ( %s )", tools.FormatDuration(uptime), timex.FormatTime(startProcessTime)),
 	}
 
 	return bean
