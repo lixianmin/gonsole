@@ -242,13 +242,13 @@
                     if (isArrowUp && historyIndex > 0) {
                         historyIndex -= 1;
                         isChanged = true;
-                    } else if (!isArrowUp && historyIndex + 1 < history.length) {
+                    } else if (!isArrowUp && historyIndex < history.length) {
                         historyIndex += 1;
                         isChanged = true;
                     }
 
                     if (isChanged) {
-                        inputBox.value = history[historyIndex];
+                        inputBox.value = historyIndex < history.length ? history[historyIndex] : '';
                         setTimeout(function () {
                                 let position = inputBox.value.length;
                                 inputBox.setSelectionRange(position, position);
