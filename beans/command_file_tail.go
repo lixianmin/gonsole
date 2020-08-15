@@ -32,7 +32,7 @@ func ReadFileTail(note string, texts []string, maxNum int) string {
 
 func parseReadFileArgs(texts [] string, maxNum int) (fullPath string, num int, err error) {
 	var fs = flag.NewFlagSet("fs", flag.ContinueOnError)
-	fs.IntVar(&num, "n", 20, "返回n行")
+	fs.IntVar(&num, "n", 50, "返回n行")
 
 	err = fs.Parse(texts[1:])
 	if err != nil || fs.NArg() == 0 {
