@@ -121,7 +121,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- ifs.Bean)
 
 		select {
 		case readChan <- bean:
-		case <-client.wc.CloseChan:
+		case <-client.wc.C:
 			return
 		}
 	}
@@ -161,7 +161,7 @@ func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 			default:
 				logger.Error("unexpected message type: %T", msg)
 			}
-		case <-client.wc.CloseChan:
+		case <-client.wc.C:
 			if nil != client.onCloseHandler {
 				client.onCloseHandler()
 			}
@@ -231,7 +231,7 @@ func loopClientCommandRequest(client *Client, requestId string, command string) 
 func (client *Client) innerSendBytes(data []byte) {
 	select {
 	case client.writeChan <- data:
-	case <-client.wc.CloseChan:
+	case <-client.wc.C:
 	}
 }
 
@@ -273,7 +273,7 @@ func (client *Client) OnClose(handler func()) {
 func (client *Client) sendMessage(msg ifs.IMessage) {
 	select {
 	case client.messageChan <- msg:
-	case <-client.wc.CloseChan:
+	case <-client.wc.C:
 	}
 }
 
@@ -282,5 +282,5 @@ func (client *Client) GetRemoteAddress() string {
 }
 
 func (client *Client) Close() {
-	_ = client.wc.Close()
+	client.wc.Close()
 }

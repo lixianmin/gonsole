@@ -6,8 +6,8 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/gorilla/websocket v1.4.1
-	github.com/lixianmin/got v0.0.0-20200801072017-48de48b89774
-	github.com/lixianmin/logo v0.0.0-20200731085342-d7bbd308c280
+	github.com/lixianmin/got v0.0.0-20200818075533-3eca47226fd5
+	github.com/lixianmin/logo v0.0.0-20200818075913-6b3e36831bbc
 	github.com/shirou/gopsutil v2.19.9+incompatible
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
