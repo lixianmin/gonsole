@@ -111,7 +111,7 @@ func isDeadlockIgnored(deadlockIgnores []string, line string) bool {
 func checkDeadlockDetectArgs(args []string, deadlockIgnores []string) []string {
 	// deadlockIgnores
 	if len(deadlockIgnores) == 0 {
-		deadlockIgnores = append(deadlockIgnores, "internal/poll.runtime_pollWait")
+		deadlockIgnores = append(deadlockIgnores, "internal/poll.runtime_pollWait(")
 	}
 	sort.Strings(deadlockIgnores)
 
