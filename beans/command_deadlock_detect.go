@@ -20,17 +20,20 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type DeadItem struct {
+type DetectItem struct {
 	Count    int
 	Text     string
 	waitTime int
 	title    string
 }
 
-func DeadlockDetect() string {
+func DeadlockDetect(args []string, deadlockIgnores []string) string {
+	deadlockIgnores = checkDeadlockDetectArgs(args, deadlockIgnores)
+
+	var isIgnored = false
 	var title = ""
 	var list = make([]string, 0, 8)
-	var itemMap = make(map[string]*DeadItem, 16)
+	var itemMap = make(map[string]*DetectItem, 16)
 
 	// 匹配title
 	var titlePattern, _ = regexp.Compile(`goroutine.*\[.*?(\d+) minutes\]:`)
@@ -41,41 +44,42 @@ func DeadlockDetect() string {
 	var err = readPProfGoroutineByLine(func(line string) {
 		if strings.HasPrefix(line, "goroutine") {
 			// 此分支是一条记录的开始
+			isIgnored = false
 			title = line
-		} else if strings.TrimSpace(line) == "" {
-			// 此分支是一条记录的结束
-			body := strings.Join(list, "<br>")
-			body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
-
 			list = list[:0]
-			item, ok := itemMap[body]
-			if !ok {
-				item = &DeadItem{}
-				itemMap[body] = item
-			}
+		} else if !isIgnored {
+			if strings.TrimSpace(line) == "" {
+				// 此分支是一条记录的结束
+				body := strings.Join(list, "<br>")
+				body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
 
-			item.Count += 1
-			// title = "goroutine 105 [IO wait, 17 minutes]:"
-			match := titlePattern.FindStringSubmatch(title)
-			if match != nil {
-				item.Text = title + "<br>" + body
-				waitTime, _ := strconv.Atoi(match[1])
-				if waitTime >= item.waitTime {
-					item.waitTime = waitTime
-					item.title = title
+				item, ok := itemMap[body]
+				if !ok {
+					item = &DetectItem{}
+					itemMap[body] = item
 				}
-			} else if item.Text == "" {
-				item.Text = title + "<br>" + body
+
+				item.Count += 1
+				// title = "goroutine 105 [IO wait, 17 minutes]:"
+				match := titlePattern.FindStringSubmatch(title)
+				if match != nil {
+					item.Text = title + "<br>" + body
+					waitTime, _ := strconv.Atoi(match[1])
+					if waitTime >= item.waitTime {
+						item.waitTime = waitTime
+						item.title = title
+					}
+				} else if item.Text == "" {
+					item.Text = title + "<br>" + body
+				}
+			} else {
+				// 此分支处理调用栈的数据行
+				if len(list) == 0 && isDeadlockIgnored(deadlockIgnores, line) {
+					isIgnored = true
+				}
+
+				list = append(list, line)
 			}
-		} else {
-			// 此分支处理调用栈的数据行
-			//match := funcPattern.FindStringSubmatch(line)
-			//if match != nil {
-			//	list = append(list, match[1])
-			//} else {
-			//	list = append(list, line)
-			//}
-			list = append(list, line)
 		}
 	})
 
@@ -83,13 +87,43 @@ func DeadlockDetect() string {
 		return err.Error()
 	}
 
-	items := make([]*DeadItem, 0, len(itemMap))
+	items := make([]*DetectItem, 0, len(itemMap))
 	for _, v := range itemMap {
 		if v.waitTime > 0 {
 			items = append(items, v)
 		}
 	}
 
+	sortDetectItems(items)
+	return tools.ToHtmlTable(items)
+}
+
+func isDeadlockIgnored(deadlockIgnores []string, line string) bool {
+	for _, item := range deadlockIgnores {
+		if strings.HasPrefix(line, item) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkDeadlockDetectArgs(args []string, deadlockIgnores []string) []string {
+	// deadlockIgnores
+	if len(deadlockIgnores) == 0 {
+		deadlockIgnores = append(deadlockIgnores, "internal/poll.runtime_pollWait")
+	}
+	sort.Strings(deadlockIgnores)
+
+	// args
+	if len(args) >= 2 && strings.Contains(args[1], "-a") {
+		deadlockIgnores = make([]string, 0)
+	}
+
+	return deadlockIgnores
+}
+
+func sortDetectItems(items []*DetectItem) {
 	sort.Slice(items, func(i, j int) bool {
 		a, b := items[i], items[j]
 		if a.waitTime < b.waitTime {
@@ -106,8 +140,6 @@ func DeadlockDetect() string {
 
 		return a.title < b.title
 	})
-
-	return tools.ToHtmlTable(items)
 }
 
 func readPProfGoroutineByLine(handler func(line string)) error {

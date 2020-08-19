@@ -197,10 +197,10 @@ func (server *Server) registerBuiltinCommands() {
 
 	server.RegisterCommand(&Command{
 		Name:      "deadlock.detect",
-		Note:      "按IO wait时间打印goroutine，辅助死锁排查",
+		Note:      "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
-			var html = beans.DeadlockDetect()
+			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
 				client.SendHtml(html)
 			} else {
