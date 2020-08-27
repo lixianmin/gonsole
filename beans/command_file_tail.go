@@ -39,7 +39,7 @@ func ReadFileTail(note string, texts []string, maxNum int) string {
 
 func parseReadFileArgs(texts [] string, maxNum int) (args ReadFileArgs, err error) {
 	var fs = flag.NewFlagSet("fs", flag.ContinueOnError)
-	fs.IntVar(&args.Num, "n", 50, "返回n行")
+	fs.IntVar(&args.Num, "n", 30, "返回n行")	// 一屏最多大概显示40行
 	fs.StringVar(&args.Filter, "f", "", "按f过滤")
 	fs.IntVar(&args.StartLine, "s", 1, "搜索的起始index")
 
