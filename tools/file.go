@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -27,26 +28,26 @@ func ReadTailLines(fullPath string, num int, filter string) []string {
 
 	defer fin.Close()
 
-	offset, err := searchOffset(fin, num)
-	if err != nil {
-		return nil
-	}
-
-	_, err = fin.Seek(offset, io.SeekEnd)
-	if err != nil {
-		return nil
-	}
-
 	var reader = bufio.NewReader(fin)
 	var lines = make([]string, 0, num)
+	var cache = make([]string, num)
+
+	filter = strings.ToLower(filter)
+	var nextIndex = 0
+	var lineNum = 0
+
 	for {
 		var line, err = reader.ReadString('\n')
 		if err != nil {
+			lines = append(lines, cache[nextIndex:]...)
+			lines = append(lines, cache[:nextIndex]...)
 			return lines
 		}
 
-		if filter == "" || strings.Contains(line, filter) {
-			lines = append(lines, line)
+		lineNum += 1
+		if filter == "" || strings.Contains(strings.ToLower(line), filter) {
+			cache[nextIndex] = strconv.Itoa(lineNum) + " " + line
+			nextIndex = (nextIndex + 1) % num
 		}
 	}
 }
