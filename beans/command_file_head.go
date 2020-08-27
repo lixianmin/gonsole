@@ -19,17 +19,17 @@ func ReadFileHead(note string, args []string, maxNum int) string {
 		return note
 	}
 
-	var fullPath, num, err = parseReadFileArgs(args, maxNum)
+	var fullPath, num, filter, err = parseReadFileArgs(args, maxNum)
 	if err != nil {
 		return note
 	}
 
-	var lines = readHeadLines(fullPath, num)
+	var lines = readHeadLines(fullPath, num, filter)
 	var message = fmt.Sprintf("<br> 返回行数：%d <br>", len(lines)) + strings.Join(lines, "<br>")
 	return message
 }
 
-func readHeadLines(fullPath string, num int) []string {
+func readHeadLines(fullPath string, num int, filter string) []string {
 	var fin, err = os.Open(fullPath)
 	if err != nil {
 		return nil
@@ -45,7 +45,9 @@ func readHeadLines(fullPath string, num int) []string {
 			break
 		}
 
-		lines = append(lines, line)
+		if filter == "" || strings.Contains(line, filter) {
+			lines = append(lines, line)
+		}
 	}
 
 	return lines

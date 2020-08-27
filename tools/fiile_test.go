@@ -15,6 +15,6 @@ Copyright (C) - All Rights Reserved
 
 func TestReadFileTail(t *testing.T) {
 	var fullPath = "../logs/log_debug.log"
-	var lines = ReadTailLines(fullPath, 10)
+	var lines = ReadTailLines(fullPath, 10, "server")
 	fmt.Println(strings.Join(lines, "\n"))
 }

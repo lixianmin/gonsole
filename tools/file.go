@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 /********************************************************************
@@ -14,7 +15,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ReadTailLines(fullPath string, num int) []string {
+func ReadTailLines(fullPath string, num int, filter string) []string {
 	if num <= 0 {
 		return nil
 	}
@@ -44,7 +45,9 @@ func ReadTailLines(fullPath string, num int) []string {
 			return lines
 		}
 
-		lines = append(lines, line)
+		if filter == "" || strings.Contains(line, filter) {
+			lines = append(lines, line)
+		}
 	}
 }
 

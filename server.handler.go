@@ -139,7 +139,7 @@ func (server *Server) registerBuiltinCommands() {
 	})
 
 	const maxHeadNum = 1000
-	var headNote = fmt.Sprintf("打印文件头：tail [-n num (<=%d)] filename", maxHeadNum)
+	var headNote = fmt.Sprintf("打印文件头：tail [-n num (<=%d)] [-f fitler] filename", maxHeadNum)
 	server.RegisterCommand(&Command{
 		Name:      "head",
 		Note:      headNote,
@@ -151,7 +151,7 @@ func (server *Server) registerBuiltinCommands() {
 	})
 
 	const maxTailNum = maxHeadNum
-	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] filename", maxTailNum)
+	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] [-f filter] filename", maxTailNum)
 	server.RegisterCommand(&Command{
 		Name:      "tail",
 		Note:      tailNote,
