@@ -2,6 +2,9 @@ package acceptor
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/gonsole/network/conn/codec"
+	"github.com/lixianmin/gonsole/network/conn/packet"
+	"github.com/lixianmin/gonsole/network/constants"
 	"io"
 	"net"
 	"time"
@@ -30,6 +33,23 @@ func NewWSConn(conn *websocket.Conn) (*WSConn, error) {
 // GetNextMessage reads the next message available in the stream
 func (my *WSConn) GetNextMessage() (b []byte, err error) {
 	_, msgBytes, err := my.conn.ReadMessage()
+	if err != nil {
+		return nil, err
+	}
+	if len(msgBytes) < codec.HeadLength {
+		return nil, packet.ErrInvalidPomeloHeader
+	}
+	header := msgBytes[:codec.HeadLength]
+	msgSize, _, err := codec.ParseHeader(header)
+	if err != nil {
+		return nil, err
+	}
+	dataLen := len(msgBytes[codec.HeadLength:])
+	if dataLen < msgSize {
+		return nil, constants.ErrReceivedMsgSmallerThanExpected
+	} else if dataLen > msgSize {
+		return nil, constants.ErrReceivedMsgBiggerThanExpected
+	}
 	return msgBytes, err
 }
 
