@@ -18,13 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package constants
+package serialize
 
-import "errors"
+type (
+	// Marshaler represents a marshal interface
+	Marshaler interface {
+		Marshal(interface{}) ([]byte, error)
+	}
 
-// Errors that can occur during message handling.
-var (
-	ErrReplyShouldBeNotNull           = errors.New("reply must not be null")
-	ErrReceivedMsgSmallerThanExpected = errors.New("received less data than expected, EOF?")
-	ErrReceivedMsgBiggerThanExpected  = errors.New("received more data than expected")
+	// Unmarshaler represents a Unmarshal interface
+	Unmarshaler interface {
+		Unmarshal([]byte, interface{}) error
+	}
+
+	// Serializer is the interface that groups the basic Marshal and Unmarshal methods.
+	Serializer interface {
+		Marshaler
+		Unmarshaler
+		GetName() string
+	}
 )
