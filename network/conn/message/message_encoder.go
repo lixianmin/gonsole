@@ -22,8 +22,7 @@ package message
 
 import (
 	"encoding/binary"
-
-	"github.com/topfreegames/pitaya/util/compression"
+	"github.com/lixianmin/gonsole/network/util/compression"
 )
 
 // Encoder interface
