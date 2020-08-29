@@ -35,19 +35,25 @@ func ReadTailLines(fullPath string, num int, filter string) []string {
 	filter = strings.ToLower(filter)
 	var nextIndex = 0
 	var lineNum = 0
+	var resultCount = 0
 
 	for {
 		var line, err = reader.ReadString('\n')
 		if err != nil {
-			lines = append(lines, cache[nextIndex:]...)
+			// resultCount不足num时，不应该出现空白行
+			if resultCount >= num {
+				lines = append(lines, cache[nextIndex:]...)
+			}
+
 			lines = append(lines, cache[:nextIndex]...)
 			return lines
 		}
 
-		lineNum += 1
+		lineNum++
 		if filter == "" || strings.Contains(strings.ToLower(line), filter) {
 			cache[nextIndex] = strconv.Itoa(lineNum) + " " + line
 			nextIndex = (nextIndex + 1) % num
+			resultCount++
 		}
 	}
 }
