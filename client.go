@@ -32,7 +32,7 @@ const (
 var commandPattern, _ = regexp.Compile(`\s+`)
 
 type Client struct {
-	wc             *loom.WaitClose
+	wc             loom.WaitClose
 	remoteAddress  string
 	writeChan      chan []byte
 	messageChan    chan ifs.IMessage
@@ -50,7 +50,6 @@ func newClient(server *Server, conn *websocket.Conn) *Client {
 	var messageChan = make(chan ifs.IMessage, chanSize)
 
 	var client = &Client{
-		wc:            loom.NewWaitClose(),
 		remoteAddress: conn.RemoteAddr().String(),
 		writeChan:     make(chan []byte, chanSize),
 		messageChan:   messageChan,
@@ -121,7 +120,7 @@ func (client *Client) goReadPump(conn *websocket.Conn, readChan chan<- ifs.Bean)
 
 		select {
 		case readChan <- bean:
-		case <-client.wc.C:
+		case <-client.wc.C():
 			return
 		}
 	}
