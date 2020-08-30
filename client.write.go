@@ -60,7 +60,7 @@ func (client *Client) goWritePump(conn *websocket.Conn, readChan chan ifs.Bean) 
 				client.Close()
 				return
 			}
-		case <-client.wc.C:
+		case <-client.wc.C():
 			return
 		}
 	}
