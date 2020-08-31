@@ -23,12 +23,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type (
-	AppArgs struct {
-		ListenAddress    string        // 监听地址
-		HeartbeatTimeout time.Duration // 心跳超时时间
-		DataCompression  bool          // 数据是否压缩
-	}
-
 	App struct {
 		commonSessionArgs
 		acceptor acceptor.Acceptor
