@@ -36,7 +36,7 @@ func (args *ServerArgs) checkArgs() {
 	}
 
 	if args.ReadBufferSize <= 0 {
-		args.ReadBufferSize = 2048
+		args.ReadBufferSize = 4096
 	}
 
 	if args.WriteBufferSize <= 0 {

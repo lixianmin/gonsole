@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
 	"github.com/lixianmin/gonsole/network/conn/codec"
 	"github.com/lixianmin/gonsole/network/conn/message"
@@ -38,7 +37,7 @@ type (
 
 	Session struct {
 		commonSessionArgs
-		conn         acceptor.PlayerConn
+		conn         PlayerConn
 		sendingChan  chan sendingItem
 		receivedChan chan receivedItem
 		lastAt       int64 // last heartbeat unix time stamp
@@ -68,7 +67,7 @@ type (
 	}
 )
 
-func NewSession(conn acceptor.PlayerConn, args commonSessionArgs) *Session {
+func NewSession(conn PlayerConn, args commonSessionArgs) *Session {
 	const bufferSize = 16
 	var agent = &Session{
 		commonSessionArgs: args,

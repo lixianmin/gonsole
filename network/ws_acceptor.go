@@ -1,4 +1,4 @@
-package acceptor
+package network
 
 import (
 	"github.com/gorilla/websocket"
@@ -63,10 +63,10 @@ func (h *connHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (my *WSAcceptor) ListenAndServe() {
-	const IOBufferBytesSize = 4096
+	const IOBufferSize = 4096
 	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  IOBufferBytesSize,
-		WriteBufferSize: IOBufferBytesSize,
+		ReadBufferSize:  IOBufferSize,
+		WriteBufferSize: IOBufferSize,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},

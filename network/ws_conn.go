@@ -1,4 +1,4 @@
-package acceptor
+package network
 
 import (
 	"github.com/gorilla/websocket"

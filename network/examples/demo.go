@@ -16,13 +16,12 @@ Copyright (C) - All Rights Reserved
 
 func main() {
 	logo.GetLogger().SetFilterLevel(logo.LevelDebug)
-
+	var accept = network.NewWSAcceptor(":8880")
 	var app = network.NewApp(network.AppArgs{
-		ListenAddress:   ":8880",
-		DataCompression: false,
+		Acceptor: accept,
 	})
 
 	var room = &Room{}
 	app.Register(room, component.WithName("room"), component.WithNameFunc(strings.ToLower))
-	app.Start()
+	accept.ListenAndServe()
 }

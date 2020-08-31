@@ -3,7 +3,6 @@ package network
 import (
 	"encoding/json"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
 	"github.com/lixianmin/gonsole/network/conn/codec"
 	"github.com/lixianmin/gonsole/network/conn/message"
@@ -25,7 +24,7 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		commonSessionArgs
-		acceptor acceptor.Acceptor
+		acceptor Acceptor
 
 		handlerService *service.HandlerService
 		handlerComp    []regComp
@@ -50,7 +49,7 @@ func NewApp(args AppArgs) *App {
 
 	var app = &App{
 		commonSessionArgs: common,
-		acceptor:          acceptor.NewWSAcceptor(args.ListenAddress),
+		acceptor:          args.Acceptor,
 		handlerService:    service.NewHandlerService(),
 		handlerComp:       make([]regComp, 0, 4),
 	}
@@ -79,15 +78,16 @@ func (my *App) Start() {
 	// register all components
 	for _, c := range my.handlerComp {
 		if err := my.handlerService.Register(c.comp, c.opts); err != nil {
-			logger.Warn("Failed to register handler: %s", err.Error())
+
 		}
 	}
-
-	my.acceptor.ListenAndServe()
 }
 
 func (my *App) Register(c component.Component, options ...component.Option) {
-	my.handlerComp = append(my.handlerComp, regComp{c, options})
+	var err = my.handlerService.Register(c, options)
+	if err != nil {
+		logger.Warn("Failed to register handler: %s", err.Error())
+	}
 }
 
 func (my *App) heartbeatDataEncode(dataCompression bool) {

@@ -1,4 +1,4 @@
-package acceptor
+package network
 
 import "net"
 
@@ -15,8 +15,5 @@ type PlayerConn interface {
 }
 
 type Acceptor interface {
-	ListenAndServe()
-	Stop()
-	GetAddr() string
 	GetConnChan() chan PlayerConn
 }
