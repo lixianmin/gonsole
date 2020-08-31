@@ -2,7 +2,6 @@ package network
 
 import (
 	"context"
-	"fmt"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
@@ -222,69 +221,6 @@ func serializeReturn(serializer serialize.Serializer, v interface{}) ([]byte, er
 	}
 
 	return data, nil
-}
-
-func (my *Agent) send(pendingMsg pendingMessage) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			logger.Info(e)
-		}
-	}()
-
-	m, err := my.getMessageFromPendingMessage(pendingMsg)
-	if err != nil {
-		return err
-	}
-
-	// packet encode
-	p, err := my.packetEncodeMessage(m)
-	if err != nil {
-		return err
-	}
-
-	pWrite := pendingWrite{
-		ctx:  pendingMsg.ctx,
-		data: p,
-	}
-
-	if pendingMsg.err {
-		pWrite.err = fmt.Errorf("has pending error")
-	}
-
-	my.chSend <- pWrite
-	return
-}
-
-func (a *Agent) packetEncodeMessage(m *message.Message) ([]byte, error) {
-	em, err := a.messageEncoder.Encode(m)
-	if err != nil {
-		return nil, err
-	}
-
-	// packet encode
-	p, err := a.packetEncoder.Encode(packet.Data, em)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
-func (a *Agent) getMessageFromPendingMessage(pm pendingMessage) (*message.Message, error) {
-	payload, err := util.SerializeOrRaw(a.serializer, pm.payload)
-	if err != nil {
-		return nil, err
-	}
-
-	// construct message and encode
-	m := &message.Message{
-		Type:  pm.typ,
-		Data:  payload,
-		Route: pm.route,
-		ID:    pm.mid,
-		Err:   pm.err,
-	}
-
-	return m, nil
 }
 
 func (my *Agent) Close() {
