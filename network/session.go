@@ -71,6 +71,7 @@ func NewSession(conn PlayerConn, args commonSessionArgs) *Session {
 	const bufferSize = 16
 	var agent = &Session{
 		commonSessionArgs: args,
+		conn:              conn,
 		sendingChan:       make(chan sendingItem, bufferSize),
 		receivedChan:      make(chan receivedItem, bufferSize),
 		lastAt:            time.Now().Unix(),

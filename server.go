@@ -1,10 +1,10 @@
 package gonsole
 
 import (
-	"github.com/gorilla/websocket"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/gonsole/network"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
 	"net/http"
@@ -20,9 +20,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Server struct {
-	args        ServerArgs
+	args ServerArgs
+	app  *network.App
+
 	gpid        string
-	upgrader    *websocket.Upgrader
 	messageChan chan ifs.IMessage
 
 	commands sync.Map
@@ -33,21 +34,15 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
 	logger.Init(args.Logger)
 
-	var upgrader = &websocket.Upgrader{
-		HandshakeTimeout:  args.HandshakeTimeout,
-		ReadBufferSize:    args.ReadBufferSize,
-		WriteBufferSize:   args.WriteBufferSize,
-		EnableCompression: true,
-	}
-
-	// todo: 不应该无条件的接受CheckOrigin
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
+	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
 	var messageChan = make(chan ifs.IMessage, 32)
 	var server = &Server{
-		args:        args,
+		args: args,
+		app: network.NewApp(network.AppArgs{
+			Acceptor:         acceptor,
+			DataCompression:  false,
+		}),
 		gpid:        tools.GetGPID(args.Port),
-		upgrader:    upgrader,
 		messageChan: messageChan,
 	}
 

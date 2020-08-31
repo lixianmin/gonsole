@@ -39,7 +39,7 @@ func (my *Session) goReceive(later *loom.Later) {
 		// process all packet
 		for i := range packets {
 			var p = packets[i]
-			var item, err = my.processReceivedPacket(p)
+			var item, err = my.onReceivedPacket(p)
 			if err != nil {
 				logger.Info("Failed to process packet: %s", err.Error())
 				return
@@ -58,7 +58,7 @@ func (my *Session) goReceive(later *loom.Later) {
 	}
 }
 
-func (my *Session) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
+func (my *Session) onReceivedPacket(p *packet.Packet) (receivedItem, error) {
 	switch p.Type {
 	case packet.Handshake:
 		return my.onReceivedHandshake(p)

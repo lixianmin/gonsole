@@ -3,7 +3,6 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
-	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"html/template"
 	"net/http"
@@ -24,7 +23,6 @@ func (server *Server) registerHandlers(mux IServeMux) {
 	server.handlerResourceFile(mux, "/res/js/protocol.js")
 	server.handlerResourceFile(mux, "/res/js/startx-wsclient.js")
 	server.handleLogFiles(mux)
-	server.handleWebsocket(mux)
 }
 
 func (server *Server) handleConsolePage(mux IServeMux) {
@@ -73,22 +71,6 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 
 		logFilePath = logFilePath[1:]
 		RequestFileByRange(logFilePath, writer, request)
-	})
-}
-
-func (server *Server) handleWebsocket(mux IServeMux) {
-	// 处理ws消息
-	var pattern = server.args.UrlRoot + "/" + websocketName
-	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		conn, err := server.upgrader.Upgrade(writer, request, nil)
-		if err != nil {
-			logger.Error("[handleWebsocket(%s)] connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
-			return
-		}
-
-		// caution: client负责conn的生命周期
-		var client = newClient(server, conn)
-		server.sendMessage(AttachClient{Client: client})
 	})
 }
 
