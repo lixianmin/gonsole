@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/component"
 )
 
@@ -13,8 +14,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 var (
-	handlers    = make(map[string]*component.Handler) // all handler method
-	handlerType = "handler"
+	handlers = make(map[string]*component.Handler) // all handler method
 )
 
 type HandlerService struct {
@@ -43,7 +43,9 @@ func (my *HandlerService) Register(comp component.Component, opts []component.Op
 	// register all handlers
 	my.services[s.Name] = s
 	for name, handler := range s.Handlers {
-		handlers[fmt.Sprintf("%s.%s", s.Name, name)] = handler
+		var route = fmt.Sprintf("%s.%s", s.Name, name)
+		handlers[route] = handler
+		logger.Debug("route=%s", route)
 	}
 
 	return nil

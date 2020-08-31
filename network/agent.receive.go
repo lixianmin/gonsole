@@ -59,11 +59,11 @@ func (my *Agent) goReceive(later *loom.Later) {
 func (my *Agent) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
 	switch p.Type {
 	case packet.Handshake:
-		logger.Debug("Received handshake packet")
+		return my.onReceivedHandshake(p)
 	case packet.HandshakeAck:
 		logger.Debug("Receive handshake ACK")
 	case packet.Data:
-		return my.processReceivedDataPacket(p.Data)
+		return my.onReceivedDataPacket(p)
 	case packet.Heartbeat:
 		// expected
 	}
@@ -71,8 +71,18 @@ func (my *Agent) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
 	return receivedItem{}, nil
 }
 
-func (my *Agent) processReceivedDataPacket(data []byte) (receivedItem, error) {
-	msg, err := message.Decode(data)
+func (my *Agent) onReceivedHandshake(p *packet.Packet) (receivedItem, error) {
+	_, err := my.conn.Write(hrd)
+	if err != nil {
+		return receivedItem{}, err
+	}
+
+	logger.Debug("Received handshake packet")
+	return receivedItem{}, nil
+}
+
+func (my *Agent) onReceivedDataPacket(p *packet.Packet) (receivedItem, error) {
+	msg, err := message.Decode(p.Data)
 	if err != nil {
 		return receivedItem{}, err
 	}

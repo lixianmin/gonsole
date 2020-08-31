@@ -2,17 +2,22 @@ package network
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
 	"github.com/lixianmin/gonsole/network/conn/codec"
 	"github.com/lixianmin/gonsole/network/conn/message"
+	"github.com/lixianmin/gonsole/network/conn/packet"
 	"github.com/lixianmin/gonsole/network/route"
 	"github.com/lixianmin/gonsole/network/serialize"
 	"github.com/lixianmin/gonsole/network/service"
 	"github.com/lixianmin/gonsole/network/util"
+	"github.com/lixianmin/gonsole/network/util/compression"
 	"github.com/lixianmin/got/loom"
 	"reflect"
+	"sync"
+	"time"
 )
 
 /********************************************************************
@@ -21,6 +26,14 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
+
+var (
+	// hbd contains the heartbeat packet data
+	hbd []byte
+	// hrd contains the handshake response data
+	hrd  []byte
+	once sync.Once
+)
 
 type (
 	Agent struct {
@@ -73,6 +86,10 @@ func NewAgent(conn acceptor.PlayerConn,
 		sendingChan:    make(chan sendingItem, bufferSize),
 		receivedChan:   make(chan receivedItem, bufferSize),
 	}
+
+	once.Do(func() {
+		hbdEncode(2*time.Second, packetEncoder, messageEncoder.IsCompressionEnabled(), serializer.GetName())
+	})
 
 	loom.Go(agent.goReceive)
 	loom.Go(agent.goSend)
@@ -167,4 +184,40 @@ func (my *Agent) Close() {
 	my.wc.Close(func() {
 		_ = my.conn.Close()
 	})
+}
+
+func hbdEncode(heartbeatTimeout time.Duration, packetEncoder codec.PacketEncoder, dataCompression bool, serializerName string) {
+	hData := map[string]interface{}{
+		"code": 200,
+		"sys": map[string]interface{}{
+			"heartbeat":  heartbeatTimeout.Seconds(),
+			"dict":       message.GetDictionary(),
+			"serializer": serializerName,
+		},
+	}
+	data, err := json.Marshal(hData)
+	if err != nil {
+		panic(err)
+	}
+
+	if dataCompression {
+		compressedData, err := compression.DeflateData(data)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(compressedData) < len(data) {
+			data = compressedData
+		}
+	}
+
+	hrd, err = packetEncoder.Encode(packet.Handshake, data)
+	if err != nil {
+		panic(err)
+	}
+
+	hbd, err = packetEncoder.Encode(packet.Heartbeat, nil)
+	if err != nil {
+		panic(err)
+	}
 }
