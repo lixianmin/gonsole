@@ -13,7 +13,7 @@ func DeflateData(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	z.Close()
+	_ = z.Close()
 	return bb.Bytes(), nil
 }
 
