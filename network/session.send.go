@@ -8,6 +8,8 @@ import (
 	"github.com/lixianmin/gonsole/network/conn/packet"
 	"github.com/lixianmin/gonsole/network/util"
 	"github.com/lixianmin/got/loom"
+	"sync/atomic"
+	"time"
 )
 
 /********************************************************************
@@ -18,12 +20,22 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *Session) goSend(later *loom.Later) {
-	defer func() {
-		my.Close()
-	}()
+	defer my.Close()
+	var heartbeatTicker = later.NewTicker(my.heartbeatTimeout)
 
 	for {
 		select {
+		case <-heartbeatTicker.C:
+			deadline := time.Now().Add(-2 * my.heartbeatTimeout).Unix()
+			if atomic.LoadInt64(&my.lastAt) < deadline {
+				logger.Info("Session heartbeat timeout, LastTime=%d, Deadline=%d", atomic.LoadInt64(&my.lastAt), deadline)
+				return
+			}
+
+			if _, err := my.conn.Write(my.heartbeatPacketData); err != nil {
+				logger.Info("Failed to write in conn: %s", err.Error())
+				return
+			}
 		case item := <-my.sendingChan:
 			if _, err := my.conn.Write(item.data); err != nil {
 				logger.Info("Failed to write in conn: %s", err.Error())
@@ -35,12 +47,12 @@ func (my *Session) goSend(later *loom.Later) {
 	}
 }
 
-func (my *Session) ResponseMID(ctx context.Context, mid uint, v interface{}) error {
-	return my.send(sendingInfo{ctx: ctx, typ: message.Response, mid: mid, payload: v, err: false})
-}
-
 func (my *Session) Push(route string, v interface{}) error {
 	return my.send(sendingInfo{typ: message.Push, route: route, payload: v})
+}
+
+func (my *Session) responseMID(ctx context.Context, mid uint, payload interface{}) error {
+	return my.send(sendingInfo{ctx: ctx, typ: message.Response, mid: mid, payload: payload, err: false})
 }
 
 func (my *Session) send(info sendingInfo) error {

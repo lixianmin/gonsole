@@ -52,6 +52,8 @@ func (my *Session) goReceive(later *loom.Later) {
 					return
 				}
 			}
+
+			my.refreshLastAt()
 		}
 	}
 }

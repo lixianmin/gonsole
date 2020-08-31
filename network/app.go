@@ -47,10 +47,11 @@ func NewApp(args AppArgs) *App {
 	checkAppArgs(&args)
 
 	var common = commonSessionArgs{
-		packetDecoder:  codec.NewPomeloPacketDecoder(),
-		packetEncoder:  codec.NewPomeloPacketEncoder(),
-		messageEncoder: message.NewMessagesEncoder(args.DataCompression),
-		serializer:     serialize.NewJsonSerializer(),
+		packetDecoder:    codec.NewPomeloPacketDecoder(),
+		packetEncoder:    codec.NewPomeloPacketEncoder(),
+		messageEncoder:   message.NewMessagesEncoder(args.DataCompression),
+		serializer:       serialize.NewJsonSerializer(),
+		heartbeatTimeout: args.HeartbeatTimeout,
 	}
 
 	var app = &App{
@@ -60,7 +61,7 @@ func NewApp(args AppArgs) *App {
 		handlerComp:       make([]regComp, 0, 4),
 	}
 
-	app.heartbeatDataEncode(args.HeartbeatTimeout, args.DataCompression)
+	app.heartbeatDataEncode(args.DataCompression)
 	loom.Go(app.goLoop)
 	return app
 }
@@ -95,11 +96,11 @@ func (my *App) Register(c component.Component, options ...component.Option) {
 	my.handlerComp = append(my.handlerComp, regComp{c, options})
 }
 
-func (my *App) heartbeatDataEncode(heartbeatTimeout time.Duration, dataCompression bool) {
+func (my *App) heartbeatDataEncode(dataCompression bool) {
 	hData := map[string]interface{}{
 		"code": 200,
 		"sys": map[string]interface{}{
-			"heartbeat":  heartbeatTimeout.Seconds(),
+			"heartbeat":  my.heartbeatTimeout.Seconds(),
 			"dict":       message.GetDictionary(),
 			"serializer": my.serializer.GetName(),
 		},

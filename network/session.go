@@ -13,6 +13,8 @@ import (
 	"github.com/lixianmin/gonsole/network/util"
 	"github.com/lixianmin/got/loom"
 	"reflect"
+	"sync/atomic"
+	"time"
 )
 
 /********************************************************************
@@ -23,21 +25,24 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type (
+	commonSessionArgs struct {
+		packetEncoder  codec.PacketEncoder
+		packetDecoder  codec.PacketDecoder
+		messageEncoder message.Encoder
+		serializer     serialize.Serializer
+
+		heartbeatTimeout      time.Duration
+		heartbeatPacketData   []byte
+		handshakeResponseData []byte
+	}
+
 	Session struct {
 		commonSessionArgs
 		conn         acceptor.PlayerConn
 		sendingChan  chan sendingItem
 		receivedChan chan receivedItem
+		lastAt       int64 // last heartbeat unix time stamp
 		wc           loom.WaitClose
-	}
-
-	commonSessionArgs struct {
-		packetEncoder         codec.PacketEncoder
-		packetDecoder         codec.PacketDecoder
-		messageEncoder        message.Encoder
-		serializer            serialize.Serializer
-		heartbeatPacketData   []byte
-		handshakeResponseData []byte
 	}
 
 	receivedItem struct {
@@ -69,6 +74,7 @@ func NewSession(conn acceptor.PlayerConn, args commonSessionArgs) *Session {
 		commonSessionArgs: args,
 		sendingChan:       make(chan sendingItem, bufferSize),
 		receivedChan:      make(chan receivedItem, bufferSize),
+		lastAt:            time.Now().Unix(),
 	}
 
 	loom.Go(agent.goReceive)
@@ -89,20 +95,20 @@ func (my *Session) goProcess(later *loom.Later) {
 }
 
 func (my *Session) processReceived(data receivedItem) {
-	ret, err := my.processReceivedImpl(data)
+	ret, err := processReceivedImpl(data, my.serializer)
 	if data.msg.Type != message.Notify {
 		if err != nil {
 			logger.Info("Failed to process handler message: %s", err.Error())
 		} else {
-			err := my.ResponseMID(data.ctx, data.msg.ID, ret)
+			err := my.responseMID(data.ctx, data.msg.ID, ret)
 			if err != nil {
-
+				logger.Info(err)
 			}
 		}
 	}
 }
 
-func (my *Session) processReceivedImpl(data receivedItem) ([]byte, error) {
+func processReceivedImpl(data receivedItem, serializer serialize.Serializer) ([]byte, error) {
 	handler, err := service.GetHandler(data.route)
 	if err != nil {
 		return nil, err
@@ -110,7 +116,7 @@ func (my *Session) processReceivedImpl(data receivedItem) ([]byte, error) {
 
 	// First unmarshal the handler arg that will be passed to
 	// both handler and pipeline functions
-	arg, err := unmarshalHandlerArg(handler, my.serializer, data.msg.Data)
+	arg, err := unmarshalHandlerArg(handler, serializer, data.msg.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +128,7 @@ func (my *Session) processReceivedImpl(data receivedItem) ([]byte, error) {
 
 	resp, err := util.Pcall(handler.Method, args)
 
-	ret, err := serializeReturn(my.serializer, resp)
+	ret, err := serializeReturn(serializer, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -164,4 +170,8 @@ func (my *Session) Close() {
 	my.wc.Close(func() {
 		_ = my.conn.Close()
 	})
+}
+
+func (my *Session) refreshLastAt() {
+	atomic.StoreInt64(&my.lastAt, time.Now().Unix())
 }
