@@ -27,12 +27,6 @@ type (
 		acceptor Acceptor
 
 		handlerService *service.HandlerService
-		handlerComp    []regComp
-	}
-
-	regComp struct {
-		comp component.Component
-		opts []component.Option
 	}
 )
 
@@ -51,7 +45,6 @@ func NewApp(args AppArgs) *App {
 		commonSessionArgs: common,
 		acceptor:          args.Acceptor,
 		handlerService:    service.NewHandlerService(),
-		handlerComp:       make([]regComp, 0, 4),
 	}
 
 	app.heartbeatDataEncode(args.DataCompression)
@@ -70,15 +63,6 @@ func (my *App) goLoop(later *loom.Later) {
 		select {
 		case conn := <-my.acceptor.GetConnChan():
 			NewSession(conn, my.commonSessionArgs)
-		}
-	}
-}
-
-func (my *App) Start() {
-	// register all components
-	for _, c := range my.handlerComp {
-		if err := my.handlerService.Register(c.comp, c.opts); err != nil {
-
 		}
 	}
 }
