@@ -47,5 +47,6 @@ func SerializeOrRaw(serializer serialize.Serializer, v interface{}) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }

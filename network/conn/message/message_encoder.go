@@ -43,8 +43,8 @@ func NewMessagesEncoder(dataCompression bool) *MessagesEncoder {
 }
 
 // IsCompressionEnabled returns wether the compression is enabled or not
-func (me *MessagesEncoder) IsCompressionEnabled() bool {
-	return me.DataCompression
+func (my *MessagesEncoder) IsCompressionEnabled() bool {
+	return my.DataCompression
 }
 
 // Encode marshals message to binary format. Different message types is corresponding to
@@ -60,7 +60,7 @@ func (me *MessagesEncoder) IsCompressionEnabled() bool {
 // ------------------------------------------
 // The figure above indicates that the bit does not affect the type of message.
 // See ref: https://github.com/topfreegames/pitaya/blob/master/docs/communication_protocol.md
-func (me *MessagesEncoder) Encode(message *Message) ([]byte, error) {
+func (my *MessagesEncoder) Encode(message *Message) ([]byte, error) {
 	if invalidType(message.Type) {
 		return nil, ErrWrongMessageType
 	}
@@ -104,7 +104,7 @@ func (me *MessagesEncoder) Encode(message *Message) ([]byte, error) {
 		}
 	}
 
-	if me.DataCompression {
+	if my.DataCompression {
 		d, err := compression.DeflateData(message.Data)
 		if err != nil {
 			return nil, err
@@ -118,11 +118,6 @@ func (me *MessagesEncoder) Encode(message *Message) ([]byte, error) {
 
 	buf = append(buf, message.Data...)
 	return buf, nil
-}
-
-// Decode decodes the message
-func (me *MessagesEncoder) Decode(data []byte) (*Message, error) {
-	return Decode(data)
 }
 
 // Decode unmarshal the bytes slice to a message

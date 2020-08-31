@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/gonsole/network/component"
 	"github.com/lixianmin/gonsole/network/conn/codec"
 	"github.com/lixianmin/gonsole/network/conn/message"
-	"github.com/lixianmin/gonsole/network/conn/packet"
 	"github.com/lixianmin/gonsole/network/route"
 	"github.com/lixianmin/gonsole/network/serialize"
 	"github.com/lixianmin/gonsole/network/service"
@@ -30,24 +29,31 @@ type (
 		packetDecoder  codec.PacketDecoder
 		messageEncoder message.Encoder
 		serializer     serialize.Serializer
-		chSend         chan pendingWrite // push message queue
-		messageChan    chan unhandledMessage
+		sendingChan    chan sendingItem
+		receivedChan   chan receivedItem
 		wc             loom.WaitClose
 	}
 
-	pendingMessage struct {
+	receivedItem struct {
+		ctx   context.Context
+		route *route.Route
+		msg   *message.Message
+	}
+
+	sendingItem struct {
+		ctx  context.Context
+		data []byte
+		err  error
+	}
+
+	// 未编码消息
+	sendingInfo struct {
 		ctx     context.Context
 		typ     message.Type // message type
 		route   string       // message route (push)
 		mid     uint         // response message id (response)
 		payload interface{}  // payload
 		err     bool         // if its an error message
-	}
-
-	pendingWrite struct {
-		ctx  context.Context
-		data []byte
-		err  error
 	}
 )
 
@@ -64,127 +70,60 @@ func NewAgent(conn acceptor.PlayerConn,
 		packetDecoder:  packetDecoder,
 		messageEncoder: messageEncoder,
 		serializer:     serializer,
-		chSend:         make(chan pendingWrite, bufferSize),
-		messageChan:    make(chan unhandledMessage, bufferSize),
+		sendingChan:    make(chan sendingItem, bufferSize),
+		receivedChan:   make(chan receivedItem, bufferSize),
 	}
 
-	loom.Go(agent.goRead)
-	loom.Go(agent.goWrite)
-	loom.Go(agent.goDispatch)
+	loom.Go(agent.goReceive)
+	loom.Go(agent.goSend)
+	loom.Go(agent.goProcess)
 	return agent
 }
 
-func (my *Agent) goRead(later *loom.Later) {
-	for {
-		msg, err := my.conn.GetNextMessage()
-
-		if err != nil {
-			logger.Info("Error reading next available message: %s", err.Error())
-			return
-		}
-
-		packets, err := my.packetDecoder.Decode(msg)
-		if err != nil {
-			logger.Info("Failed to decode message: %s", err.Error())
-			return
-		}
-
-		if len(packets) < 1 {
-			logger.Warn("Read no packets, data: %v", msg)
-			continue
-		}
-
-		// process all packet
-		for i := range packets {
-			if err := my.processPacket(packets[i]); err != nil {
-				logger.Info("Failed to process packet: %s", err.Error())
-				return
-			}
-		}
-	}
-}
-
-func (my *Agent) processPacket(p *packet.Packet) error {
-	switch p.Type {
-	case packet.Handshake:
-		logger.Debug("Received handshake packet")
-	case packet.HandshakeAck:
-		logger.Debug("Receive handshake ACK")
-	case packet.Data:
-		msg, err := message.Decode(p.Data)
-		if err != nil {
-			return err
-		}
-		my.processRawMessage(msg)
-	case packet.Heartbeat:
-		// expected
-	}
-
-	return nil
-}
-
-func (my *Agent) processRawMessage(rawMsg *message.Message) {
-	r, err := route.Decode(rawMsg.Route)
-	if err != nil {
-		logger.Warn("Failed to decode route: %s", err.Error())
-		return
-	}
-
-	msg := unhandledMessage{
-		ctx:   context.Background(),
-		route: r,
-		msg:   rawMsg,
-	}
-
-	my.messageChan <- msg
-}
-
-func (my *Agent) goWrite(later *loom.Later) {
-	defer func() {
-		my.Close()
-	}()
-
+func (my *Agent) goProcess(later *loom.Later) {
 	for {
 		select {
-		case pending := <-my.chSend:
-			if _, err := my.conn.Write(pending.data); err != nil {
-				logger.Info("Failed to write in conn: %s", err.Error())
-				return
-			}
+		case data := <-my.receivedChan:
+			my.processReceived(data)
 		case <-my.wc.C():
 			return
 		}
 	}
 }
 
-func (my *Agent) goDispatch(later *loom.Later) {
-	for {
-		select {
-		case msg := <-my.messageChan:
-			my.dispatchMessage(msg.ctx, msg.route, msg.msg)
+func (my *Agent) processReceived(data receivedItem) {
+	ret, err := my.processReceivedImpl(data)
+	if data.msg.Type != message.Notify {
+		if err != nil {
+			logger.Info("Failed to process handler message: %s", err.Error())
+		} else {
+			err := my.ResponseMID(data.ctx, data.msg.ID, ret)
+			if err != nil {
+
+			}
 		}
 	}
 }
 
-func (my *Agent) dispatchMessage(ctx context.Context, route *route.Route, msg *message.Message) ([]byte, error) {
-	h, err := service.GetHandler(route)
+func (my *Agent) processReceivedImpl(data receivedItem) ([]byte, error) {
+	handler, err := service.GetHandler(data.route)
 	if err != nil {
 		return nil, err
 	}
 
 	// First unmarshal the handler arg that will be passed to
 	// both handler and pipeline functions
-	arg, err := unmarshalHandlerArg(h, my.serializer, msg.Data)
+	arg, err := unmarshalHandlerArg(handler, my.serializer, data.msg.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	args := []reflect.Value{h.Receiver, reflect.ValueOf(ctx)}
+	args := []reflect.Value{handler.Receiver, reflect.ValueOf(data.ctx)}
 	if arg != nil {
 		args = append(args, reflect.ValueOf(arg))
 	}
 
-	resp, err := util.Pcall(h.Method, args)
+	resp, err := util.Pcall(handler.Method, args)
 
 	ret, err := serializeReturn(my.serializer, resp)
 	if err != nil {
@@ -207,6 +146,7 @@ func unmarshalHandlerArg(handler *component.Handler, serializer serialize.Serial
 			return nil, err
 		}
 	}
+
 	return arg, nil
 }
 
