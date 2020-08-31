@@ -3,6 +3,7 @@ package util
 import (
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/constants"
+	"github.com/lixianmin/gonsole/network/serialize"
 	"reflect"
 )
 
@@ -35,4 +36,16 @@ func Pcall(method reflect.Method, args []reflect.Value) (rets interface{}, err e
 		}
 	}
 	return
+}
+
+// SerializeOrRaw serializes the interface if its not an array of bytes already
+func SerializeOrRaw(serializer serialize.Serializer, v interface{}) ([]byte, error) {
+	if data, ok := v.([]byte); ok {
+		return data, nil
+	}
+	data, err := serializer.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

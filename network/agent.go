@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
@@ -23,21 +24,49 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type Agent struct {
-	conn        acceptor.PlayerConn
-	decoder     codec.PacketDecoder
-	serializer  serialize.Serializer
-	messageChan chan unhandledMessage
-	wc          *loom.WaitClose
-}
+type (
+	Agent struct {
+		conn           acceptor.PlayerConn
+		packetEncoder  codec.PacketEncoder
+		packetDecoder  codec.PacketDecoder
+		messageEncoder message.Encoder
+		serializer     serialize.Serializer
+		chSend         chan pendingWrite // push message queue
+		messageChan    chan unhandledMessage
+		wc             loom.WaitClose
+	}
 
-func NewAgent(conn acceptor.PlayerConn, decoder codec.PacketDecoder, serializer serialize.Serializer) *Agent {
+	pendingMessage struct {
+		ctx     context.Context
+		typ     message.Type // message type
+		route   string       // message route (push)
+		mid     uint         // response message id (response)
+		payload interface{}  // payload
+		err     bool         // if its an error message
+	}
+
+	pendingWrite struct {
+		ctx  context.Context
+		data []byte
+		err  error
+	}
+)
+
+func NewAgent(conn acceptor.PlayerConn,
+	packetEncoder codec.PacketEncoder,
+	packetDecoder codec.PacketDecoder,
+	messageEncoder message.Encoder,
+	serializer serialize.Serializer) *Agent {
+
+	const bufferSize = 16
 	var agent = &Agent{
-		conn:        conn,
-		decoder:     decoder,
-		serializer:  serializer,
-		messageChan: make(chan unhandledMessage, 8),
-		wc:          loom.NewWaitClose(),
+		conn:           conn,
+		packetEncoder:  packetEncoder,
+		packetDecoder:  packetDecoder,
+		messageEncoder: messageEncoder,
+		serializer:     serializer,
+		chSend:         make(chan pendingWrite, bufferSize),
+		messageChan:    make(chan unhandledMessage, bufferSize),
 	}
 
 	loom.Go(agent.goRead)
@@ -55,7 +84,7 @@ func (my *Agent) goRead(later *loom.Later) {
 			return
 		}
 
-		packets, err := my.decoder.Decode(msg)
+		packets, err := my.packetDecoder.Decode(msg)
 		if err != nil {
 			logger.Info("Failed to decode message: %s", err.Error())
 			return
@@ -95,24 +124,38 @@ func (my *Agent) processPacket(p *packet.Packet) error {
 	return nil
 }
 
-func (my *Agent) processRawMessage(msg *message.Message) {
-	r, err := route.Decode(msg.Route)
+func (my *Agent) processRawMessage(rawMsg *message.Message) {
+	r, err := route.Decode(rawMsg.Route)
 	if err != nil {
 		logger.Warn("Failed to decode route: %s", err.Error())
 		return
 	}
 
-	message1 := unhandledMessage{
+	msg := unhandledMessage{
 		ctx:   context.Background(),
 		route: r,
-		msg:   msg,
+		msg:   rawMsg,
 	}
 
-	my.messageChan <- message1
+	my.messageChan <- msg
 }
 
 func (my *Agent) goWrite(later *loom.Later) {
+	defer func() {
+		my.Close()
+	}()
 
+	for {
+		select {
+		case pending := <-my.chSend:
+			if _, err := my.conn.Write(pending.data); err != nil {
+				logger.Info("Failed to write in conn: %s", err.Error())
+				return
+			}
+		case <-my.wc.C():
+			return
+		}
+	}
 }
 
 func (my *Agent) goDispatch(later *loom.Later) {
@@ -179,4 +222,73 @@ func serializeReturn(serializer serialize.Serializer, v interface{}) ([]byte, er
 	}
 
 	return data, nil
+}
+
+func (my *Agent) send(pendingMsg pendingMessage) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Info(e)
+		}
+	}()
+
+	m, err := my.getMessageFromPendingMessage(pendingMsg)
+	if err != nil {
+		return err
+	}
+
+	// packet encode
+	p, err := my.packetEncodeMessage(m)
+	if err != nil {
+		return err
+	}
+
+	pWrite := pendingWrite{
+		ctx:  pendingMsg.ctx,
+		data: p,
+	}
+
+	if pendingMsg.err {
+		pWrite.err = fmt.Errorf("has pending error")
+	}
+
+	my.chSend <- pWrite
+	return
+}
+
+func (a *Agent) packetEncodeMessage(m *message.Message) ([]byte, error) {
+	em, err := a.messageEncoder.Encode(m)
+	if err != nil {
+		return nil, err
+	}
+
+	// packet encode
+	p, err := a.packetEncoder.Encode(packet.Data, em)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+func (a *Agent) getMessageFromPendingMessage(pm pendingMessage) (*message.Message, error) {
+	payload, err := util.SerializeOrRaw(a.serializer, pm.payload)
+	if err != nil {
+		return nil, err
+	}
+
+	// construct message and encode
+	m := &message.Message{
+		Type:  pm.typ,
+		Data:  payload,
+		Route: pm.route,
+		ID:    pm.mid,
+		Err:   pm.err,
+	}
+
+	return m, nil
+}
+
+func (my *Agent) Close() {
+	my.wc.Close(func() {
+		_ = my.conn.Close()
+	})
 }
