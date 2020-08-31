@@ -2,22 +2,17 @@ package network
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/network/acceptor"
 	"github.com/lixianmin/gonsole/network/component"
 	"github.com/lixianmin/gonsole/network/conn/codec"
 	"github.com/lixianmin/gonsole/network/conn/message"
-	"github.com/lixianmin/gonsole/network/conn/packet"
 	"github.com/lixianmin/gonsole/network/route"
 	"github.com/lixianmin/gonsole/network/serialize"
 	"github.com/lixianmin/gonsole/network/service"
 	"github.com/lixianmin/gonsole/network/util"
-	"github.com/lixianmin/gonsole/network/util/compression"
 	"github.com/lixianmin/got/loom"
 	"reflect"
-	"sync"
-	"time"
 )
 
 /********************************************************************
@@ -27,24 +22,22 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var (
-	// hbd contains the heartbeat packet data
-	hbd []byte
-	// hrd contains the handshake response data
-	hrd  []byte
-	once sync.Once
-)
-
 type (
-	Agent struct {
-		conn           acceptor.PlayerConn
-		packetEncoder  codec.PacketEncoder
-		packetDecoder  codec.PacketDecoder
-		messageEncoder message.Encoder
-		serializer     serialize.Serializer
-		sendingChan    chan sendingItem
-		receivedChan   chan receivedItem
-		wc             loom.WaitClose
+	Session struct {
+		commonSessionArgs
+		conn         acceptor.PlayerConn
+		sendingChan  chan sendingItem
+		receivedChan chan receivedItem
+		wc           loom.WaitClose
+	}
+
+	commonSessionArgs struct {
+		packetEncoder         codec.PacketEncoder
+		packetDecoder         codec.PacketDecoder
+		messageEncoder        message.Encoder
+		serializer            serialize.Serializer
+		heartbeatPacketData   []byte
+		handshakeResponseData []byte
 	}
 
 	receivedItem struct {
@@ -70,26 +63,13 @@ type (
 	}
 )
 
-func NewAgent(conn acceptor.PlayerConn,
-	packetEncoder codec.PacketEncoder,
-	packetDecoder codec.PacketDecoder,
-	messageEncoder message.Encoder,
-	serializer serialize.Serializer) *Agent {
-
+func NewSession(conn acceptor.PlayerConn, args commonSessionArgs) *Session {
 	const bufferSize = 16
-	var agent = &Agent{
-		conn:           conn,
-		packetEncoder:  packetEncoder,
-		packetDecoder:  packetDecoder,
-		messageEncoder: messageEncoder,
-		serializer:     serializer,
-		sendingChan:    make(chan sendingItem, bufferSize),
-		receivedChan:   make(chan receivedItem, bufferSize),
+	var agent = &Session{
+		commonSessionArgs: args,
+		sendingChan:       make(chan sendingItem, bufferSize),
+		receivedChan:      make(chan receivedItem, bufferSize),
 	}
-
-	once.Do(func() {
-		hbdEncode(2*time.Second, packetEncoder, messageEncoder.IsCompressionEnabled(), serializer.GetName())
-	})
 
 	loom.Go(agent.goReceive)
 	loom.Go(agent.goSend)
@@ -97,7 +77,7 @@ func NewAgent(conn acceptor.PlayerConn,
 	return agent
 }
 
-func (my *Agent) goProcess(later *loom.Later) {
+func (my *Session) goProcess(later *loom.Later) {
 	for {
 		select {
 		case data := <-my.receivedChan:
@@ -108,7 +88,7 @@ func (my *Agent) goProcess(later *loom.Later) {
 	}
 }
 
-func (my *Agent) processReceived(data receivedItem) {
+func (my *Session) processReceived(data receivedItem) {
 	ret, err := my.processReceivedImpl(data)
 	if data.msg.Type != message.Notify {
 		if err != nil {
@@ -122,7 +102,7 @@ func (my *Agent) processReceived(data receivedItem) {
 	}
 }
 
-func (my *Agent) processReceivedImpl(data receivedItem) ([]byte, error) {
+func (my *Session) processReceivedImpl(data receivedItem) ([]byte, error) {
 	handler, err := service.GetHandler(data.route)
 	if err != nil {
 		return nil, err
@@ -180,44 +160,8 @@ func serializeReturn(serializer serialize.Serializer, v interface{}) ([]byte, er
 	return data, nil
 }
 
-func (my *Agent) Close() {
+func (my *Session) Close() {
 	my.wc.Close(func() {
 		_ = my.conn.Close()
 	})
-}
-
-func hbdEncode(heartbeatTimeout time.Duration, packetEncoder codec.PacketEncoder, dataCompression bool, serializerName string) {
-	hData := map[string]interface{}{
-		"code": 200,
-		"sys": map[string]interface{}{
-			"heartbeat":  heartbeatTimeout.Seconds(),
-			"dict":       message.GetDictionary(),
-			"serializer": serializerName,
-		},
-	}
-	data, err := json.Marshal(hData)
-	if err != nil {
-		panic(err)
-	}
-
-	if dataCompression {
-		compressedData, err := compression.DeflateData(data)
-		if err != nil {
-			panic(err)
-		}
-
-		if len(compressedData) < len(data) {
-			data = compressedData
-		}
-	}
-
-	hrd, err = packetEncoder.Encode(packet.Handshake, data)
-	if err != nil {
-		panic(err)
-	}
-
-	hbd, err = packetEncoder.Encode(packet.Heartbeat, nil)
-	if err != nil {
-		panic(err)
-	}
 }

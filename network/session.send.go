@@ -17,7 +17,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *Agent) goSend(later *loom.Later) {
+func (my *Session) goSend(later *loom.Later) {
 	defer func() {
 		my.Close()
 	}()
@@ -35,15 +35,15 @@ func (my *Agent) goSend(later *loom.Later) {
 	}
 }
 
-func (my *Agent) ResponseMID(ctx context.Context, mid uint, v interface{}) error {
+func (my *Session) ResponseMID(ctx context.Context, mid uint, v interface{}) error {
 	return my.send(sendingInfo{ctx: ctx, typ: message.Response, mid: mid, payload: v, err: false})
 }
 
-func (my *Agent) Push(route string, v interface{}) error {
+func (my *Session) Push(route string, v interface{}) error {
 	return my.send(sendingInfo{typ: message.Push, route: route, payload: v})
 }
 
-func (my *Agent) send(info sendingInfo) error {
+func (my *Session) send(info sendingInfo) error {
 	defer func() {
 		if e := recover(); e != nil {
 			logger.Info(e)
@@ -87,7 +87,7 @@ func (my *Agent) send(info sendingInfo) error {
 	return nil
 }
 
-func (my *Agent) packetEncodeMessage(msg *message.Message) ([]byte, error) {
+func (my *Session) packetEncodeMessage(msg *message.Message) ([]byte, error) {
 	data, err := my.messageEncoder.Encode(msg)
 	if err != nil {
 		return nil, err

@@ -16,7 +16,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *Agent) goReceive(later *loom.Later) {
+func (my *Session) goReceive(later *loom.Later) {
 	for {
 		msg, err := my.conn.GetNextMessage()
 
@@ -56,7 +56,7 @@ func (my *Agent) goReceive(later *loom.Later) {
 	}
 }
 
-func (my *Agent) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
+func (my *Session) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
 	switch p.Type {
 	case packet.Handshake:
 		return my.onReceivedHandshake(p)
@@ -71,17 +71,17 @@ func (my *Agent) processReceivedPacket(p *packet.Packet) (receivedItem, error) {
 	return receivedItem{}, nil
 }
 
-func (my *Agent) onReceivedHandshake(p *packet.Packet) (receivedItem, error) {
-	_, err := my.conn.Write(hrd)
+func (my *Session) onReceivedHandshake(p *packet.Packet) (receivedItem, error) {
+	_, err := my.conn.Write(my.handshakeResponseData)
 	if err != nil {
 		return receivedItem{}, err
 	}
 
-	logger.Debug("Received handshake packet")
+	//logger.Debug("Received handshake packet")
 	return receivedItem{}, nil
 }
 
-func (my *Agent) onReceivedDataPacket(p *packet.Packet) (receivedItem, error) {
+func (my *Session) onReceivedDataPacket(p *packet.Packet) (receivedItem, error) {
 	msg, err := message.Decode(p.Data)
 	if err != nil {
 		return receivedItem{}, err
