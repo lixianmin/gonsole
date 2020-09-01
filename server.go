@@ -35,6 +35,8 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
+	acceptor.HandleWebsocket(mux, args.UrlRoot + "/" + websocketName)
+
 	var app = bugfly.NewApp(bugfly.AppArgs{
 		Acceptor:        acceptor,
 		DataCompression: false,
