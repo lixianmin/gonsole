@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
 /********************************************************************
@@ -20,6 +22,24 @@ Copyright (C) - All Rights Reserved
 
 func ToHtmlTable(data interface{}) string {
 	return tools.ToHtmlTable(data)
+}
+
+func ToSnakeName(name string) string {
+	var texts = make([]string, 0, 2)
+	var startIndex = 0
+	for i, c := range name {
+		if i > 0 && unicode.IsUpper(c) {
+			texts = append(texts, string(unicode.ToLower(rune(name[startIndex])))+name[startIndex+1:i])
+			startIndex = i
+		}
+	}
+
+	if startIndex < len(name) {
+		texts = append(texts, string(unicode.ToLower(rune(name[startIndex])))+name[startIndex+1:])
+	}
+
+	var result = strings.Join(texts, "_")
+	return result
 }
 
 // https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/

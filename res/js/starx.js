@@ -11,6 +11,26 @@
         starx.pushHandlers[key] = handler;
     };
 
+    starx.emit = function (key, args) {
+        const handler = starx.pushHandlers[key];
+        if (typeof handler == 'function') {
+            handler(key);
+        }
+    };
+
+    // route string to code
+    let abbrs;
+    let dict;
+//Map from request id to route
+    const routeMap = {};
+    let heartbeatTimeoutId;
+    const gapThreshold = 100;   // heartbeat gap threashold
+    let nextHeartbeatTimeout;
+    let heartbeatTimeout;
+// code to route string
+    let heartbeatInterval;
+    const rsa = window.rsa;
+
     const decodeIO_encoder = null;
     const decodeIO_decoder = null;
 
@@ -111,14 +131,12 @@
         } else {
             return JSON.parse(Protocol.strdecode(msg.body));
         }
-
-        return msg;
     };
 
     const processMessage = function (msg) {
         if (!msg.id) { // server push message
             const handler = starx.pushHandlers[msg.route];
-            if (handler != null) {
+            if (typeof handler == 'function') {
                 handler(msg.body);
             }
             return;
@@ -239,7 +257,6 @@
 
     const JS_WS_CLIENT_TYPE = 'js-websocket';
     const JS_WS_CLIENT_VERSION = '0.0.1';
-    var rsa = window.rsa;
 
     if (typeof (window) != "undefined" && typeof (sys) != 'undefined' && sys.localStorage) {
         window.localStorage = sys.localStorage;
@@ -251,17 +268,14 @@
     socket = null;
     let reqId = 0;
     const handlers = {};
-    //Map from request id to route
-    var routeMap = {};
-    var dict = {};    // route string to code
-    var abbrs = {};   // code to route string
+    dict = {};
+    abbrs = {};
 
-    var heartbeatInterval = 0;
-    var heartbeatTimeout = 0;
-    var nextHeartbeatTimeout = 0;
-    var gapThreshold = 100;   // heartbeat gap threashold
-    var heartbeatId = null;
-    var heartbeatTimeoutId = null;
+    heartbeatInterval = 0;
+    heartbeatTimeout = 0;
+    nextHeartbeatTimeout = 0;
+    let heartbeatId = null;
+    heartbeatTimeoutId = null;
     handshakeCallback = null;
 
     let decode = null;
@@ -282,10 +296,7 @@
         'user': {}
     };
 
-    var initCallback = null;
-
-    starx.encode = defaultEncode;
-    starx.decode = defaultDecode;
+    let initCallback = null;
 
     starx.init = function (params, cb) {
         initCallback = cb;

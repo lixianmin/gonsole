@@ -147,8 +147,6 @@ func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 				loopClientUnsubscribe(client, bean)
 			case *beans.CommandRequest:
 				loopClientCommandRequest(client, bean.RequestId, bean.Command)
-			case *beans.HintRequest:
-				client.SendBean(beans.NewHintResponse(bean.Head, client.server.getCommands(), client.isAuthorized))
 			case *beans.Ping:
 				var pong = &beans.Pong{beans.BasicResponse{Operation: "pong"}}
 				client.SendBean(pong)

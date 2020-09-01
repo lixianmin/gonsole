@@ -45,7 +45,6 @@
             let username = "";
             let isAuthorizing = false;
 
-            const handlers = [];
             const myHost = window.location.host + {{.UrlRoot}};
 
             // 将history存储到localStorage中
@@ -142,10 +141,6 @@
             }
 
             document.onkeydown = function (evt) {
-                if (!conn) {
-                    return true;
-                }
-
                 // 回车
                 if (evt.key === 'Enter') {
                     let control = document.activeElement;
@@ -159,10 +154,6 @@
             };
 
             inputBox.onkeydown = function (evt) {
-                if (!conn) {
-                    return true;
-                }
-
                 // 回车
                 if (evt.key === 'Enter') {
                     let command = inputBox.value.trim();
@@ -268,8 +259,26 @@
                             head: text,
                         };
 
-                        const data = JSON.stringify(bean);
-                        conn.send(data);
+                        // const data = JSON.stringify(bean);
+                        starx.request("console.hint", bean, function (data) {
+                            console.info(data);
+                            const obj = data;
+                            const hints = obj.hints;
+                            const count = hints.length;
+                            if (count > 0) {
+                                inputBox.value = longestCommonPrefix(hints);
+                                if (count > 1) {
+                                    const items = new Array(count);
+                                    for (let i = 0; i < count; i++) {
+                                        items[i] = "<li>" + hints[i] + "</li>";
+                                    }
+
+                                    const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                                    printWithTimestamp(result);
+                                    println();
+                                }
+                            }
+                        })
                     }
 
                     return false;
@@ -280,7 +289,7 @@
                 return true;
             };
 
-            const onChallenge = function (data) {
+            starx.on("console.challenge", function (data) {
                 printWithTimestamp("<b>server响应：</b>" + JSON.stringify(data));
                 println();
 
@@ -293,9 +302,9 @@
                         login(jsonObj.username, jsonObj.password);
                     }
                 }
-            };
+            });
 
-            handlers["log.list"] = function (obj) {
+            starx.on("console.log.list", function (obj) {
                 const host = document.location.protocol + "//" + myHost;
                 const logFiles = obj.logFiles;
                 const fileCount = logFiles.length;
@@ -314,9 +323,9 @@
                 result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
                 printWithTimestamp(result);
                 println();
-            };
+            });
 
-            handlers["history"] = function (obj) {
+            starx.on("console.history", function (obj) {
                 const count = history.length;
                 const items = new Array(count);
                 for (let i = 0; i < count; i++) {
@@ -326,39 +335,19 @@
                 let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
                 printWithTimestamp(result);
                 println();
-            };
+            });
 
-            handlers['hintResponse'] = function (obj) {
-                const hints = obj.hints;
-                const count = hints.length;
-                if (count > 0) {
-                    inputBox.value = longestCommonPrefix(hints);
-                    if (count > 1) {
-                        const items = new Array(count);
-                        for (let i = 0; i < count; i++) {
-                            items[i] = "<li>" + hints[i] + "</li>";
-                        }
-
-                        const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
-                        printWithTimestamp(result);
-                        println();
-                    }
-                }
-            };
-
-            handlers['html'] = function (obj) {
+            starx.on('console.html', function (obj) {
                 printWithTimestamp("<b>server响应：</b>" + obj.html);
                 println();
-            };
+            });
 
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;
                 const protocol = isHttps ? "wss://" : "ws://";
                 const url = protocol + myHost + "/" + {{.WebsocketName}};
 
-                starx.on("console.challenge", onChallenge);
                 starx.init({url: url}, function () {
-
                 });
 
                 // conn = new WebSocket(url);
@@ -397,31 +386,106 @@
     </script>
     <style type="text/css">
         /*http://thomasf.github.io/solarized-css/*/
-        html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.2em;}
-        .copy_button { background-color: #008CBA; border: none; color: white; }
-
-        a {color: #b58900;}
-        a:visited {color: #cb4b16;}
-        a:hover {color: #cb4b16;}
-
-        table { border-width: 1px; border-color: #729ea5;border-collapse: collapse;}
-        th { background-color:#004949; border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
-        td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
-
-        /*https://www.runoob.com/css/css-tooltip.html*/
-        .tips { position: relative; display: inline-block; border-bottom: 1px dotted black; }
-
-        .tips .tips_text {
-            visibility: hidden; display: inline-block; white-space: nowrap; background: #005959; border-radius: 6px; padding: 6px 6px;
-            /* 定位 */
-            position: absolute; z-index: 1; top: -5px;left: 105%;
+        html {
+            background-color: #002b36;
+            color: #839496;
+            margin: 1em;
+            font-size: 1.2em;
         }
 
-        .tips:hover .tips_text { visibility: visible; }
+        .copy_button {
+            background-color: #008CBA;
+            border: none;
+            color: white;
+        }
 
-        #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
-        #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
-        #inputBox {width:100%;height:1.6em;font-size:1.5em; background-color: #073642; color: #859900}
+        a {
+            color: #b58900;
+        }
+
+        a:visited {
+            color: #cb4b16;
+        }
+
+        a:hover {
+            color: #cb4b16;
+        }
+
+        table {
+            border-width: 1px;
+            border-color: #729ea5;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #004949;
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #729ea5;
+            text-align: left;
+        }
+
+        td {
+            border-width: 1px;
+            padding: 8px;
+            border-style: solid;
+            border-color: #729ea5;
+        }
+
+        /*https://www.runoob.com/css/css-tooltip.html*/
+        .tips {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+        }
+
+        .tips .tips_text {
+            visibility: hidden;
+            display: inline-block;
+            white-space: nowrap;
+            background: #005959;
+            border-radius: 6px;
+            padding: 6px 6px;
+            /* 定位 */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
+        }
+
+        .tips:hover .tips_text {
+            visibility: visible;
+        }
+
+        #mainPanel {
+            margin: 0;
+            padding: 0.5em 0.5em 0.5em 0.5em;
+            position: absolute;
+            top: 0.5em;
+            left: 0.5em;
+            right: 0.5em;
+            bottom: 3em;
+            overflow: auto;
+        }
+
+        #form {
+            padding: 0 0.5em 0 0.5em;
+            margin: 0;
+            position: absolute;
+            bottom: 1em;
+            left: 1px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #inputBox {
+            width: 100%;
+            height: 1.6em;
+            font-size: 1.5em;
+            background-color: #073642;
+            color: #859900
+        }
 
     </style>
 </head>

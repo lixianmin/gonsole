@@ -81,7 +81,7 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) {
-			var commandHelp = beans.FetchCommandHelp(server.getCommands(), client.isAuthorized)
+			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), client.isAuthorized)
 			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
 			var topicHelp = beans.FetchTopicHelp(server.getTopics(), client.isAuthorized)

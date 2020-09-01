@@ -2,6 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/bugfly"
+	"github.com/lixianmin/bugfly/component"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
@@ -35,7 +36,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
-	acceptor.HandleWebsocket(mux, args.UrlRoot + "/" + websocketName)
+	acceptor.HandleWebsocket(mux, args.UrlRoot+"/"+websocketName)
 
 	var app = bugfly.NewApp(bugfly.AppArgs{
 		Acceptor:        acceptor,
@@ -51,6 +52,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		messageChan: messageChan,
 	}
 
+	server.registerService("console", beans.NewConsoleService(server, true))
 	server.registerHandlers(mux)
 	server.registerBuiltinCommands()
 	server.registerBuiltinTopics()
@@ -68,6 +70,10 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 
 	logger.Info("Golang Console Server started~")
 	return server
+}
+
+func (server *Server) registerService(name string, service component.Component) {
+	server.app.Register(beans.NewConsoleService(server.GetCommands(), true), component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
 func (server *Server) goLoop() {
@@ -119,7 +125,7 @@ func (server *Server) getCommand(name string) *Command {
 	return nil
 }
 
-func (server *Server) getCommands() []ifs.Command {
+func (server *Server) GetCommands() []ifs.Command {
 	var list []ifs.Command
 	server.commands.Range(func(key, value interface{}) bool {
 		var cmd, ok = value.(*Command)
