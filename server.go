@@ -4,7 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/bugfly"
+	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
 	"net/http"
