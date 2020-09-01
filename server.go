@@ -1,10 +1,10 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
 	"net/http"
@@ -38,6 +38,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	var app = bugfly.NewApp(bugfly.AppArgs{
 		Acceptor:        acceptor,
 		DataCompression: false,
+		Logger:          args.Logger,
 	})
 
 	var messageChan = make(chan ifs.IMessage, 32)
@@ -56,6 +57,12 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	if args.EnablePProf {
 		server.enablePProf(mux)
 	}
+
+	app.OnSessionConnected(func(session *bugfly.Session) {
+		var remoteAddress = session.RemoteAddr().String()
+		_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
+		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
+	})
 
 	logger.Info("Golang Console Server started~")
 	return server

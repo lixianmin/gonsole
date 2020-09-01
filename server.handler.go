@@ -21,7 +21,7 @@ func (server *Server) registerHandlers(mux IServeMux) {
 	server.handleConsolePage(mux)
 	server.handlerResourceFile(mux, "/res/js/sha256.min.js")
 	server.handlerResourceFile(mux, "/res/js/protocol.js")
-	server.handlerResourceFile(mux, "/res/js/startx-wsclient.js")
+	server.handlerResourceFile(mux, "/res/js/starx.js")
 	server.handleLogFiles(mux)
 }
 

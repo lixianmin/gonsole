@@ -3,6 +3,8 @@
 <head>
     <title>{{.Title}}</title>
     <script type="text/javascript" src="res/js/sha256.min.js"></script>
+    <script type="text/javascript" src="res/js/protocol.js"></script>
+    <script type="text/javascript" src="res/js/starx.js"></script>
     <script type="text/javascript">
         Date.prototype.Format = function (fmt) {
             let o = {
@@ -278,8 +280,8 @@
                 return true;
             };
 
-            handlers['challenge'] = function (obj) {
-                printWithTimestamp("<b>server响应：</b>" + JSON.stringify(obj));
+            const onChallenge = function (data) {
+                printWithTimestamp("<b>server响应：</b>" + JSON.stringify(data));
                 println();
 
                 // 测试是否可以自动登录
@@ -358,31 +360,35 @@
                 const protocol = isHttps ? "wss://" : "ws://";
                 const url = protocol + myHost + "/" + {{.WebsocketName}};
 
-                conn = new WebSocket(url);
-                conn.onclose = function (evt) {
-                    printHtml("<b>Connection closed.</b>");
-                };
+                starx.init({url: url}, function () {
+                    starx.on("console.challenge", onChallenge);
+                });
 
-                conn.onmessage = function (evt) {
-                    const data = evt.data;
-                    currentReceivedSize = data.length;
-                    totalReceivedSize += currentReceivedSize;
-                    const messages = data.split('\n');
-                    for (let i = 0; i < messages.length; i++) {
-                        const message = messages[i];
-                        if (message === "") {
-                            continue
-                        }
-                        const obj = JSON.parse(message);
-                        const handler = handlers[obj.op];
-                        if (null != handler) {
-                            handler(obj);
-                        } else {
-                            printWithTimestamp("<b>server响应：</b>" + message);
-                            println();
-                        }
-                    }
-                };
+                // conn = new WebSocket(url);
+                // conn.onclose = function (evt) {
+                //     printHtml("<b>Connection closed.</b>");
+                // };
+
+                // conn.onmessage = function (evt) {
+                //     const data = evt.data;
+                //     currentReceivedSize = data.length;
+                //     totalReceivedSize += currentReceivedSize;
+                //     const messages = data.split('\n');
+                //     for (let i = 0; i < messages.length; i++) {
+                //         const message = messages[i];
+                //         if (message === "") {
+                //             continue
+                //         }
+                //         const obj = JSON.parse(message);
+                //         const handler = handlers[obj.op];
+                //         if (null != handler) {
+                //             handler(obj);
+                //         } else {
+                //             printWithTimestamp("<b>server响应：</b>" + message);
+                //             println();
+                //         }
+                //     }
+                // };
             } else {
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }
