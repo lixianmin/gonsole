@@ -3,6 +3,7 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 	"html/template"
 	"net/http"
@@ -80,11 +81,12 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "帮助中心",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), client.isAuthorized)
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
+			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), agent.isAuthorized)
 			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
-			var topicHelp = beans.FetchTopicHelp(server.getTopics(), client.isAuthorized)
+			var topicHelp = beans.FetchTopicHelp(server.getTopics(), agent.isAuthorized)
 			if len(topicHelp) > 0 {
 				result += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
@@ -93,7 +95,7 @@ func (server *Server) registerBuiltinCommands() {
 				result += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
-			client.SendHtml(result)
+			agent.SendHtml(result)
 		}})
 
 	server.RegisterCommand(&Command{
@@ -101,8 +103,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "认证后开启更多命令：auth username，然后根据提示输入password",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			client.SendBean(beans.NewCommandAuth(client, args, server.args.UserPasswords))
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
+			agent.SendBean(beans.NewCommandAuth(client, args, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
@@ -110,8 +113,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "日志文件列表",
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			client.SendBean(beans.NewCommandLogList(server.args.LogRoot))
+		Handler: func(client ifs.Client, args []string) {
+			var fetus = client.(*Client)
+			fetus.SendBean(beans.NewCommandLogList(server.args.LogRoot))
 		},
 	})
 
@@ -122,8 +126,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      headNote,
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			client.SendHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
+			agent.SendHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
 		},
 	})
 
@@ -134,8 +139,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      tailNote,
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			client.SendHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
+			agent.SendHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
 		},
 	})
 
@@ -144,8 +150,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "历史命令列表",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
-			client.SendBean(beans.NewBasicResponse("history", ""))
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
+			agent.SendBean(beans.NewBasicResponse("history", ""))
 		},
 	})
 
@@ -154,9 +161,10 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "打印进程统计信息",
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
 			var html = tools.ToHtmlTable(beans.NewTopicTopData())
-			client.SendHtml(html)
+			agent.SendHtml(html)
 		},
 	})
 
@@ -165,10 +173,11 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "打印当前日期",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
-			client.SendBean(text)
+			agent.SendBean(text)
 		},
 	})
 
@@ -176,12 +185,13 @@ func (server *Server) registerBuiltinCommands() {
 		Name:      "deadlock.detect",
 		Note:      "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) {
+		Handler: func(client ifs.Client, args []string) {
+			var agent = client.(*Client)
 			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
-				client.SendHtml(html)
+				agent.SendHtml(html)
 			} else {
-				client.SendBean("暂时没有等待时间超长的goroutine")
+				agent.SendBean("暂时没有等待时间超长的goroutine")
 			}
 		},
 	})

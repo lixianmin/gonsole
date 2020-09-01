@@ -7,5 +7,6 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 type Server interface {
+	GetCommand(name string) Command
 	GetCommands() []Command
 }

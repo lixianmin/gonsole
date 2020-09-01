@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/gonsole/ifs"
 	"log"
 	"net/http"
 	"time"
@@ -30,13 +31,14 @@ func main() {
 		Name:     "hi",
 		Note:     "打印 hi console",
 		IsPublic: false,
-		Handler: func(client *gonsole.Client, args [] string) {
+		Handler: func(client ifs.Client, args [] string) {
+			var agent = client.(*gonsole.Client)
 			var bean struct {
 				Text string
 			}
 
 			bean.Text = "hello world"
-			client.SendBean(bean)
+			agent.SendBean(bean)
 		},
 	})
 

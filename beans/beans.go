@@ -19,8 +19,6 @@ func init() {
 
 func registerBeanCreators() {
 	beanCreators["challenge"] = func() ifs.Bean { return &Challenge{} }
-	beanCreators["command"] = func() ifs.Bean { return &CommandRequest{} }
-	beanCreators["hint"] = func() ifs.Bean { return &HintRequest{} }
 	beanCreators["ping"] = func() ifs.Bean { return &Ping{} }
 	beanCreators["sub"] = func() ifs.Bean { return &Subscribe{} }
 	beanCreators["unsub"] = func() ifs.Bean { return &Unsubscribe{} }

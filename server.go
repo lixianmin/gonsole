@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
-	"github.com/lixianmin/got/loom"
 	"net/http"
 	"net/http/pprof"
 	"sync"
@@ -24,9 +23,7 @@ type Server struct {
 	args ServerArgs
 	app  *bugfly.App
 
-	gpid        string
-	messageChan chan ifs.IMessage
-
+	gpid     string
 	commands sync.Map
 	topics   sync.Map
 }
@@ -44,25 +41,25 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		Logger:          args.Logger,
 	})
 
-	var messageChan = make(chan ifs.IMessage, 32)
 	var server = &Server{
-		args:        args,
-		app:         app,
-		gpid:        tools.GetGPID(args.Port),
-		messageChan: messageChan,
+		args: args,
+		app:  app,
+		gpid: tools.GetGPID(args.Port),
 	}
 
-	server.registerService("console", beans.NewConsoleService(server, true))
+	server.registerService("console", beans.NewConsoleService(server))
 	server.registerHandlers(mux)
 	server.registerBuiltinCommands()
 	server.registerBuiltinTopics()
-	go server.goLoop()
 
 	if args.EnablePProf {
 		server.enablePProf(mux)
 	}
 
 	app.OnSessionConnected(func(session *bugfly.Session) {
+		var client = newClient(server, session)
+		session.Attachment().Put(ifs.KeyClient, client)
+
 		var remoteAddress = session.RemoteAddr().String()
 		_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
 		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
@@ -73,33 +70,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) registerService(name string, service component.Component) {
-	server.app.Register(beans.NewConsoleService(server.GetCommands(), true), component.WithName(name), component.WithNameFunc(ToSnakeName))
-}
-
-func (server *Server) goLoop() {
-	defer loom.DumpIfPanic()
-	var messageChan <-chan ifs.IMessage = server.messageChan
-
-	// 注册的client列表
-	var clients = make(map[*Client]struct{}, 16)
-	for {
-		select {
-		case msg := <-messageChan:
-			switch msg := msg.(type) {
-			case AttachClient:
-				var client = msg.Client
-				clients[client] = struct{}{}
-
-				var remoteAddress = client.GetRemoteAddress()
-				client.SendBean(beans.NewChallenge(server.gpid, remoteAddress))
-				logger.Info("client connected, remoteAddress=%q.", remoteAddress)
-			case DetachClient:
-				delete(clients, msg.Client)
-			default:
-				logger.Error("Invalid msg=%v", msg)
-			}
-		}
-	}
+	server.app.Register(beans.NewConsoleService(server), component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
 func (server *Server) RegisterCommand(cmd *Command) {
@@ -115,10 +86,10 @@ func (server *Server) RegisterTopic(topic *Topic) {
 	}
 }
 
-func (server *Server) getCommand(name string) *Command {
+func (server *Server) GetCommand(name string) ifs.Command {
 	var box, ok = server.commands.Load(name)
 	if ok {
-		var cmd, _ = box.(*Command)
+		var cmd, _ = box.(ifs.Command)
 		return cmd
 	}
 
@@ -161,10 +132,6 @@ func (server *Server) getTopics() []ifs.Command {
 	})
 
 	return list
-}
-
-func (server *Server) sendMessage(msg ifs.IMessage) {
-	server.messageChan <- msg
 }
 
 func (server *Server) GetGPID() string {

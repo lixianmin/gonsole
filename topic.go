@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/got/randx"
 	"sync"
@@ -84,4 +85,8 @@ func (topic *Topic) CheckPublic() bool {
 
 func (topic *Topic) CheckBuiltin() bool {
 	return topic.isBuiltin
+}
+
+func (topic *Topic) Run(client ifs.Client, args []string) {
+
 }

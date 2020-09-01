@@ -1,5 +1,7 @@
 package gonsole
 
+import "github.com/lixianmin/gonsole/ifs"
+
 /********************************************************************
 created:    2020-06-04
 author:     lixianmin
@@ -12,7 +14,7 @@ type Command struct {
 	Note      string                               // 描述
 	IsPublic  bool                                 // 非public方法需要登陆
 	isBuiltin bool                                 // 是否为内置命令，排序时内置命令排在前面
-	Handler   func(client *Client, args [] string) // 处理方法
+	Handler   func(client ifs.Client, args [] string) // 处理方法
 }
 
 func (cmd *Command) GetName() string {
@@ -29,4 +31,8 @@ func (cmd *Command) CheckPublic() bool {
 
 func (cmd *Command) CheckBuiltin() bool {
 	return cmd.isBuiltin
+}
+
+func (cmd *Command) Run(client ifs.Client, args []string) {
+	cmd.Handler(client, args)
 }

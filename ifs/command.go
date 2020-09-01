@@ -12,4 +12,5 @@ type Command interface {
 	GetNote() string
 	CheckPublic() bool
 	CheckBuiltin() bool
+	Run(client Client, args []string)
 }
