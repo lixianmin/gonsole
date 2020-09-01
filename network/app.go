@@ -26,8 +26,14 @@ type (
 		commonSessionArgs
 		acceptor Acceptor
 		sessions loom.Map
+		wc       loom.WaitClose
+		tasks    *loom.TaskChan
 
 		handlerService *service.HandlerService
+	}
+
+	AppLoopArgs struct {
+		onSessionConnectedCallbacks []func(*Session)
 	}
 )
 
@@ -48,6 +54,7 @@ func NewApp(args AppArgs) *App {
 		handlerService:    service.NewHandlerService(),
 	}
 
+	app.tasks = loom.NewTaskChan(app.wc.C())
 	app.heartbeatDataEncode(args.DataCompression)
 	loom.Go(app.goLoop)
 	return app
@@ -60,16 +67,20 @@ func checkAppArgs(args *AppArgs) {
 }
 
 func (my *App) goLoop(later *loom.Later) {
+	var args = &AppLoopArgs{
+	}
+
 	for {
 		select {
 		case conn := <-my.acceptor.GetConnChan():
-			var session = NewSession(conn, my.commonSessionArgs)
-
-			var id = session.GetSessionId()
-			my.sessions.Put(id, session)
-			session.OnClosed(func() {
-				my.sessions.Remove(id)
-			})
+			my.onNewSession(args, conn)
+		case task := <-my.tasks.C:
+			var err = task.Do(args)
+			if err != nil {
+				logger.Info("err=%q", err)
+			}
+		case <-my.wc.C():
+			return
 		}
 	}
 }
@@ -79,6 +90,43 @@ func (my *App) Register(c component.Component, options ...component.Option) {
 	if err != nil {
 		logger.Warn("Failed to register handler: %s", err.Error())
 	}
+}
+
+func (my *App) onNewSession(fetus *AppLoopArgs, conn PlayerConn) {
+	var session = NewSession(conn, my.commonSessionArgs)
+
+	var id = session.GetSessionId()
+	my.sessions.Put(id, session)
+
+	session.OnClosed(func() {
+		my.sessions.Remove(id)
+	})
+
+	{
+		defer func() {
+			if r := recover(); r != nil {
+				if r := recover(); r != nil {
+					logger.Info("[onNewSession()] panic: r=%v", r)
+				}
+			}
+		}()
+
+		for _, callback := range fetus.onSessionConnectedCallbacks {
+			callback(session)
+		}
+	}
+}
+
+func (my *App) OnSessionConnected(callback func(*Session)) {
+	if callback == nil {
+		return
+	}
+
+	my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
+		var fetus = args.(*AppLoopArgs)
+		fetus.onSessionConnectedCallbacks = append(fetus.onSessionConnectedCallbacks, callback)
+		return nil, nil
+	})
 }
 
 func (my *App) heartbeatDataEncode(dataCompression bool) {

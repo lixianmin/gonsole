@@ -7,6 +7,8 @@ import (
 	"github.com/lixianmin/gonsole/network/conn/packet"
 	"github.com/lixianmin/gonsole/network/route"
 	"github.com/lixianmin/got/loom"
+	"sync/atomic"
+	"time"
 )
 
 /********************************************************************
@@ -55,7 +57,7 @@ func (my *Session) goReceive(later *loom.Later) {
 				}
 			}
 
-			my.refreshLastAt()
+			atomic.StoreInt64(&my.lastAt, time.Now().Unix())
 		}
 	}
 }

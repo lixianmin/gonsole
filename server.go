@@ -35,13 +35,15 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
+	var app = network.NewApp(network.AppArgs{
+		Acceptor:        acceptor,
+		DataCompression: false,
+	})
+
 	var messageChan = make(chan ifs.IMessage, 32)
 	var server = &Server{
-		args: args,
-		app: network.NewApp(network.AppArgs{
-			Acceptor:         acceptor,
-			DataCompression:  false,
-		}),
+		args:        args,
+		app:         app,
 		gpid:        tools.GetGPID(args.Port),
 		messageChan: messageChan,
 	}
