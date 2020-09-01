@@ -12,6 +12,7 @@ import (
 	"github.com/lixianmin/gonsole/network/util"
 	"github.com/lixianmin/got/loom"
 	"reflect"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -42,6 +43,9 @@ type (
 		receivedChan chan receivedItem
 		lastAt       int64 // last heartbeat unix time stamp
 		wc           loom.WaitClose
+
+		onClosedCallbacks []func()
+		lock              sync.Mutex
 	}
 
 	receivedItem struct {
@@ -169,7 +173,39 @@ func serializeReturn(serializer serialize.Serializer, v interface{}) ([]byte, er
 func (my *Session) Close() {
 	my.wc.Close(func() {
 		_ = my.conn.Close()
+		my.invokeOnClosedCallbacks()
 	})
+}
+
+func (my *Session) invokeOnClosedCallbacks() {
+	var cloned = make([]func(), len(my.onClosedCallbacks))
+
+	// 单独clone一份出来，因为callback的方法体调用了哪些内容未知，防止循环调用导致死循环
+	my.lock.Lock()
+	for i, callback := range my.onClosedCallbacks {
+		cloned[i] = callback
+	}
+	my.lock.Unlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Info("[invokeOnClosedCallbacks()] panic: r=%v", r)
+		}
+	}()
+
+	for _, callback := range cloned {
+		callback()
+	}
+}
+
+func (my *Session) OnClosed(callback func()) {
+	if callback == nil {
+		return
+	}
+
+	my.lock.Lock()
+	my.onClosedCallbacks = append(my.onClosedCallbacks, callback)
+	my.lock.Unlock()
 }
 
 func (my *Session) refreshLastAt() {

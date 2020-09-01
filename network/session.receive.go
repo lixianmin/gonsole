@@ -17,6 +17,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *Session) goReceive(later *loom.Later) {
+	defer my.Close()
+
 	for {
 		msg, err := my.conn.GetNextMessage()
 
