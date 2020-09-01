@@ -24,6 +24,10 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+var (
+	idGenerator int64 = 0
+)
+
 type (
 	commonSessionArgs struct {
 		packetEncoder  codec.PacketEncoder
@@ -38,6 +42,7 @@ type (
 
 	Session struct {
 		commonSessionArgs
+		id           int64
 		conn         PlayerConn
 		sendingChan  chan sendingItem
 		receivedChan chan receivedItem
@@ -75,6 +80,7 @@ func NewSession(conn PlayerConn, args commonSessionArgs) *Session {
 	const bufferSize = 16
 	var agent = &Session{
 		commonSessionArgs: args,
+		id:                atomic.AddInt64(&idGenerator, 1),
 		conn:              conn,
 		sendingChan:       make(chan sendingItem, bufferSize),
 		receivedChan:      make(chan receivedItem, bufferSize),
@@ -210,4 +216,8 @@ func (my *Session) OnClosed(callback func()) {
 
 func (my *Session) refreshLastAt() {
 	atomic.StoreInt64(&my.lastAt, time.Now().Unix())
+}
+
+func (my *Session) GetSessionId() int64 {
+	return my.id
 }

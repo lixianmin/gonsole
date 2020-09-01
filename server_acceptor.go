@@ -30,7 +30,7 @@ func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor 
 
 	var acceptor = &ServerAcceptor{
 		upgrader: upgrader,
-		connChan: make(chan network.PlayerConn),
+		connChan: make(chan network.PlayerConn, 8),
 	}
 
 	return acceptor

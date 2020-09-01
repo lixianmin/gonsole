@@ -25,6 +25,7 @@ type (
 	App struct {
 		commonSessionArgs
 		acceptor Acceptor
+		sessions loom.Map
 
 		handlerService *service.HandlerService
 	}
@@ -62,7 +63,13 @@ func (my *App) goLoop(later *loom.Later) {
 	for {
 		select {
 		case conn := <-my.acceptor.GetConnChan():
-			NewSession(conn, my.commonSessionArgs)
+			var session = NewSession(conn, my.commonSessionArgs)
+
+			var id = session.GetSessionId()
+			my.sessions.Put(id, session)
+			session.OnClosed(func() {
+				my.sessions.Remove(id)
+			})
 		}
 	}
 }
