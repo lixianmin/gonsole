@@ -2,8 +2,8 @@ package gonsole
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/lixianmin/bugfly/acceptor"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/bugfly"
 	"net/http"
 )
 
@@ -16,7 +16,7 @@ Copyright (C) - All Rights Reserved
 
 type ServerAcceptor struct {
 	upgrader *websocket.Upgrader
-	connChan chan bugfly.PlayerConn
+	connChan chan acceptor.PlayerConn
 }
 
 func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor {
@@ -30,7 +30,7 @@ func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor 
 
 	var acceptor = &ServerAcceptor{
 		upgrader: upgrader,
-		connChan: make(chan bugfly.PlayerConn, 8),
+		connChan: make(chan acceptor.PlayerConn, 8),
 	}
 
 	return acceptor
@@ -44,7 +44,7 @@ func (my *ServerAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 			return
 		}
 
-		playerConn, err := bugfly.NewWSConn(conn)
+		playerConn, err := acceptor.NewWSConn(conn)
 		if err != nil {
 			logger.Error("[HandleWebsocket(%s)] failed to create new ws connection: %s", request.RemoteAddr, err.Error())
 			return
@@ -54,6 +54,6 @@ func (my *ServerAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 	})
 }
 
-func (my *ServerAcceptor) GetConnChan() chan bugfly.PlayerConn {
+func (my *ServerAcceptor) GetConnChan() chan acceptor.PlayerConn {
 	return my.connChan
 }

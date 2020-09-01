@@ -255,7 +255,6 @@
                     const text = inputBox.value.trim();
                     if (text.length > 0) {
                         const bean = {
-                            op: "hint",
                             head: text,
                         };
 
@@ -349,32 +348,6 @@
 
                 starx.init({url: url}, function () {
                 });
-
-                // conn = new WebSocket(url);
-                // conn.onclose = function (evt) {
-                //     printHtml("<b>Connection closed.</b>");
-                // };
-
-                // conn.onmessage = function (evt) {
-                //     const data = evt.data;
-                //     currentReceivedSize = data.length;
-                //     totalReceivedSize += currentReceivedSize;
-                //     const messages = data.split('\n');
-                //     for (let i = 0; i < messages.length; i++) {
-                //         const message = messages[i];
-                //         if (message === "") {
-                //             continue
-                //         }
-                //         const obj = JSON.parse(message);
-                //         const handler = handlers[obj.op];
-                //         if (null != handler) {
-                //             handler(obj);
-                //         } else {
-                //             printWithTimestamp("<b>server响应：</b>" + message);
-                //             println();
-                //         }
-                //     }
-                // };
             } else {
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }
