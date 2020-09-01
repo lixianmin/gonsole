@@ -1,4 +1,4 @@
-package network
+package bugfly
 
 import (
 	"time"

@@ -2,8 +2,8 @@ package util
 
 import (
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/constants"
-	"github.com/lixianmin/gonsole/network/serialize"
+	"github.com/lixianmin/gonsole/bugfly/constants"
+	"github.com/lixianmin/gonsole/bugfly/serialize"
 	"reflect"
 )
 

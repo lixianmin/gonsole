@@ -1,10 +1,10 @@
-package network
+package bugfly
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/gonsole/network/conn/codec"
-	"github.com/lixianmin/gonsole/network/conn/packet"
-	"github.com/lixianmin/gonsole/network/constants"
+	"github.com/lixianmin/gonsole/bugfly/conn/codec"
+	"github.com/lixianmin/gonsole/bugfly/conn/packet"
+	"github.com/lixianmin/gonsole/bugfly/constants"
 	"io"
 	"net"
 	"time"
@@ -97,12 +97,12 @@ func (my *WSConn) Close() error {
 	return my.conn.Close()
 }
 
-// LocalAddr returns the local network address.
+// LocalAddr returns the local bugfly address.
 func (my *WSConn) LocalAddr() net.Addr {
 	return my.conn.LocalAddr()
 }
 
-// RemoteAddr returns the remote network address.
+// RemoteAddr returns the remote bugfly address.
 func (my *WSConn) RemoteAddr() net.Addr {
 	return my.conn.RemoteAddr()
 }

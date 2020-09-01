@@ -22,13 +22,13 @@ package codec
 
 import (
 	"bytes"
-	"github.com/lixianmin/gonsole/network/conn/packet"
+	"github.com/lixianmin/gonsole/bugfly/conn/packet"
 )
 
-// PomeloPacketDecoder reads and decodes network data slice following pomelo's protocol
+// PomeloPacketDecoder reads and decodes bugfly data slice following pomelo's protocol
 type PomeloPacketDecoder struct{}
 
-// NewPomeloPacketDecoder returns a new decoder that used for decode network bytes slice.
+// NewPomeloPacketDecoder returns a new decoder that used for decode bugfly bytes slice.
 func NewPomeloPacketDecoder() *PomeloPacketDecoder {
 	return &PomeloPacketDecoder{}
 }
@@ -38,7 +38,7 @@ func (c *PomeloPacketDecoder) forward(buf *bytes.Buffer) (int, packet.Type, erro
 	return ParseHeader(header)
 }
 
-// Decode decode the network bytes slice to packet.Packet(s)
+// Decode decode the bugfly bytes slice to packet.Packet(s)
 func (c *PomeloPacketDecoder) Decode(data []byte) ([]*packet.Packet, error) {
 	buf := bytes.NewBuffer(nil)
 	buf.Write(data)

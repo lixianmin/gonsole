@@ -2,7 +2,7 @@ package component
 
 import (
 	"errors"
-	"github.com/lixianmin/gonsole/network/conn/message"
+	"github.com/lixianmin/gonsole/bugfly/conn/message"
 	"reflect"
 )
 

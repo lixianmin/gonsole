@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/component"
+	"github.com/lixianmin/gonsole/bugfly/component"
 )
 
 /********************************************************************

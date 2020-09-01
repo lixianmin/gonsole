@@ -4,7 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network"
+	"github.com/lixianmin/gonsole/bugfly"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/loom"
 	"net/http"
@@ -21,7 +21,7 @@ Copyright (C) - All Rights Reserved
 
 type Server struct {
 	args ServerArgs
-	app  *network.App
+	app  *bugfly.App
 
 	gpid        string
 	messageChan chan ifs.IMessage
@@ -35,7 +35,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
-	var app = network.NewApp(network.AppArgs{
+	var app = bugfly.NewApp(bugfly.AppArgs{
 		Acceptor:        acceptor,
 		DataCompression: false,
 	})

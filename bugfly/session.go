@@ -1,12 +1,12 @@
-package network
+package bugfly
 
 import (
 	"context"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/conn/codec"
-	"github.com/lixianmin/gonsole/network/conn/message"
-	"github.com/lixianmin/gonsole/network/route"
-	"github.com/lixianmin/gonsole/network/serialize"
+	"github.com/lixianmin/gonsole/bugfly/conn/codec"
+	"github.com/lixianmin/gonsole/bugfly/conn/message"
+	"github.com/lixianmin/gonsole/bugfly/route"
+	"github.com/lixianmin/gonsole/bugfly/serialize"
 	"github.com/lixianmin/got/loom"
 	"sync"
 	"sync/atomic"

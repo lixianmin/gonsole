@@ -24,7 +24,7 @@ import (
 	"fmt"
 )
 
-// Packet represents a network packet.
+// Packet represents a bugfly packet.
 type Packet struct {
 	Type   Type
 	Length int

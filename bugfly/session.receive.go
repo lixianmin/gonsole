@@ -1,11 +1,11 @@
-package network
+package bugfly
 
 import (
 	"context"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/network/conn/message"
-	"github.com/lixianmin/gonsole/network/conn/packet"
-	"github.com/lixianmin/gonsole/network/route"
+	"github.com/lixianmin/gonsole/bugfly/conn/message"
+	"github.com/lixianmin/gonsole/bugfly/conn/packet"
+	"github.com/lixianmin/gonsole/bugfly/route"
 	"github.com/lixianmin/got/loom"
 	"sync/atomic"
 	"time"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/lixianmin/gonsole/network"
-	"github.com/lixianmin/gonsole/network/component"
+	"github.com/lixianmin/gonsole/bugfly"
+	"github.com/lixianmin/gonsole/bugfly/component"
 	"github.com/lixianmin/logo"
 	"strings"
 )
@@ -16,8 +16,8 @@ Copyright (C) - All Rights Reserved
 
 func main() {
 	logo.GetLogger().SetFilterLevel(logo.LevelDebug)
-	var accept = network.NewWSAcceptor(":8880")
-	var app = network.NewApp(network.AppArgs{
+	var accept = bugfly.NewWSAcceptor(":8880")
+	var app = bugfly.NewApp(bugfly.AppArgs{
 		Acceptor: accept,
 	})
 
