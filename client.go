@@ -3,11 +3,8 @@ package gonsole
 import (
 	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/beans"
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
-	"github.com/lixianmin/got/loom"
-	"sync"
 )
 
 /********************************************************************
@@ -18,58 +15,22 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	wc             loom.WaitClose
-	session        *bugfly.Session
-	writeChan      chan []byte
-	server         *Server
-	topics         map[string]struct{}
-	onCloseHandler func()
-	Attachment     sync.Map
+	session *bugfly.Session
+	server  *Server
+	topics  map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
 func newClient(server *Server, session *bugfly.Session) *Client {
 	const chanSize = 8
-	var readChan = make(chan ifs.Bean, chanSize)
 
 	var client = &Client{
-		session:   session,
-		writeChan: make(chan []byte, chanSize),
-		server:    server,
-		topics:    make(map[string]struct{}),
+		session: session,
+		server:  server,
+		topics:  make(map[string]struct{}),
 	}
 
-	go client.goLoop(readChan)
 	return client
-}
-
-/*
-	goLoop 是client的主循环。
-	1. goLoop()不能与goWritePump()合并为一个。早期的确是这样设计，后来发现有deadlock:在处理订阅消息的cmd时，最终需要调用sendBean()
-		发送数据到writeChan，但是由于生产者、消费者由同一个loop处理，导致在生产的过程中无法同时消费，因此导致了deadlock
-	2.因为是主循环，所以相关的容器类会放到这里，比如topics
-*/
-func (client *Client) goLoop(readChan <-chan ifs.Bean) {
-	defer loom.DumpIfPanic()
-
-	for {
-		select {
-		case bean := <-readChan:
-			switch bean := bean.(type) {
-			case *beans.Subscribe:
-				loopClientSubscribe(client, bean)
-			case *beans.Unsubscribe:
-				loopClientUnsubscribe(client, bean)
-			default:
-				logger.Error("unexpected bean type: %T", bean)
-			}
-		case <-client.wc.C():
-			if nil != client.onCloseHandler {
-				client.onCloseHandler()
-			}
-			return
-		}
-	}
 }
 
 func loopClientSubscribe(client *Client, bean *beans.Subscribe) {
@@ -133,14 +94,14 @@ func (client *Client) Push(route string, v interface{}) {
 	}
 }
 
-func (client *Client) OnClose(handler func()) {
-	client.onCloseHandler = handler
+func (client *Client) OnClosed(callback func()) {
+	client.session.OnClosed(callback)
 }
 
-func (client *Client) GetRemoteAddress() string {
-	return client.session.RemoteAddr().String()
+func (client *Client) Session() *bugfly.Session {
+	return client.session
 }
 
-func (client *Client) Close() {
-	client.wc.Close(nil)
+func (client *Client) Attachment() *bugfly.Attachment {
+	return client.session.Attachment()
 }
