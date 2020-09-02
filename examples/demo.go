@@ -38,7 +38,7 @@ func main() {
 			}
 
 			bean.Text = "hello world"
-			agent.SendBean(bean)
+			agent.Push(ifs.RouteDefault, bean)
 		},
 	})
 

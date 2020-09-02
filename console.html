@@ -104,6 +104,14 @@
                 conn.send(data);
             }
 
+            function sendMsg(route, msg, callback) {
+                const json = JSON.stringify(msg);
+                printWithTimestamp("<b>client请求：</b>");
+                printHtml(json);
+                println();
+                starx.request(route, msg, callback);
+            }
+
             function getHumanReadableSize(size) {
                 if (size < 1024) {
                     return size + "B";
@@ -133,11 +141,10 @@
                 const digest = sha256.hmac(key, password);
 
                 const bean = {
-                    op: "command",
                     command: "auth " + username + " " + digest,
                 };
 
-                sendBean(bean);
+                sendMsg("console.command", bean);
             }
 
             document.onkeydown = function (evt) {
@@ -175,11 +182,10 @@
                         if (name === 'help') {
                             const host = document.location.protocol + "//" + myHost;
                             const bean = {
-                                op: "command",
                                 command: name + " " + host,
                             };
 
-                            sendBean(bean);
+                            sendMsg("console.command", bean);
                             addHistory(command);
                         } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
                             const bean = {
@@ -216,11 +222,10 @@
                             }
                         } else {
                             const bean = {
-                                op: "command",
                                 command: texts.join(' '),
                             };
 
-                            sendBean(bean);
+                            sendMsg("console.command", bean);
                             addHistory(command);
                         }
                     } else {
@@ -258,7 +263,6 @@
                             head: text,
                         };
 
-                        // const data = JSON.stringify(bean);
                         starx.request("console.hint", bean, function (data) {
                             console.info(data);
                             const obj = data;
@@ -338,6 +342,12 @@
 
             starx.on('console.html', function (obj) {
                 printWithTimestamp("<b>server响应：</b>" + obj.html);
+                println();
+            });
+
+            starx.on('console.default', function (obj) {
+                const text = JSON.stringify(obj);
+                printWithTimestamp("<b>server响应：</b>" + text);
                 println();
             });
 

@@ -10,4 +10,5 @@ Copyright (C) - All Rights Reserved
 const (
 	KeyIsAuthorized = "isAuthorized"
 	KeyClient       = "client"
+	RouteDefault    = "console.default"
 )

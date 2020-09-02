@@ -46,7 +46,7 @@ func (topic *Topic) start() {
 			if count > 0 {
 				var data = topic.BuildData()
 				for client := range topic.clients.d {
-					client.SendBean(data)
+					client.Push(ifs.RouteDefault, data)
 				}
 			}
 			topic.clients.RUnlock()

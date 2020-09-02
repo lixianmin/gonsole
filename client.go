@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"encoding/json"
 	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
@@ -63,9 +62,6 @@ func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 				loopClientSubscribe(client, bean)
 			case *beans.Unsubscribe:
 				loopClientUnsubscribe(client, bean)
-			case *beans.Ping:
-				var pong = &beans.Pong{beans.BasicResponse{Operation: "pong"}}
-				client.SendBean(pong)
 			default:
 				logger.Error("unexpected bean type: %T", bean)
 			}
@@ -79,75 +75,63 @@ func (client *Client) goLoop(readChan <-chan ifs.Bean) {
 }
 
 func loopClientSubscribe(client *Client, bean *beans.Subscribe) {
-	var topicId = bean.TopicId
-	var topic = client.server.getTopic(topicId)
-	if topic == nil || !(topic.IsPublic || client.isAuthorized) {
-		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
-		return
-	}
-
-	if _, ok := client.topics[topicId]; ok {
-		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
-		return
-	}
-
-	topic.addClient(client)
-	client.topics[topicId] = struct{}{}
-	client.SendBean(beans.NewSubscribeRe(bean.RequestId, topicId))
-	//client.SendBean(topic.BuildData())
+	//var topicId = bean.TopicId
+	//var topic = client.server.getTopic(topicId)
+	//if topic == nil || !(topic.IsPublic || client.isAuthorized) {
+	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
+	//	return
+	//}
+	//
+	//if _, ok := client.topics[topicId]; ok {
+	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
+	//	return
+	//}
+	//
+	//topic.addClient(client)
+	//client.topics[topicId] = struct{}{}
+	//client.Push(beans.NewSubscribeRe(bean.RequestId, topicId))
+	//client.Push(topic.BuildData())
 }
 
 func loopClientUnsubscribe(client *Client, bean *beans.Unsubscribe) {
-	var topicId = bean.TopicId
+	//var topicId = bean.TopicId
 
-	var topic = client.server.getTopic(topicId)
-	if topic == nil {
-		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
-		return
-	}
-
-	if _, ok := client.topics[topicId]; !ok {
-		client.SendBean(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
-		return
-	}
-
-	topic.removeClient(client)
-	delete(client.topics, topicId)
-	client.SendBean(beans.NewUnsubscribeRe(bean.RequestId, topicId))
+	//var topic = client.server.getTopic(topicId)
+	//if topic == nil {
+	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
+	//	return
+	//}
+	//
+	//if _, ok := client.topics[topicId]; !ok {
+	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
+	//	return
+	//}
+	//
+	//topic.removeClient(client)
+	//delete(client.topics, topicId)
+	//client.Push(beans.NewUnsubscribeRe(bean.RequestId, topicId))
 }
 
-// 这个不使用启goroutine去写client.writeChan，虽然不卡死了，但是无法保证顺序了，这就完蛋了
-func (client *Client) innerSendBytes(data []byte) {
-	select {
-	case client.writeChan <- data:
-	case <-client.wc.C():
-	}
-}
-
-func (client *Client) SendHtml(html string) {
+func (client *Client) PushHtml(html string) {
 	var bean = beans.HtmlResponse{
-		BasicResponse: beans.BasicResponse{
-			Operation: "html",
-		},
 		Html: html,
 	}
 
 	var jsonBytes, err = tools.MarshalUnescape(bean)
 	if err == nil {
-		client.innerSendBytes(jsonBytes)
+		err = client.session.Push("console.html", jsonBytes)
+		if err != nil {
+			logger.Info("err=%q", err)
+		}
 	} else {
 		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
 	}
 }
 
-func (client *Client) SendBean(bean interface{}) {
-	if bean != nil {
-		var jsonBytes, err = json.Marshal(bean)
-		if err == nil {
-			client.innerSendBytes(jsonBytes)
-		} else {
-			logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
-		}
+func (client *Client) Push(route string, v interface{}) {
+	err := client.session.Push(route, v)
+	if err != nil {
+		logger.Info("err=%q", err)
 	}
 }
 

@@ -8,6 +8,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type HtmlResponse struct {
-	BasicResponse
 	Html string `json:"html"`
 }

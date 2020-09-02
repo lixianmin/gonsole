@@ -95,7 +95,7 @@ func (server *Server) registerBuiltinCommands() {
 				result += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
-			agent.SendHtml(result)
+			agent.PushHtml(result)
 		}})
 
 	server.RegisterCommand(&Command{
@@ -105,7 +105,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			agent.SendBean(beans.NewCommandAuth(client, args, server.args.UserPasswords))
+			agent.Push(ifs.RouteDefault, beans.NewCommandAuth(client, args, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
@@ -115,7 +115,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var fetus = client.(*Client)
-			fetus.SendBean(beans.NewCommandLogList(server.args.LogRoot))
+			fetus.Push(ifs.RouteDefault, beans.NewCommandLogList(server.args.LogRoot))
 		},
 	})
 
@@ -128,7 +128,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			agent.SendHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
+			agent.PushHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
 		},
 	})
 
@@ -141,7 +141,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			agent.SendHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
+			agent.PushHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
 		},
 	})
 
@@ -152,7 +152,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			agent.SendBean(beans.NewBasicResponse("history", ""))
+			agent.Push(ifs.RouteDefault, beans.NewBasicResponse("history", ""))
 		},
 	})
 
@@ -164,7 +164,7 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
 			var html = tools.ToHtmlTable(beans.NewTopicTopData())
-			agent.SendHtml(html)
+			agent.PushHtml(html)
 		},
 	})
 
@@ -177,7 +177,7 @@ func (server *Server) registerBuiltinCommands() {
 			var agent = client.(*Client)
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
-			agent.SendBean(text)
+			agent.Push(ifs.RouteDefault, text)
 		},
 	})
 
@@ -189,9 +189,9 @@ func (server *Server) registerBuiltinCommands() {
 			var agent = client.(*Client)
 			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
-				agent.SendHtml(html)
+				agent.PushHtml(html)
 			} else {
-				agent.SendBean("暂时没有等待时间超长的goroutine")
+				agent.Push(ifs.RouteDefault, "暂时没有等待时间超长的goroutine")
 			}
 		},
 	})
