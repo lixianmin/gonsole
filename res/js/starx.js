@@ -21,13 +21,15 @@
     // route string to code
     let abbrs;
     let dict;
-//Map from request id to route
+
+    //Map from request id to route
     const routeMap = {};
     let heartbeatTimeoutId;
     const gapThreshold = 100;   // heartbeat gap threashold
     let nextHeartbeatTimeout;
     let heartbeatTimeout;
-// code to route string
+
+    // code to route string
     let heartbeatInterval;
     const rsa = window.rsa;
 
