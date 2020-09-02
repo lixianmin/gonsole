@@ -1,6 +1,7 @@
 package beans
 
 import (
+	"github.com/lixianmin/bugfly"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 )
@@ -17,7 +18,7 @@ type CommandAuth struct {
 	Text string `json:"text"`
 }
 
-func NewCommandAuth(client ifs.Client, args []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(session *bugfly.Session, args []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
 	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()
@@ -31,11 +32,11 @@ func NewCommandAuth(client ifs.Client, args []string, userPasswords map[string]s
 	var password = args[2]
 	if password1, ok := userPasswords[username]; !ok || password1 != password {
 		bean.Text = "用户名或密码错误"
-		client.SetAuthorized(false)
+		session.Attachment().Put(ifs.KeyIsAuthorized, false)
 		return bean
 	}
 
 	bean.Text = "验证成功"
-	client.SetAuthorized(true)
+	session.Attachment().Put(ifs.KeyIsAuthorized, true)
 	return bean
 }

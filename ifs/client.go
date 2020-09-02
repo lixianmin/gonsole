@@ -8,5 +8,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client interface {
-	SetAuthorized(bool)
+
 }

@@ -83,10 +83,11 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), agent.isAuthorized)
+			var isAuthorized = agent.session.Attachment().Bool(ifs.KeyIsAuthorized)
+			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), isAuthorized)
 			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
-			var topicHelp = beans.FetchTopicHelp(server.getTopics(), agent.isAuthorized)
+			var topicHelp = beans.FetchTopicHelp(server.getTopics(), isAuthorized)
 			if len(topicHelp) > 0 {
 				result += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
@@ -105,7 +106,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var agent = client.(*Client)
-			agent.Push(ifs.RouteDefault, beans.NewCommandAuth(client, args, server.args.UserPasswords))
+			agent.Push(ifs.RouteDefault, beans.NewCommandAuth(agent.session, args, server.args.UserPasswords))
 		}})
 
 	server.RegisterCommand(&Command{
@@ -115,7 +116,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client ifs.Client, args []string) {
 			var fetus = client.(*Client)
-			fetus.Push(ifs.RouteDefault, beans.NewCommandLogList(server.args.LogRoot))
+			fetus.Push("console.log.list", beans.NewCommandLogList(server.args.LogRoot))
 		},
 	})
 

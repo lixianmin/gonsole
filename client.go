@@ -23,7 +23,6 @@ type Client struct {
 	writeChan      chan []byte
 	server         *Server
 	topics         map[string]struct{}
-	isAuthorized   bool
 	onCloseHandler func()
 	Attachment     sync.Map
 }
@@ -34,11 +33,10 @@ func newClient(server *Server, session *bugfly.Session) *Client {
 	var readChan = make(chan ifs.Bean, chanSize)
 
 	var client = &Client{
-		session:      session,
-		writeChan:    make(chan []byte, chanSize),
-		server:       server,
-		topics:       make(map[string]struct{}),
-		isAuthorized: false,
+		session:   session,
+		writeChan: make(chan []byte, chanSize),
+		server:    server,
+		topics:    make(map[string]struct{}),
 	}
 
 	go client.goLoop(readChan)
@@ -133,10 +131,6 @@ func (client *Client) Push(route string, v interface{}) {
 	if err != nil {
 		logger.Info("err=%q", err)
 	}
-}
-
-func (client *Client) SetAuthorized(b bool) {
-	client.isAuthorized = b
 }
 
 func (client *Client) OnClose(handler func()) {

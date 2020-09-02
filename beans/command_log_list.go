@@ -2,7 +2,6 @@ package beans
 
 import (
 	"bufio"
-	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/timex"
 	"os"
 	"path/filepath"
@@ -24,7 +23,6 @@ type LogFileInfo struct {
 }
 
 type CommandLogList struct {
-	BasicResponse
 	LogFiles []LogFileInfo `json:"logFiles"`
 }
 
@@ -56,9 +54,6 @@ func readFileSample(filePath string, fileSize int64) string {
 
 func NewCommandLogList(logRoot string) *CommandLogList {
 	var bean = &CommandLogList{}
-	bean.Operation = "log.list"
-	bean.Timestamp = tools.GetTimestamp()
-
 	var logFiles = make([]LogFileInfo, 0, 4)
 	_ = filepath.Walk(logRoot, func(path string, info os.FileInfo, err error) error {
 		if info != nil && !info.IsDir() {
