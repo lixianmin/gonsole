@@ -1,4 +1,4 @@
-package beans
+package gonsole
 
 import (
 	"context"
@@ -24,27 +24,24 @@ var (
 )
 
 type (
-	Hint struct {
+	hintRqt struct {
 		Head string `json:"head"`
 	}
 
-	HintRe struct {
+	hintRe struct {
 		Hints []string `json:"hints"`
 	}
 
-	Command struct {
+	commandRqt struct {
 		Command string `json:"command"`
 	}
 
-	CommandRe struct {
-	}
-
 	ConsoleService struct {
-		server ifs.Server
+		server *Server
 	}
 )
 
-func NewConsoleService(server ifs.Server) *ConsoleService {
+func newConsoleService(server *Server) *ConsoleService {
 	var service = &ConsoleService{
 		server: server,
 	}
@@ -52,12 +49,12 @@ func NewConsoleService(server ifs.Server) *ConsoleService {
 	return service
 }
 
-func (my *ConsoleService) Command(ctx context.Context, request *Command) (*CommandRe, error) {
+func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*CommandRe, error) {
 	var session = bugfly.GetSessionFromCtx(ctx)
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
-	var cmd = my.server.GetCommand(name)
+	var cmd, _ = my.server.GetCommand(name).(*Command)
 	if cmd == nil {
 		return nil, fmt.Errorf("invalid cmd name=%s", name)
 	}
@@ -75,14 +72,12 @@ func (my *ConsoleService) Command(ctx context.Context, request *Command) (*Comma
 		}
 	}()
 
-	var client = session.Attachment().Get1(ifs.KeyClient)
-	cmd.Run(client, args)
-
-	var ret = &CommandRe{}
-	return ret, nil
+	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
+	return cmd.Run(client, args)
+	//return &CommandRe{}, nil
 }
 
-func (my *ConsoleService) Hint(ctx context.Context, request *Hint) (*HintRe, error) {
+func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {
 	var session = bugfly.GetSessionFromCtx(ctx)
 	var isAuthorized = session.Attachment().Bool(ifs.KeyIsAuthorized)
 
@@ -100,6 +95,6 @@ func (my *ConsoleService) Hint(ctx context.Context, request *Hint) (*HintRe, err
 		return hints[i] < hints[j]
 	})
 
-	var result = &HintRe{Hints: hints}
+	var result = &hintRe{Hints: hints}
 	return result, nil
 }

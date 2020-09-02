@@ -47,7 +47,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		gpid: tools.GetGPID(args.Port),
 	}
 
-	server.registerService("console", beans.NewConsoleService(server))
+	server.registerService("console", newConsoleService(server))
 	server.registerHandlers(mux)
 	server.registerBuiltinCommands()
 	server.registerBuiltinTopics()
@@ -70,7 +70,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) registerService(name string, service component.Component) {
-	server.app.Register(beans.NewConsoleService(server), component.WithName(name), component.WithNameFunc(ToSnakeName))
+	server.app.Register(newConsoleService(server), component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
 func (server *Server) RegisterCommand(cmd *Command) {

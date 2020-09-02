@@ -86,7 +86,3 @@ func (topic *Topic) CheckPublic() bool {
 func (topic *Topic) CheckBuiltin() bool {
 	return topic.isBuiltin
 }
-
-func (topic *Topic) Run(client ifs.Client, args []string) {
-
-}

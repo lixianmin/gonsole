@@ -31,14 +31,14 @@ func main() {
 		Name:     "hi",
 		Note:     "打印 hi console",
 		IsPublic: false,
-		Handler: func(client ifs.Client, args [] string) {
-			var agent = client.(*gonsole.Client)
+		Handler: func(client *gonsole.Client, args [] string) (*gonsole.CommandRe, error) {
 			var bean struct {
 				Text string
 			}
 
 			bean.Text = "hello world"
-			agent.Push(ifs.RouteDefault, bean)
+			client.Push(ifs.RouteDefault, bean)
+			return nil, nil
 		},
 	})
 
