@@ -147,6 +147,19 @@
                 sendMsg("console.command", bean);
             }
 
+            function onCommand(obj) {
+                let text = obj.html;
+                if (text == null) {
+                    text = JSON.stringify(obj);
+                }
+
+                printWithTimestamp("<b>server响应：</b>" + text);
+                println();
+            }
+
+            starx.on('console.html', onCommand);
+            starx.on('console.default', onCommand);
+
             document.onkeydown = function (evt) {
                 // 回车
                 if (evt.key === 'Enter') {
@@ -225,7 +238,7 @@
                                 command: texts.join(' '),
                             };
 
-                            sendMsg("console.command", bean);
+                            sendMsg("console.command", bean, onCommand);
                             addHistory(command);
                         }
                     } else {
@@ -337,17 +350,6 @@
 
                 let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
                 printWithTimestamp(result);
-                println();
-            });
-
-            starx.on('console.html', function (obj) {
-                printWithTimestamp("<b>server响应：</b>" + obj.html);
-                println();
-            });
-
-            starx.on('console.default', function (obj) {
-                const text = JSON.stringify(obj);
-                printWithTimestamp("<b>server响应：</b>" + text);
                 println();
             });
 
