@@ -22,8 +22,6 @@ type Client struct {
 
 // newClient 创建一个新的client对象
 func newClient(server *Server, session *bugfly.Session) *Client {
-	const chanSize = 8
-
 	var client = &Client{
 		session: session,
 		server:  server,

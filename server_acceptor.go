@@ -14,12 +14,12 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type ServerAcceptor struct {
+type serverAcceptor struct {
 	upgrader *websocket.Upgrader
 	connChan chan acceptor.PlayerConn
 }
 
-func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor {
+func newServerAcceptor(readBufferSize int, writeBufferSize int) *serverAcceptor {
 	var upgrader = &websocket.Upgrader{
 		ReadBufferSize:  readBufferSize,
 		WriteBufferSize: writeBufferSize,
@@ -28,7 +28,7 @@ func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor 
 		},
 	}
 
-	var acceptor = &ServerAcceptor{
+	var acceptor = &serverAcceptor{
 		upgrader: upgrader,
 		connChan: make(chan acceptor.PlayerConn, 8),
 	}
@@ -36,7 +36,7 @@ func newServerAcceptor(readBufferSize int, writeBufferSize int) *ServerAcceptor 
 	return acceptor
 }
 
-func (my *ServerAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
+func (my *serverAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 	mux.HandleFunc(handlePattern, func(writer http.ResponseWriter, request *http.Request) {
 		conn, err := my.upgrader.Upgrade(writer, request, nil)
 		if err != nil {
@@ -54,6 +54,6 @@ func (my *ServerAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 	})
 }
 
-func (my *ServerAcceptor) GetConnChan() chan acceptor.PlayerConn {
+func (my *serverAcceptor) GetConnChan() chan acceptor.PlayerConn {
 	return my.connChan
 }

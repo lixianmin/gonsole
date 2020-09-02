@@ -22,13 +22,3 @@ func registerBeanCreators() {
 	beanCreators["sub"] = func() ifs.Bean { return &Subscribe{} }
 	beanCreators["unsub"] = func() ifs.Bean { return &Unsubscribe{} }
 }
-
-func CreateBean(beanType string) ifs.Bean {
-	var creator, ok = beanCreators[beanType]
-	if ok {
-		var bean = creator()
-		return bean
-	}
-
-	return nil
-}
