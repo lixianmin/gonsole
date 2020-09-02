@@ -75,7 +75,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *Command) (*Comma
 		}
 	}()
 
-	var client = session.Attachment().Get1(ifs.KeyClient).(ifs.Client)
+	var client = session.Attachment().Get1(ifs.KeyClient)
 	cmd.Run(client, args)
 
 	var ret = &CommandRe{}
