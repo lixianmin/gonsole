@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
-	"github.com/lixianmin/gonsole/ifs"
 	"log"
 	"net/http"
 	"time"
@@ -37,8 +36,7 @@ func main() {
 			}
 
 			bean.Text = "hello world"
-			client.Push(ifs.RouteDefault, bean)
-			return nil, nil
+			return &gonsole.CommandRe{Data: bean}, nil
 		},
 	})
 

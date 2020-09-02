@@ -105,8 +105,9 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			client.Push(ifs.RouteDefault, beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords))
-			return nil, nil
+			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords)
+			var ret = &CommandRe{Data: data}
+			return ret, nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -129,8 +130,9 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			client.PushHtml(beans.ReadFileHead(headNote, args, maxHeadNum))
-			return nil, nil
+			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
+			var ret = &CommandRe{Operation: "html", Data: data}
+			return ret, nil
 		},
 	})
 
@@ -142,8 +144,8 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			client.PushHtml(beans.ReadFileTail(tailNote, args, maxTailNum))
-			return nil, nil
+			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
+			return &CommandRe{Operation: "html", Data: data}, nil
 		},
 	})
 
@@ -153,8 +155,8 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			client.Push(ifs.RouteDefault, beans.NewBasicResponse("history", ""))
-			return nil, nil
+			var data = beans.NewBasicResponse("history", "")
+			return &CommandRe{Data: data}, nil
 		},
 	})
 
@@ -165,8 +167,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var html = tools.ToHtmlTable(beans.NewTopicTopData())
-			client.PushHtml(html)
-			return nil, nil
+			return &CommandRe{Operation: "html", Data: html}, nil
 		},
 	})
 
@@ -178,8 +179,7 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
-			client.Push(ifs.RouteDefault, text)
-			return nil, nil
+			return &CommandRe{Data: text}, nil
 		},
 	})
 
@@ -190,11 +190,10 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
-				client.PushHtml(html)
+				return &CommandRe{Operation: "html", Data: html}, nil
 			} else {
-				client.Push(ifs.RouteDefault, "暂时没有等待时间超长的goroutine")
+				return &CommandRe{Data: "暂时没有等待时间超长的goroutine"}, nil
 			}
-			return nil, nil
 		},
 	})
 }

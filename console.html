@@ -144,10 +144,10 @@
                     command: "auth " + username + " " + digest,
                 };
 
-                sendMsg("console.command", bean);
+                sendMsg("console.command", bean, onCommand);
             }
 
-            function onCommandLogList(data) {
+            function onLogList(data) {
                 const host = document.location.protocol + "//" + myHost;
                 const logFiles = data.logFiles;
                 const fileCount = logFiles.length;
@@ -172,7 +172,7 @@
                 console.info(obj);
                 switch (obj.op) {
                     case "log.list":
-                        onCommandLogList(obj.data);
+                        onLogList(obj.data);
                         break;
                     case "html":
                         printWithTimestamp("<b>server响应：</b>" + obj.data);
@@ -184,8 +184,6 @@
                         println();
                 }
             }
-
-            starx.on('console.default', onCommand);
 
             document.onkeydown = function (evt) {
                 // 回车
