@@ -84,19 +84,19 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var isAuthorized = client.Attachment().Bool(ifs.KeyIsAuthorized)
 			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), isAuthorized)
-			var result = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
+			var data = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
 			var topicHelp = beans.FetchTopicHelp(server.getTopics(), isAuthorized)
 			if len(topicHelp) > 0 {
-				result += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
+				data += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
 
 			if server.args.EnablePProf {
-				result += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
+				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
-			client.PushHtml(result)
-			return nil, nil
+			var ret = &CommandRe{Operation: "html", Data: data}
+			return ret, nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -115,8 +115,9 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			client.Push("console.log.list", beans.NewCommandLogList(server.args.LogRoot))
-			return nil, nil
+			var data = beans.NewCommandLogList(server.args.LogRoot)
+			var ret = &CommandRe{Operation: "log.list", Data: data}
+			return ret, nil
 		},
 	})
 

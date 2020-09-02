@@ -73,8 +73,8 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 	}()
 
 	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
-	return cmd.Run(client, args)
-	//return &CommandRe{}, nil
+	var ret, err = cmd.Run(client, args)
+	return ret, err
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {

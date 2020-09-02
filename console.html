@@ -147,17 +147,44 @@
                 sendMsg("console.command", bean);
             }
 
-            function onCommand(obj) {
-                let text = obj.html;
-                if (text == null) {
-                    text = JSON.stringify(obj);
+            function onCommandLogList(data) {
+                const host = document.location.protocol + "//" + myHost;
+                const logFiles = data.logFiles;
+                const fileCount = logFiles.length;
+                const links = new Array(fileCount);
+                let totalSize = 0;
+                for (let i = 0; i < fileCount; i++) {
+                    const fi = logFiles[i];
+                    totalSize += fi.size;
+                    let sizeText = getHumanReadableSize(fi.size);
+                    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
+                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
+                                </div></td> <td>${fi.mod_time}</td> </tr>`;
                 }
 
-                printWithTimestamp("<b>server响应：</b>" + text);
+                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
+                result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
+                printWithTimestamp(result);
                 println();
             }
 
-            starx.on('console.html', onCommand);
+            function onCommand(obj) {
+                console.info(obj);
+                switch (obj.op) {
+                    case "log.list":
+                        onCommandLogList(obj.data);
+                        break;
+                    case "html":
+                        printWithTimestamp("<b>server响应：</b>" + obj.data);
+                        println();
+                        break;
+                    default:
+                        const text = JSON.stringify(obj);
+                        printWithTimestamp("<b>server响应：</b>" + text);
+                        println();
+                }
+            }
+
             starx.on('console.default', onCommand);
 
             document.onkeydown = function (evt) {
@@ -198,7 +225,7 @@
                                 command: name + " " + host,
                             };
 
-                            sendMsg("console.command", bean);
+                            sendMsg("console.command", bean, onCommand);
                             addHistory(command);
                         } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
                             const bean = {
@@ -276,9 +303,7 @@
                             head: text,
                         };
 
-                        starx.request("console.hint", bean, function (data) {
-                            console.info(data);
-                            const obj = data;
+                        starx.request("console.hint", bean, function (obj) {
                             const hints = obj.hints;
                             const count = hints.length;
                             if (count > 0) {
@@ -318,27 +343,6 @@
                         login(jsonObj.username, jsonObj.password);
                     }
                 }
-            });
-
-            starx.on("console.log.list", function (obj) {
-                const host = document.location.protocol + "//" + myHost;
-                const logFiles = obj.logFiles;
-                const fileCount = logFiles.length;
-                const links = new Array(fileCount);
-                let totalSize = 0;
-                for (let i = 0; i < fileCount; i++) {
-                    const fi = logFiles[i];
-                    totalSize += fi.size;
-                    let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
-                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
-                                </div></td> <td>${fi.mod_time}</td> </tr>`;
-                }
-
-                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-                result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
-                printWithTimestamp(result);
-                println();
             });
 
             starx.on("console.history", function (obj) {
