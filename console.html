@@ -36,9 +36,6 @@
             const mainPanel = document.getElementById("mainPanel");
             const inputBox = document.getElementById("inputBox");
 
-            let currentReceivedSize = 0;
-            let totalReceivedSize = 0;
-
             let history = Array();
             let historyIndex = -1;
 
@@ -87,13 +84,11 @@
             }
 
             function println() {
-                printHtml("<br/>");
+                printHtml("<br>");
             }
 
             function printWithTimestamp(html) {
-                const current = getHumanReadableSize(currentReceivedSize);
-                const total = getHumanReadableSize(totalReceivedSize);
-                printHtml("[" + (new Date()).Format("hh:mm:ss.S") + " (" + current + "/" + total + ") ] " + html);
+                printHtml("[" + (new Date()).Format("hh:mm:ss.S") +  "]" + html);
             }
 
             function sendBean(route, msg, callback) {
@@ -364,8 +359,7 @@
                 const protocol = isHttps ? "wss://" : "ws://";
                 const url = protocol + myHost + "/" + {{.WebsocketName}};
 
-                starx.init({url: url}, function () {
-                });
+                starx.init({url: url}, function () {});
             } else {
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }
