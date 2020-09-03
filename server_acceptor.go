@@ -2,8 +2,8 @@ package gonsole
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/road/acceptor"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/road/acceptor"
 	"net/http"
 )
 
@@ -56,4 +56,8 @@ func (my *serverAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 
 func (my *serverAcceptor) GetConnChan() chan acceptor.PlayerConn {
 	return my.connChan
+}
+
+func (my *serverAcceptor) ListenAndServe() {
+	
 }
