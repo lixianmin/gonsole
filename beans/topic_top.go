@@ -19,7 +19,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TopicTop struct {
-	BasicResponse
 	TopicTopBody
 }
 
@@ -35,8 +34,6 @@ type TopicTopBody struct {
 
 func NewTopicTop() *TopicTop {
 	var bean = &TopicTop{}
-	bean.Operation = "top"
-	bean.Timestamp = tools.GetTimestamp()
 	bean.TopicTopBody = *NewTopicTopData()
 
 	return bean

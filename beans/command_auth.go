@@ -1,9 +1,8 @@
 package beans
 
 import (
-	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/road"
 )
 
 /********************************************************************
@@ -14,14 +13,11 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandAuth struct {
-	BasicResponse
 	Text string `json:"text"`
 }
 
 func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
-	bean.Operation = "auth"
-	bean.Timestamp = tools.GetTimestamp()
 
 	if len(args) < 3 {
 		bean.Text = "格式：auth username"

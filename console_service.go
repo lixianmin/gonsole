@@ -36,6 +36,10 @@ type (
 		Command string `json:"command"`
 	}
 
+	subRqt struct {
+		Topic string `json:"topic"`
+	}
+
 	ConsoleService struct {
 		server *Server
 	}
@@ -75,6 +79,43 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 	var client = getClient(session)
 	var ret, err = cmd.Run(client, args)
 	return ret, err
+}
+
+func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*CommandRe, error) {
+	var session = road.GetSessionFromCtx(ctx)
+	var client = getClient(session)
+	var name = request.Topic
+	var topic = client.server.getTopic(name)
+
+	if topic == nil || !(topic.IsPublic || isAuthorized(session)) {
+		return nil, road.NewError("InvalidTopic", "尝试订阅非法topic")
+	}
+
+	if _, ok := client.topics[name]; ok {
+		return nil, road.NewError("RepeatedSubscribe", "重复订阅同一个主题")
+	}
+
+	topic.addClient(client)
+	client.topics[name] = struct{}{}
+	return &CommandRe{}, nil
+}
+
+func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*CommandRe, error) {
+	var session = road.GetSessionFromCtx(ctx)
+	var client = getClient(session)
+	var name = request.Topic
+	var topic = client.server.getTopic(name)
+	if topic == nil {
+		return nil, road.NewError("InvalidTopic", "尝试取消非法topic")
+	}
+
+	if _, ok := client.topics[name]; !ok {
+		return nil, road.NewError("RepeatedSubscribe", "尝试取消未订阅主题")
+	}
+
+	topic.removeClient(client)
+	delete(client.topics, name)
+	return &CommandRe{}, nil
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {

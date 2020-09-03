@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/road"
 )
@@ -28,44 +27,6 @@ func newClient(server *Server, session *road.Session) *Client {
 	}
 
 	return client
-}
-
-func loopClientSubscribe(client *Client, bean *beans.Subscribe) {
-	//var topicId = bean.TopicId
-	//var topic = client.server.getTopic(topicId)
-	//if topic == nil || !(topic.IsPublic || client.isAuthorized) {
-	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试订阅非法topic"))
-	//	return
-	//}
-	//
-	//if _, ok := client.topics[topicId]; ok {
-	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "重复订阅同一个主题"))
-	//	return
-	//}
-	//
-	//topic.addClient(client)
-	//client.topics[topicId] = struct{}{}
-	//client.Push(beans.NewSubscribeRe(bean.RequestId, topicId))
-	//client.Push(topic.BuildData())
-}
-
-func loopClientUnsubscribe(client *Client, bean *beans.Unsubscribe) {
-	//var topicId = bean.TopicId
-
-	//var topic = client.server.getTopic(topicId)
-	//if topic == nil {
-	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidTopic, "尝试取消非法topic"))
-	//	return
-	//}
-	//
-	//if _, ok := client.topics[topicId]; !ok {
-	//	client.Push(beans.NewBadRequestRe(bean.RequestId, InvalidOperation, "尝试取消未订阅主题"))
-	//	return
-	//}
-	//
-	//topic.removeClient(client)
-	//delete(client.topics, topicId)
-	//client.Push(beans.NewUnsubscribeRe(bean.RequestId, topicId))
 }
 
 //func (client *Client) PushHtml(html string) {

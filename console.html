@@ -96,15 +96,7 @@
                 printHtml("[" + (new Date()).Format("hh:mm:ss.S") + " (" + current + "/" + total + ") ] " + html);
             }
 
-            function sendBean(bean) {
-                const data = JSON.stringify(bean);
-                printWithTimestamp("<b>client请求：</b>");
-                printHtml(data);
-                println();
-                conn.send(data);
-            }
-
-            function sendMsg(route, msg, callback) {
+            function sendBean(route, msg, callback) {
                 const json = JSON.stringify(msg);
                 printWithTimestamp("<b>client请求：</b>");
                 printHtml(json);
@@ -144,11 +136,10 @@
                     command: "auth " + username + " " + digest,
                 };
 
-                sendMsg("console.command", bean, onCommand);
+                sendBean("console.command", bean, onCommand);
             }
 
             function onCommand(obj) {
-                console.info(obj);
                 switch (obj.op) {
                     case "log.list":
                         onLogList(obj.data);
@@ -238,16 +229,15 @@
                                 command: name + " " + host,
                             };
 
-                            sendMsg("console.command", bean, onCommand);
+                            sendBean("console.command", bean, onCommand);
                             addHistory(command);
                         } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
                             const bean = {
-                                op: name,
-                                rid: "request-id",
                                 topic: texts[1],
                             };
 
-                            sendBean(bean);
+                            const route = "console." + name;
+                            sendBean(route, bean, onCommand);
                             addHistory(command);
                         } else if (textsLength >= 2 && name === "auth") {
                             username = texts[1];
@@ -278,7 +268,7 @@
                                 command: texts.join(' '),
                             };
 
-                            sendMsg("console.command", bean, onCommand);
+                            sendBean("console.command", bean, onCommand);
                             addHistory(command);
                         }
                     } else {

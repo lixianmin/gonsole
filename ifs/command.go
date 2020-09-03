@@ -11,5 +11,4 @@ type Command interface {
 	GetName() string
 	GetNote() string
 	CheckPublic() bool
-	CheckBuiltin() bool
 }
