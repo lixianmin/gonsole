@@ -53,7 +53,7 @@ func newConsoleService(server *Server) *ConsoleService {
 	return service
 }
 
-func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*CommandRe, error) {
+func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Response, error) {
 	var session = road.GetSessionFromCtx(ctx)
 
 	var args = commandPattern.Split(request.Command, -1)
@@ -81,7 +81,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 	return ret, err
 }
 
-func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*CommandRe, error) {
+func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, error) {
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	var name = request.Topic
@@ -97,10 +97,10 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*CommandRe,
 
 	topic.addClient(client)
 	client.topics[name] = struct{}{}
-	return &CommandRe{}, nil
+	return &Response{}, nil
 }
 
-func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*CommandRe, error) {
+func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response, error) {
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	var name = request.Topic
@@ -115,7 +115,7 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*CommandR
 
 	topic.removeClient(client)
 	delete(client.topics, name)
-	return &CommandRe{}, nil
+	return &Response{}, nil
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {

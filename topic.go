@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/got/randx"
 	"sync"
@@ -16,12 +15,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Topic struct {
-	Name      string             // 名称
-	Note      string             // 描述
-	Interval  time.Duration      // 推送周期
-	IsPublic  bool               // 非public方法需要登陆
-	isBuiltin bool               // 是否为内置主题，排序时内置主题排在前面
-	BuildData func() interface{} // 创建数据
+	Name          string           // 名称
+	Note          string           // 描述
+	Interval      time.Duration    // 推送周期
+	IsPublic      bool             // 非public方法需要登陆
+	isBuiltin     bool             // 是否为内置主题，排序时内置主题排在前面
+	BuildResponse func() *Response // 创建数据
 
 	clients struct {
 		sync.RWMutex
@@ -30,8 +29,8 @@ type Topic struct {
 }
 
 func (topic *Topic) start() {
-	if topic.Interval <= 0 || topic.BuildData == nil {
-		logger.Error("topic.Interval <= 0 || topic.BuildData == nil")
+	if topic.Interval <= 0 || topic.BuildResponse == nil {
+		logger.Error("topic.Interval <= 0 || topic.BuildResponse == nil")
 		return
 	}
 
@@ -44,9 +43,10 @@ func (topic *Topic) start() {
 			topic.clients.RLock()
 			var count = len(topic.clients.d)
 			if count > 0 {
-				var data = topic.BuildData()
+				var response = topic.BuildResponse()
+				var route = "console." + response.Operation
 				for client := range topic.clients.d {
-					client.Push(ifs.RouteDefault, data)
+					client.Push(route, response)
 				}
 			}
 			topic.clients.RUnlock()

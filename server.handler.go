@@ -80,7 +80,7 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "帮助中心",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var isAuthorized = isAuthorized(client.Session())
 			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), isAuthorized)
 			var data = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
@@ -94,7 +94,7 @@ func (server *Server) registerBuiltinCommands() {
 				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
-			return NewHtmlCommandRe(data), nil
+			return NewHtmlResponse(data), nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -102,9 +102,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "认证后开启更多命令：auth username，然后根据提示输入password",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords)
-			return NewDefaultCommandRe(data), nil
+			return NewDefaultResponse(data), nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -112,9 +112,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "日志文件列表",
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.NewCommandLogList(server.args.LogRoot)
-			var ret = &CommandRe{Operation: "log.list", Data: data}
+			var ret = &Response{Operation: "log.list", Data: data}
 			return ret, nil
 		},
 	})
@@ -126,9 +126,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      headNote,
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
-			return NewHtmlCommandRe(data), nil
+			return NewHtmlResponse(data), nil
 		},
 	})
 
@@ -139,9 +139,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      tailNote,
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
-			return NewHtmlCommandRe(data), nil
+			return NewHtmlResponse(data), nil
 		},
 	})
 
@@ -150,8 +150,8 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "历史命令列表",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			return &CommandRe{Operation: "history"}, nil
+		Handler: func(client *Client, args []string) (*Response, error) {
+			return &Response{Operation: "history"}, nil
 		},
 	})
 
@@ -160,9 +160,9 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "打印进程统计信息",
 		IsPublic:  false,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			var html = tools.ToHtmlTable(beans.NewTopicTopData())
-			return NewHtmlCommandRe(html), nil
+		Handler: func(client *Client, args []string) (*Response, error) {
+			var html = tools.ToHtmlTable(beans.NewTopicTop())
+			return NewHtmlResponse(html), nil
 		},
 	})
 
@@ -171,10 +171,10 @@ func (server *Server) registerBuiltinCommands() {
 		Note:      "打印当前日期",
 		IsPublic:  true,
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
-			return NewDefaultCommandRe(text), nil
+			return NewDefaultResponse(text), nil
 		},
 	})
 
@@ -182,12 +182,12 @@ func (server *Server) registerBuiltinCommands() {
 		Name:      "deadlock.detect",
 		Note:      "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
 		isBuiltin: true,
-		Handler: func(client *Client, args []string) (*CommandRe, error) {
+		Handler: func(client *Client, args []string) (*Response, error) {
 			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
-				return NewHtmlCommandRe(html), nil
+				return NewHtmlResponse(html), nil
 			} else {
-				return NewDefaultCommandRe("暂时没有等待时间超长的goroutine"), nil
+				return NewDefaultResponse("暂时没有等待时间超长的goroutine"), nil
 			}
 		},
 	})
@@ -201,7 +201,8 @@ func (server *Server) registerBuiltinTopics() {
 		Interval:  intervalSeconds * time.Second,
 		IsPublic:  false,
 		isBuiltin: true,
-		BuildData: func() interface{} {
-			return beans.NewTopicTop()
+		BuildResponse: func() *Response {
+			var html = tools.ToHtmlTable(beans.NewTopicTop())
+			return NewHtmlResponse(html)
 		}})
 }

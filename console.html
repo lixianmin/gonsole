@@ -139,6 +139,9 @@
                 sendBean("console.command", bean, onCommand);
             }
 
+            starx.on("console.html", onHtml);
+            starx.on("console.default", onDefault);
+
             function onCommand(obj) {
                 switch (obj.op) {
                     case "log.list":
@@ -148,14 +151,22 @@
                         onHistory(obj.data);
                         break;
                     case "html":
-                        printWithTimestamp("<b>server响应：</b>" + obj.data);
-                        println();
+                        onHtml(obj);
                         break;
                     default:
-                        const text = JSON.stringify(obj);
-                        printWithTimestamp("<b>server响应：</b>" + text);
-                        println();
+                        onDefault(obj);
                 }
+            }
+
+            function onHtml(obj) {
+                printWithTimestamp("<b>server响应：</b>" + obj.data);
+                println();
+            }
+
+            function onDefault(obj) {
+                const text = JSON.stringify(obj);
+                printWithTimestamp("<b>server响应：</b>" + text);
+                println();
             }
 
             function onLogList(data) {

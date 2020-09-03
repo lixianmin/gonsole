@@ -19,10 +19,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TopicTop struct {
-	TopicTopBody
-}
-
-type TopicTopBody struct {
 	UpTime       string `json:"uptime"`
 	CpuUsage     string `json:"cpu"`
 	SysMemory    string `json:"sys"`
@@ -33,14 +29,7 @@ type TopicTopBody struct {
 }
 
 func NewTopicTop() *TopicTop {
-	var bean = &TopicTop{}
-	bean.TopicTopBody = *NewTopicTopData()
-
-	return bean
-}
-
-func NewTopicTopData() *TopicTopBody {
-	var body = &TopicTopBody{}
+	var body = &TopicTop{}
 	body.NumGoroutine = runtime.NumGoroutine()
 
 	// cpu

@@ -30,13 +30,13 @@ func main() {
 		Name:     "hi",
 		Note:     "打印 hi console",
 		IsPublic: false,
-		Handler: func(client *gonsole.Client, args [] string) (*gonsole.CommandRe, error) {
+		Handler: func(client *gonsole.Client, args [] string) (*gonsole.Response, error) {
 			var bean struct {
 				Text string
 			}
 
 			bean.Text = "hello world"
-			return gonsole.NewDefaultCommandRe(bean), nil
+			return gonsole.NewDefaultResponse(bean), nil
 		},
 	})
 
@@ -45,8 +45,8 @@ func main() {
 		Note:     "广播hi console（每5s）",
 		Interval: 5 * time.Second,
 		IsPublic: true,
-		BuildData: func() interface{} {
-			return "hi console";
+		BuildResponse: func() *gonsole.Response {
+			return gonsole.NewDefaultResponse("hi console");
 		},
 	})
 
