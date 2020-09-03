@@ -124,7 +124,14 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, 
 
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.server.GetCommands()
-	var hints = make([]string, 0, len(commands))
+	var builtins = []string{"sub", "unsub"}
+	var hints = make([]string, 0, len(commands)+len(builtins))
+
+	for _, name := range builtins {
+		if strings.HasPrefix(name, head) {
+			hints = append(hints, name)
+		}
+	}
 
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
