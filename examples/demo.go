@@ -36,7 +36,7 @@ func main() {
 			}
 
 			bean.Text = "hello world"
-			return &gonsole.CommandRe{Data: bean}, nil
+			return gonsole.NewDefaultCommandRe(bean), nil
 		},
 	})
 

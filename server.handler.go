@@ -95,8 +95,7 @@ func (server *Server) registerBuiltinCommands() {
 				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
-			var ret = &CommandRe{Operation: "html", Data: data}
-			return ret, nil
+			return NewHtmlCommandRe(data), nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -106,8 +105,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords)
-			var ret = &CommandRe{Data: data}
-			return ret, nil
+			return NewDefaultCommandRe(data), nil
 		}})
 
 	server.RegisterCommand(&Command{
@@ -131,8 +129,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
-			var ret = &CommandRe{Operation: "html", Data: data}
-			return ret, nil
+			return NewHtmlCommandRe(data), nil
 		},
 	})
 
@@ -145,7 +142,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
-			return &CommandRe{Operation: "html", Data: data}, nil
+			return NewHtmlCommandRe(data), nil
 		},
 	})
 
@@ -155,8 +152,7 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			var data = beans.NewBasicResponse("history", "")
-			return &CommandRe{Data: data}, nil
+			return &CommandRe{Operation: "history"}, nil
 		},
 	})
 
@@ -167,7 +163,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var html = tools.ToHtmlTable(beans.NewTopicTopData())
-			return &CommandRe{Operation: "html", Data: html}, nil
+			return NewHtmlCommandRe(html), nil
 		},
 	})
 
@@ -179,7 +175,7 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
-			return &CommandRe{Data: text}, nil
+			return NewDefaultCommandRe(text), nil
 		},
 	})
 
@@ -190,9 +186,9 @@ func (server *Server) registerBuiltinCommands() {
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
 			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
 			if html != "" {
-				return &CommandRe{Operation: "html", Data: html}, nil
+				return NewHtmlCommandRe(html), nil
 			} else {
-				return &CommandRe{Data: "暂时没有等待时间超长的goroutine"}, nil
+				return NewDefaultCommandRe("暂时没有等待时间超长的goroutine"), nil
 			}
 		},
 	})

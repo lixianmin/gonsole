@@ -147,6 +147,26 @@
                 sendMsg("console.command", bean, onCommand);
             }
 
+            function onCommand(obj) {
+                console.info(obj);
+                switch (obj.op) {
+                    case "log.list":
+                        onLogList(obj.data);
+                        break;
+                    case "history":
+                        onHistory(obj.data);
+                        break;
+                    case "html":
+                        printWithTimestamp("<b>server响应：</b>" + obj.data);
+                        println();
+                        break;
+                    default:
+                        const text = JSON.stringify(obj);
+                        printWithTimestamp("<b>server响应：</b>" + text);
+                        println();
+                }
+            }
+
             function onLogList(data) {
                 const host = document.location.protocol + "//" + myHost;
                 const logFiles = data.logFiles;
@@ -168,21 +188,16 @@
                 println();
             }
 
-            function onCommand(obj) {
-                console.info(obj);
-                switch (obj.op) {
-                    case "log.list":
-                        onLogList(obj.data);
-                        break;
-                    case "html":
-                        printWithTimestamp("<b>server响应：</b>" + obj.data);
-                        println();
-                        break;
-                    default:
-                        const text = JSON.stringify(obj);
-                        printWithTimestamp("<b>server响应：</b>" + text);
-                        println();
+            function onHistory(obj) {
+                const count = history.length;
+                const items = new Array(count);
+                for (let i = 0; i < count; i++) {
+                    items[i] = "<li>" + history[i] + "</li>";
                 }
+
+                let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                printWithTimestamp(result);
+                println();
             }
 
             document.onkeydown = function (evt) {
@@ -341,18 +356,6 @@
                         login(jsonObj.username, jsonObj.password);
                     }
                 }
-            });
-
-            starx.on("console.history", function (obj) {
-                const count = history.length;
-                const items = new Array(count);
-                for (let i = 0; i < count; i++) {
-                    items[i] = "<li>" + history[i] + "</li>";
-                }
-
-                let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
-                printWithTimestamp(result);
-                println();
             });
 
             if (window["WebSocket"]) {
