@@ -97,7 +97,9 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 
 	topic.addClient(client)
 	client.topics[name] = struct{}{}
-	return &Response{}, nil
+
+	var message = fmt.Sprintf("订阅成功，topic=%s", name)
+	return NewDefaultResponse(message), nil
 }
 
 func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response, error) {
@@ -115,7 +117,9 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response
 
 	topic.removeClient(client)
 	delete(client.topics, name)
-	return &Response{}, nil
+
+	var message = fmt.Sprintf("退订成功，topic=%s", name)
+	return NewDefaultResponse(message), nil
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {

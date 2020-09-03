@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/road"
 )
 
@@ -44,13 +43,6 @@ func newClient(server *Server, session *road.Session) *Client {
 //		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
 //	}
 //}
-
-func (client *Client) Push(route string, v interface{}) {
-	err := client.session.Push(route, v)
-	if err != nil {
-		logger.Info("err=%q", err)
-	}
-}
 
 func (client *Client) OnClosed(callback func()) {
 	client.session.OnClosed(callback)
