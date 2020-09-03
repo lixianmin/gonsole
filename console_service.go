@@ -3,9 +3,9 @@ package gonsole
 import (
 	"context"
 	"fmt"
-	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/road"
 	"regexp"
 	"runtime/debug"
 	"sort"
@@ -60,7 +60,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 	}
 
 	// 要么是public方法，要么是authorized了
-	var isAuthorized = session.Attachment().Bool(ifs.KeyIsAuthorized)
+	var isAuthorized = isAuthorized(session)
 	if !cmd.CheckPublic() && !isAuthorized {
 		return nil, fmt.Errorf("need auth")
 	}
@@ -72,14 +72,14 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 		}
 	}()
 
-	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
+	var client = getClient(session)
 	var ret, err = cmd.Run(client, args)
 	return ret, err
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {
 	var session = road.GetSessionFromCtx(ctx)
-	var isAuthorized = session.Attachment().Bool(ifs.KeyIsAuthorized)
+	var isAuthorized = isAuthorized(session)
 
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.server.GetCommands()
@@ -97,4 +97,13 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, 
 
 	var result = &hintRe{Hints: hints}
 	return result, nil
+}
+
+func isAuthorized(session *road.Session) bool {
+	return session.Attachment().Bool(ifs.KeyIsAuthorized)
+}
+
+func getClient(session *road.Session) *Client {
+	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
+	return client
 }

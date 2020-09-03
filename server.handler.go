@@ -3,7 +3,6 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 	"html/template"
 	"net/http"
@@ -82,7 +81,7 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*CommandRe, error) {
-			var isAuthorized = client.Attachment().Bool(ifs.KeyIsAuthorized)
+			var isAuthorized = isAuthorized(client.Session())
 			var commandHelp = beans.FetchCommandHelp(server.GetCommands(), isAuthorized)
 			var data = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 

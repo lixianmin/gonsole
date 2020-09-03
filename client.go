@@ -1,10 +1,9 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/logger"
-	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/road"
 )
 
 /********************************************************************
@@ -69,21 +68,21 @@ func loopClientUnsubscribe(client *Client, bean *beans.Unsubscribe) {
 	//client.Push(beans.NewUnsubscribeRe(bean.RequestId, topicId))
 }
 
-func (client *Client) PushHtml(html string) {
-	var bean = beans.HtmlResponse{
-		Html: html,
-	}
-
-	var jsonBytes, err = tools.MarshalUnescape(bean)
-	if err == nil {
-		err = client.session.Push("console.html", jsonBytes)
-		if err != nil {
-			logger.Info("err=%q", err)
-		}
-	} else {
-		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
-	}
-}
+//func (client *Client) PushHtml(html string) {
+//	var bean = beans.HtmlResponse{
+//		Html: html,
+//	}
+//
+//	var jsonBytes, err = tools.MarshalUnescape(bean)
+//	if err == nil {
+//		err = client.session.Push("console.html", jsonBytes)
+//		if err != nil {
+//			logger.Info("err=%q", err)
+//		}
+//	} else {
+//		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
+//	}
+//}
 
 func (client *Client) Push(route string, v interface{}) {
 	err := client.session.Push(route, v)
