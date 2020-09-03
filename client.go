@@ -1,7 +1,7 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/bugfly"
+	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
@@ -15,13 +15,13 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	session *bugfly.Session
+	session *road.Session
 	server  *Server
 	topics  map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
-func newClient(server *Server, session *bugfly.Session) *Client {
+func newClient(server *Server, session *road.Session) *Client {
 	var client = &Client{
 		session: session,
 		server:  server,
@@ -96,10 +96,10 @@ func (client *Client) OnClosed(callback func()) {
 	client.session.OnClosed(callback)
 }
 
-func (client *Client) Session() *bugfly.Session {
+func (client *Client) Session() *road.Session {
 	return client.session
 }
 
-func (client *Client) Attachment() *bugfly.Attachment {
+func (client *Client) Attachment() *road.Attachment {
 	return client.session.Attachment()
 }

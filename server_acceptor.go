@@ -2,7 +2,7 @@ package gonsole
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/lixianmin/bugfly/acceptor"
+	"github.com/lixianmin/road/acceptor"
 	"github.com/lixianmin/gonsole/logger"
 	"net/http"
 )

@@ -3,7 +3,7 @@ package gonsole
 import (
 	"context"
 	"fmt"
-	"github.com/lixianmin/bugfly"
+	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"regexp"
@@ -50,7 +50,7 @@ func newConsoleService(server *Server) *ConsoleService {
 }
 
 func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*CommandRe, error) {
-	var session = bugfly.GetSessionFromCtx(ctx)
+	var session = road.GetSessionFromCtx(ctx)
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
@@ -78,7 +78,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Co
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {
-	var session = bugfly.GetSessionFromCtx(ctx)
+	var session = road.GetSessionFromCtx(ctx)
 	var isAuthorized = session.Attachment().Bool(ifs.KeyIsAuthorized)
 
 	var head = strings.TrimSpace(request.Head)

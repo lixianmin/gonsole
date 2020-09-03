@@ -1,8 +1,8 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/bugfly"
-	"github.com/lixianmin/bugfly/component"
+	"github.com/lixianmin/road"
+	"github.com/lixianmin/road/component"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
@@ -21,7 +21,7 @@ Copyright (C) - All Rights Reserved
 
 type Server struct {
 	args ServerArgs
-	app  *bugfly.App
+	app  *road.App
 
 	gpid     string
 	commands sync.Map
@@ -35,7 +35,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
 	acceptor.HandleWebsocket(mux, args.UrlRoot+"/"+websocketName)
 
-	var app = bugfly.NewApp(bugfly.AppArgs{
+	var app = road.NewApp(road.AppArgs{
 		Acceptor:        acceptor,
 		DataCompression: false,
 		Logger:          args.Logger,
@@ -56,7 +56,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		server.enablePProf(mux)
 	}
 
-	app.OnSessionConnected(func(session *bugfly.Session) {
+	app.OnSessionConnected(func(session *road.Session) {
 		var client = newClient(server, session)
 		session.Attachment().Put(ifs.KeyClient, client)
 

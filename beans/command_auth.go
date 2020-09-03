@@ -1,7 +1,7 @@
 package beans
 
 import (
-	"github.com/lixianmin/bugfly"
+	"github.com/lixianmin/road"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 )
@@ -18,7 +18,7 @@ type CommandAuth struct {
 	Text string `json:"text"`
 }
 
-func NewCommandAuth(session *bugfly.Session, args []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string) *CommandAuth {
 	var bean = &CommandAuth{}
 	bean.Operation = "auth"
 	bean.Timestamp = tools.GetTimestamp()
