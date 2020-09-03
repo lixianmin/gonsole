@@ -12,6 +12,11 @@ type Response struct {
 	Data      interface{} `json:"data"`
 }
 
+func NewEmptyResponse() *Response {
+	var ret = &Response{Operation: "empty"}
+	return ret
+}
+
 func NewDefaultResponse(data interface{}) *Response {
 	var ret = &Response{Operation: "default", Data: data}
 	return ret
