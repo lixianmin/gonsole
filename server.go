@@ -86,7 +86,7 @@ func (server *Server) RegisterTopic(topic *Topic) {
 	}
 }
 
-func (server *Server) GetCommand(name string) ifs.Command {
+func (server *Server) getCommand(name string) ifs.Command {
 	var box, ok = server.commands.Load(name)
 	if ok {
 		var cmd, _ = box.(ifs.Command)
@@ -96,7 +96,7 @@ func (server *Server) GetCommand(name string) ifs.Command {
 	return nil
 }
 
-func (server *Server) GetCommands() []ifs.Command {
+func (server *Server) getCommands() []ifs.Command {
 	var list []ifs.Command
 	server.commands.Range(func(key, value interface{}) bool {
 		var cmd, ok = value.(*Command)
@@ -134,7 +134,7 @@ func (server *Server) getTopics() []ifs.Command {
 	return list
 }
 
-func (server *Server) GetGPID() string {
+func (server *Server) GPID() string {
 	return server.gpid
 }
 

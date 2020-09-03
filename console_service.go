@@ -58,7 +58,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
-	var cmd, _ = my.server.GetCommand(name).(*Command)
+	var cmd, _ = my.server.getCommand(name).(*Command)
 	if cmd == nil {
 		return nil, fmt.Errorf("invalid cmd name=%s", name)
 	}
@@ -127,7 +127,7 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, 
 	var isAuthorized = isAuthorized(session)
 
 	var head = strings.TrimSpace(request.Head)
-	var commands = my.server.GetCommands()
+	var commands = my.server.getCommands()
 	var builtins = []string{"sub", "unsub"}
 	var hints = make([]string, 0, len(commands)+len(builtins))
 
