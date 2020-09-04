@@ -56,15 +56,13 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		server.enablePProf(mux)
 	}
 
-	app.OnConnected(func(session *road.Session) {
+	app.OnHandShaken(func(session *road.Session) {
 		var client = newClient(server, session)
 		session.Attachment().Put(ifs.KeyClient, client)
 
-		session.OnHandShaken(func() {
-			var remoteAddress = session.RemoteAddr().String()
-			_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
-			logger.Info("client connected, remoteAddress=%q.", remoteAddress)
-		})
+		var remoteAddress = session.RemoteAddr().String()
+		_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
+		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
 	logger.Info("Golang Console Server started~")
