@@ -69,7 +69,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) RegisterService(name string, service component.Component) {
-	server.app.Register(newConsoleService(server), component.WithName(name), component.WithNameFunc(ToSnakeName))
+	server.app.Register(service, component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
 func (server *Server) RegisterCommand(cmd *Command) {
