@@ -302,6 +302,7 @@
 
     starx.init = function (params, cb) {
         initCallback = cb;
+        handshakeCallback = params.handshakeCallback;
 
         encode = params.encode || defaultEncode;
         decode = params.decode || defaultDecode;
@@ -316,7 +317,6 @@
             };
         }
 
-        handshakeCallback = params.handshakeCallback;
         connect(params, params.url, cb);
     };
 
