@@ -14,8 +14,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type ServerArgs struct {
-	ReadBufferSize   int
-	WriteBufferSize  int
+	ReadBufferSize  int
+	WriteBufferSize int
 
 	AutoLoginLimit  time.Duration     // 如果手动登录过，则在时限内自动登录
 	EnablePProf     bool              // 激活pprof
@@ -27,6 +27,7 @@ type ServerArgs struct {
 	UrlRoot         string            // 项目目录，表现在url中
 	UserPasswords   map[string]string // 可以登陆的用户名与密码
 	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
+	WebsocketPath   string            // websocket监听的路径
 }
 
 func (args *ServerArgs) checkArgs() {

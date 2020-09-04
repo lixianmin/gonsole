@@ -10,6 +10,4 @@ Copyright (C) - All Rights Reserved
 const (
 	//OK            = 0   // 正确返回
 	//InternalError = 500 // 内部错误
-
-	websocketName = "gonsole"
 )

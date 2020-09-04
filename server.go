@@ -1,12 +1,12 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/road"
-	"github.com/lixianmin/road/component"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/road"
+	"github.com/lixianmin/road/component"
 	"net/http"
 	"net/http/pprof"
 	"sync"
@@ -33,7 +33,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
-	acceptor.HandleWebsocket(mux, args.UrlRoot+"/"+websocketName)
+	acceptor.handleWebsocket(mux, args.UrlRoot+"/"+args.WebsocketPath)
 
 	var app = road.NewApp(road.AppArgs{
 		Acceptor:        acceptor,
@@ -48,7 +48,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	}
 
 	server.RegisterService("console", newConsoleService(server))
-	server.registerHandlers(mux)
+	server.registerHandlers(mux, args.WebsocketPath)
 	server.registerBuiltinCommands()
 	server.registerBuiltinTopics()
 
@@ -136,6 +136,10 @@ func (server *Server) getTopics() []ifs.Command {
 
 func (server *Server) GPID() string {
 	return server.gpid
+}
+
+func (server *Server) App() *road.App {
+	return server.app
 }
 
 func (server *Server) enablePProf(mux IServeMux) {

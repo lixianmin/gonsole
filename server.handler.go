@@ -17,15 +17,15 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (server *Server) registerHandlers(mux IServeMux) {
-	server.handleConsolePage(mux)
+func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
+	server.handleConsolePage(mux, websocketPath)
 	server.handlerResourceFile(mux, "/res/js/sha256.min.js")
 	server.handlerResourceFile(mux, "/res/js/protocol.js")
 	server.handlerResourceFile(mux, "/res/js/starx.js")
 	server.handleLogFiles(mux)
 }
 
-func (server *Server) handleConsolePage(mux IServeMux) {
+func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var args = server.args
 	var tmpl = template.Must(template.ParseFiles(args.TemplatePath))
 	var pattern = args.UrlRoot + "/console"
@@ -35,13 +35,13 @@ func (server *Server) handleConsolePage(mux IServeMux) {
 			AutoLoginLimit int64
 			Title          string
 			UrlRoot        string
-			WebsocketName  string
+			WebsocketPath  string
 		}
 
 		data.AutoLoginLimit = int64(args.AutoLoginLimit / time.Millisecond)
 		data.Title = args.Title
 		data.UrlRoot = args.UrlRoot
-		data.WebsocketName = websocketName
+		data.WebsocketPath = websocketPath
 		_ = tmpl.Execute(writer, data)
 	})
 }
