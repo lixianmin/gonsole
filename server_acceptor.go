@@ -36,17 +36,17 @@ func newServerAcceptor(readBufferSize int, writeBufferSize int) *serverAcceptor 
 	return actor
 }
 
-func (my *serverAcceptor) handleWebsocket(mux IServeMux, handlePattern string) {
+func (my *serverAcceptor) HandleWebsocket(mux IServeMux, handlePattern string) {
 	mux.HandleFunc(handlePattern, func(writer http.ResponseWriter, request *http.Request) {
 		conn, err := my.upgrader.Upgrade(writer, request, nil)
 		if err != nil {
-			logger.Error("[handleWebsocket(%s)] connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
+			logger.Error("[HandleWebsocket(%s)] connection upgrade failed, userAgent=%q, err=%q", request.RemoteAddr, request.UserAgent(), err)
 			return
 		}
 
 		playerConn, err := acceptor.NewWSConn(conn)
 		if err != nil {
-			logger.Error("[handleWebsocket(%s)] failed to create new ws connection: %s", request.RemoteAddr, err.Error())
+			logger.Error("[HandleWebsocket(%s)] failed to create new ws connection: %s", request.RemoteAddr, err.Error())
 			return
 		}
 
