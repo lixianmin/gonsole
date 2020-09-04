@@ -33,7 +33,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var acceptor = newServerAcceptor(args.ReadBufferSize, args.WriteBufferSize)
-	acceptor.HandleWebsocket(mux, args.UrlRoot+"/"+args.WebsocketPath)
+	acceptor.handleWebsocket(mux, args.UrlRoot+"/"+args.WebsocketPath)
 
 	var app = road.NewApp(road.AppArgs{
 		Acceptor:        acceptor,
