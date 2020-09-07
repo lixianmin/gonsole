@@ -33,8 +33,8 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
 	logger.Init(args.Logger)
 
-	var acceptor = epoll.NewAcceptor(128)
-	var pattern = args.UrlRoot+"/"+args.WebsocketPath
+	var acceptor = epoll.NewAcceptor(epoll.AcceptorArgs{})
+	var pattern = args.UrlRoot + "/" + args.WebsocketPath
 	mux.HandleFunc(pattern, acceptor.ServeHTTP)
 
 	var app = road.NewApp(road.AppArgs{
