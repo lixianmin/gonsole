@@ -44,6 +44,11 @@ func newClient(server *Server, session *road.Session) *Client {
 //	}
 //}
 
+func (client *Client) PushDefault(v interface{}) {
+	const key = "console.default" // 参考console.html中的 onDefault()方法
+	_ = client.session.Push(key, v)
+}
+
 func (client *Client) OnClosed(callback func()) {
 	client.session.OnClosed(callback)
 }
