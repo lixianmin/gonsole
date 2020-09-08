@@ -56,7 +56,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	}
 
 	app.OnHandShaken(func(session *road.Session) {
-		var client = newClient(server, session)
+		var client = newClient(session)
 		session.Attachment().Put(ifs.KeyClient, client)
 
 		var remoteAddress = session.RemoteAddr().String()

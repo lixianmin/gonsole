@@ -13,15 +13,13 @@ Copyright (C) - All Rights Reserved
 
 type Client struct {
 	session *road.Session
-	server  *Server
 	topics  map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
-func newClient(server *Server, session *road.Session) *Client {
+func newClient(session *road.Session) *Client {
 	var client = &Client{
 		session: session,
-		server:  server,
 		topics:  make(map[string]struct{}),
 	}
 

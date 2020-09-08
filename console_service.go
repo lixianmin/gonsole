@@ -85,7 +85,7 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	var name = request.Topic
-	var topic = client.server.getTopic(name)
+	var topic = my.server.getTopic(name)
 
 	if topic == nil || !(topic.IsPublic || isAuthorized(session)) {
 		return nil, road.NewError("InvalidTopic", "尝试订阅非法topic")
@@ -106,7 +106,7 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	var name = request.Topic
-	var topic = client.server.getTopic(name)
+	var topic = my.server.getTopic(name)
 	if topic == nil {
 		return nil, road.NewError("InvalidTopic", "尝试取消非法topic")
 	}
