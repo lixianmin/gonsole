@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/gonsole/logger"
 	"log"
 	"net/http"
 	"time"
@@ -24,6 +25,21 @@ func main() {
 		TemplatePath:   "console.html",                      // 页面文件模板
 		UserPasswords:  map[string]string{"xmli": "123456"}, // 认证使用的用户名密码
 		EnablePProf:    true,
+	})
+
+	var app = server.App()
+	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+		var start = time.Now()
+		var ret, err = rawMethod()
+		var delta = time.Since(start)
+		logger.Info("cost time = %s", delta)
+		return ret, err
+	})
+
+	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+		var ret, err = rawMethod()
+		logger.Info("hello world")
+		return ret, err
 	})
 
 	server.RegisterCommand(&gonsole.Command{
