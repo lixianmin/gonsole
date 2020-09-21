@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"sync"
+	"time"
 )
 
 /********************************************************************
@@ -38,6 +39,20 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		ServePath:       pattern,
 		DataCompression: false,
 		Logger:          args.Logger,
+	})
+
+	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+		var start = time.Now()
+		var ret, err = rawMethod()
+		var delta = time.Since(start)
+		logger.Info("cost time = %s", delta)
+		return ret, err
+	})
+
+	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+		var ret, err = rawMethod()
+		logger.Info("hello world")
+		return ret, err
 	})
 
 	var server = &Server{
