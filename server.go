@@ -33,13 +33,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var pattern = args.UrlRoot + "/" + args.WebsocketPath
-	var app = road.NewApp(road.AppArgs{
-		ServeMux:        mux,
-		ServePath:       pattern,
-		DataCompression: false,
-		Logger:          args.Logger,
-	})
-
+	var app = road.NewApp(mux, road.WithServePath(pattern), road.WithLogger(args.Logger))
 	var server = &Server{
 		args: args,
 		app:  app,
