@@ -33,7 +33,11 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	logger.Init(args.Logger)
 
 	var pattern = args.UrlRoot + "/" + args.WebsocketPath
-	var app = road.NewApp(mux, road.WithServePath(pattern), road.WithLogger(args.Logger))
+	var app = road.NewApp(mux,
+		road.WithServePath(pattern),
+		road.WithLogger(args.Logger),
+		road.WithSessionRateLimitBySecond(2),
+	)
 	var server = &Server{
 		args: args,
 		app:  app,
@@ -63,7 +67,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 }
 
 func (server *Server) RegisterService(name string, service component.Component) {
-	server.app.Register(service, component.WithName(name), component.WithNameFunc(ToSnakeName))
+	_ = server.app.Register(service, component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
 func (server *Server) RegisterCommand(cmd *Command) {
