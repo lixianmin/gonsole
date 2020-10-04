@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
@@ -58,7 +57,8 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		session.Attachment().Put(ifs.KeyClient, client)
 
 		var remoteAddress = session.RemoteAddr().String()
-		_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
+		// console.challenge协议不能随便发，因为默认情况下pitaya client不认识这个协议，会导致pitaya.connect失败
+		//_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
 		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
