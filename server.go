@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/road"
 	"github.com/lixianmin/road/component"
+	"github.com/lixianmin/road/epoll"
 	"net/http"
 	"net/http/pprof"
 	"sync"
@@ -31,12 +32,13 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
 	logger.Init(args.Logger)
 
-	var pattern = args.UrlRoot + "/" + args.WebsocketPath
-	var app = road.NewApp(mux,
-		road.WithServePath(pattern),
+	var servePath = args.UrlRoot + "/" + args.WebsocketPath
+	var acceptor = epoll.NewWsAcceptor(mux, servePath)
+	var app = road.NewApp(acceptor,
 		road.WithLogger(args.Logger),
 		road.WithSessionRateLimitBySecond(2),
 	)
+
 	var server = &Server{
 		args: args,
 		app:  app,
