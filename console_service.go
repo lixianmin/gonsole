@@ -77,6 +77,10 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 	}()
 
 	var client = getClient(session)
+	if client == nil {
+		return nil, fmt.Errorf("client=nil")
+	}
+
 	var ret, err = cmd.Run(client, args)
 	return ret, err
 }
@@ -84,6 +88,10 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, error) {
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
+	if client == nil {
+		return nil, road.NewError("NilClient", "client=nil")
+	}
+
 	var name = request.Topic
 	var topic = my.server.getTopic(name)
 
@@ -105,6 +113,10 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response, error) {
 	var session = road.GetSessionFromCtx(ctx)
 	var client = getClient(session)
+	if client == nil {
+		return nil, road.NewError("NilClient", "client=nil")
+	}
+
 	var name = request.Topic
 	var topic = my.server.getTopic(name)
 	if topic == nil {
