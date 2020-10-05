@@ -13,7 +13,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandAuth struct {
-	Text string `json:"text"`
+	ClientRemoteAddress string `json:"client"`
+	Text                string `json:"text"`
 }
 
 func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string) *CommandAuth {
@@ -32,6 +33,7 @@ func NewCommandAuth(session *road.Session, args []string, userPasswords map[stri
 		return bean
 	}
 
+	bean.ClientRemoteAddress = session.RemoteAddr().String()
 	bean.Text = "验证成功"
 	session.Attachment().Put(ifs.KeyIsAuthorized, true)
 	return bean

@@ -344,16 +344,6 @@
             starx.on("console.challenge", function (data) {
                 printWithTimestamp("<b>server响应：</b>" + JSON.stringify(data));
                 println();
-
-                // 测试是否可以自动登录
-                if (localStorage) {
-                    const key = "autoLoginUser";
-                    const json = localStorage.getItem(key);
-                    const jsonObj = JSON.parse(json);
-                    if (jsonObj && new Date().getTime() < jsonObj.expireTime) {
-                        login(jsonObj.username, jsonObj.password);
-                    }
-                }
             });
 
             if (window["WebSocket"]) {
@@ -361,7 +351,17 @@
                 const protocol = isHttps ? "wss://" : "ws://";
                 const url = protocol + myHost + "/" + {{.WebsocketPath}};
 
-                starx.init({url: url}, function () {});
+                starx.init({url: url}, function () {
+                    // 自动登录
+                    if (localStorage) {
+                        const key = "autoLoginUser";
+                        const json = localStorage.getItem(key);
+                        const jsonObj = JSON.parse(json);
+                        if (jsonObj && new Date().getTime() < jsonObj.expireTime) {
+                            login(jsonObj.username, jsonObj.password);
+                        }
+                    }
+                });
             } else {
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }

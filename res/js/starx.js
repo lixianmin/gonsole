@@ -289,7 +289,7 @@
     reconnectAttempts = 0;
     reconnectionDelay = 5000;
 
-    var handshakeBuffer = {
+    const handshakeBuffer = {
         'sys': {
             type: JS_WS_CLIENT_TYPE,
             version: JS_WS_CLIENT_VERSION,
@@ -368,7 +368,7 @@
             return;
         }
 
-        var obj = Package.encode(Package.TYPE_HEARTBEAT);
+        const obj = Package.encode(Package.TYPE_HEARTBEAT);
         if (heartbeatTimeoutId) {
             clearTimeout(heartbeatTimeoutId);
             heartbeatTimeoutId = null;
