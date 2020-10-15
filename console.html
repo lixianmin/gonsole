@@ -77,12 +77,6 @@
                 appendLog(item);
             }
 
-            function printText(text) {
-                const item = document.createElement("div");
-                item.innerText = text;
-                appendLog(item)
-            }
-
             function println() {
                 printHtml("<br>");
             }
@@ -362,6 +356,10 @@
                         }
                     }
                 });
+                
+                starx.on("disconnect", function () {
+                    printWithTimestamp("<b> disconnected from server </b>");
+                })
             } else {
                 printHtml("<b>Your browser does not support WebSockets.</b>");
             }
