@@ -9,6 +9,7 @@ import (
 	"github.com/lixianmin/road/epoll"
 	"net/http"
 	"net/http/pprof"
+	"runtime"
 	"sync"
 )
 
@@ -64,7 +65,8 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	logger.Info("Golang Console Server started~")
+	logger.Info("Console: Go version: %s", runtime.Version())
+	logger.Info("Starting Console Server")
 	return server
 }
 
