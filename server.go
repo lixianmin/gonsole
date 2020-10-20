@@ -20,6 +20,12 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+// git版本相关参数
+// 参考：《编译时向 go 程序写入 git 版本信息》
+// http://mengqi.info/html/2015/201502171941-build-go-program-with-git-version.html
+var gitBranchName string
+var gitCommitId string
+
 type Server struct {
 	args ServerArgs
 	app  *road.App
@@ -66,6 +72,8 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	})
 
 	logger.Info("Console: Go version: %s", runtime.Version())
+	logger.Info("Console: Git branch name: %s", gitBranchName)
+	logger.Info("Console: Git commit id: %s", gitCommitId)
 	logger.Info("Starting Console Server")
 	return server
 }
