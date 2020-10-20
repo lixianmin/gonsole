@@ -14,6 +14,6 @@ const (
 
 // 参考：《编译时向 go 程序写入 git 版本信息》
 // http://mengqi.info/html/2015/201502171941-build-go-program-with-git-version.html
-var GitBranchName string // git分支名
-var GitCommitId string   // git提交id
-var AppBuildTime string  // 应用构建时间
+const GitBranchName string = "" // git分支名
+const GitCommitId string = ""   // git提交id
+const AppBuildTime string = ""  // 应用构建时间
