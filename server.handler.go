@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -172,7 +173,14 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var html = tools.ToHtmlTable(beans.NewCommandAppInfo())
+			var info = beans.CommandAppInfo{
+				GoVersion:     runtime.Version(),
+				GitBranchName: GitBranchName,
+				GitCommitId:   GitCommitId,
+				AppBuildTime:  AppBuildTime,
+			}
+
+			var html = tools.ToHtmlTable(info)
 			return NewHtmlResponse(html), nil
 		},
 	})

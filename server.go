@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
@@ -66,10 +65,10 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	logger.Info("Gonsole: Go version: %s", runtime.Version())
-	logger.Info("Gonsole: Git branch name: %s", beans.GitBranchName)
-	logger.Info("Gonsole: Git commit id: %s", beans.GitCommitId)
-	logger.Info("Gonsole: App build time: %s", beans.AppBuildTime)
+	logger.Info("Gonsole: GoVersion     = %s", runtime.Version())
+	logger.Info("Gonsole: GitBranchName = %s", GitBranchName)
+	logger.Info("Gonsole: GitCommitId   = %s", GitCommitId)
+	logger.Info("Gonsole: AppBuildTime  = %s", AppBuildTime)
 	logger.Info("Starting Gonsole Server")
 	return server
 }
