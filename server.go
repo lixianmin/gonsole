@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
@@ -19,12 +20,6 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-// git版本相关参数
-// 参考：《编译时向 go 程序写入 git 版本信息》
-// http://mengqi.info/html/2015/201502171941-build-go-program-with-git-version.html
-var gitBranchName string
-var gitCommitId string
 
 type Server struct {
 	args ServerArgs
@@ -71,10 +66,11 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	logger.Info("Console: Go version: %s", runtime.Version())
-	logger.Info("Console: Git branch name: %s", gitBranchName)
-	logger.Info("Console: Git commit id: %s", gitCommitId)
-	logger.Info("Starting Console Server")
+	logger.Info("Gonsole: Go version: %s", runtime.Version())
+	logger.Info("Gonsole: Git branch name: %s", beans.GitBranchName)
+	logger.Info("Gonsole: Git commit id: %s", beans.GitCommitId)
+	logger.Info("Gonsole: App build time: %s", beans.AppBuildTime)
+	logger.Info("Starting Gonsole Server")
 	return server
 }
 

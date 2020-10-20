@@ -26,7 +26,6 @@ type TopicTop struct {
 	NumGoroutine int    `json:"numGoroutine"`
 	PauseTotalNs uint64 `json:"pauseTotalNs"`
 	NumGC        uint32 `json:"numGC"`
-	GoVersion    string `json:"go_version"`
 }
 
 func NewTopicTop() *TopicTop {
@@ -58,6 +57,5 @@ func NewTopicTop() *TopicTop {
 	}
 
 	body.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
-	body.GoVersion = runtime.Version()
 	return body
 }

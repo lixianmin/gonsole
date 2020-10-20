@@ -167,6 +167,17 @@ func (server *Server) registerBuiltinCommands() {
 	})
 
 	server.RegisterCommand(&Command{
+		Name:      "app.info",
+		Note:      "打印app信息",
+		IsPublic:  false,
+		isBuiltin: true,
+		Handler: func(client *Client, args []string) (*Response, error) {
+			var html = tools.ToHtmlTable(beans.NewCommandAppInfo())
+			return NewHtmlResponse(html), nil
+		},
+	})
+
+	server.RegisterCommand(&Command{
 		Name:      "date",
 		Note:      "打印当前日期",
 		IsPublic:  true,
