@@ -5,7 +5,6 @@ import (
 	"github.com/lixianmin/got/timex"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
@@ -69,10 +68,11 @@ func NewCommandLogList(logRoot string) *CommandLogList {
 		return nil
 	})
 
-	// 使用路径名排序
-	sort.Slice(logFiles, func(i, j int) bool {
-		return logFiles[i].Path < logFiles[j].Path
-	})
+	// 我怀疑默认的顺序就是文件名的字母序，所以可能没有必要重新按照Path重新排序
+	//// 使用路径名排序
+	//sort.Slice(logFiles, func(i, j int) bool {
+	//	return logFiles[i].Path < logFiles[j].Path
+	//})
 
 	bean.LogFiles = logFiles
 	return bean
