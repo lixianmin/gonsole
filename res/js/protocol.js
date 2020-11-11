@@ -80,8 +80,21 @@
       }
       array.push(charCode);
     }
-    return String.fromCharCode.apply(null, array);
+
+    return arrayToString(array);
   };
+
+  // 解决 String.fromCharCode.apply(null, ascii)) 报 Uncaught RangeError: Maximum call stack size exceeded 的问题
+  // https://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string/12713326#12713326
+  function arrayToString(u8a){
+    const CHUNK_SZ = 0x8000;
+    const c = [];
+    for (let i=0; i < u8a.length; i+=CHUNK_SZ) {
+      c.push(String.fromCharCode.apply(null, u8a.slice(i, i+CHUNK_SZ)));
+    }
+
+    return c.join("");
+  }
 
   /**
    * Package protocol encode.

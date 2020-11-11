@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/road"
 )
 
@@ -43,8 +44,7 @@ func newClient(session *road.Session) *Client {
 //}
 
 func (client *Client) PushDefault(v interface{}) {
-	const key = "console.default" // 参考console.html中的 onDefault()方法
-	_ = client.session.Push(key, v)
+	_ = client.session.Push(ifs.RouteDefault, v)
 }
 
 func (client *Client) OnClosed(callback func()) {
