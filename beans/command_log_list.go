@@ -69,8 +69,9 @@ func NewCommandLogList(logRoot string) *CommandLogList {
 		return nil
 	})
 
+	// 使用路径名排序
 	sort.Slice(logFiles, func(i, j int) bool {
-		return logFiles[i].ModTime < logFiles[j].ModTime
+		return logFiles[i].Path < logFiles[j].Path
 	})
 
 	bean.LogFiles = logFiles
