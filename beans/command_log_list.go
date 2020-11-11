@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/got/timex"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -66,6 +67,10 @@ func NewCommandLogList(logRoot string) *CommandLogList {
 		}
 
 		return nil
+	})
+
+	sort.Slice(logFiles, func(i, j int) bool {
+		return logFiles[i].ModTime < logFiles[j].ModTime
 	})
 
 	bean.LogFiles = logFiles
