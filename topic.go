@@ -1,8 +1,8 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/got/randx"
+	"github.com/lixianmin/road/logger"
 	"sync"
 	"time"
 )

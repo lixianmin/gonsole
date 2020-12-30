@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
-	"github.com/lixianmin/gonsole/logger"
+	"github.com/lixianmin/road/logger"
 	"log"
 	"net/http"
 	"time"

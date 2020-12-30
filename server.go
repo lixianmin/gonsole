@@ -2,11 +2,11 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/logger"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/road"
 	"github.com/lixianmin/road/component"
 	"github.com/lixianmin/road/epoll"
+	"github.com/lixianmin/road/logger"
 	"net/http"
 	"net/http/pprof"
 	"runtime"
