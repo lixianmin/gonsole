@@ -22,19 +22,19 @@
 
 ##### 01 帮助中心 help
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/help.png?raw=true"  style="zoom:50%" />
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/help.png?raw=true"  style="zoom:50%" />
 
 
 
 ##### 02 日志列表 log.list
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/log.list.png?raw=true"  style="zoom:50%" />
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/log.list.png?raw=true"  style="zoom:50%" />
 
 
 
 ##### 03 命令输入框
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/images/inputbox.png?raw=true"  style="zoom:50%" />
+<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/inputbox.png?raw=true"  style="zoom:50%" />
 
 
 
