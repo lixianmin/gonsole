@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/mathx"
-	"github.com/lixianmin/road/logger"
+	"github.com/lixianmin/logo"
 	"io"
 	"net/http"
 	"os"
@@ -48,14 +48,14 @@ func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *ht
 	_, _ = fmt.Sscanf(request.Header.Get("Range"), "bytes=%d-%d", &start, &end)
 	file, err := os.Open(fullPath)
 	if err != nil {
-		logger.Debug(err)
+		logo.Debug(err)
 		http.NotFound(writer, request)
 		return
 	}
 
 	info, err := file.Stat()
 	if err != nil {
-		logger.Debug(err)
+		logo.Debug(err)
 		http.NotFound(writer, request)
 		return
 	}
@@ -89,13 +89,13 @@ func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *ht
 
 	_, err = file.Seek(start, 0)
 	if err != nil {
-		logger.Debug(err)
+		logo.Debug(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	_, err = io.CopyN(writer, file, end-start+1)
 	if err != nil {
-		logger.Debug(err)
+		logo.Debug(err)
 	}
 }

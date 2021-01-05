@@ -3,7 +3,7 @@ package tools
 import (
 	"fmt"
 	"github.com/lixianmin/got/timex"
-	"github.com/lixianmin/road/logger"
+	"github.com/lixianmin/logo"
 	"reflect"
 	"strings"
 	"time"
@@ -25,7 +25,7 @@ func ToHtmlTable(data interface{}) string {
 	case reflect.Struct:
 		return toHtmlTableStruct(dataValue)
 	default:
-		logger.Error("data should be slice")
+		logo.Error("data should be slice")
 		return ""
 	}
 }
@@ -134,6 +134,6 @@ func writeTableData(sb *strings.Builder, fieldType reflect.StructField, fieldVal
 		// 如果是不认识的struct，就打印错误输出
 		fallthrough
 	default:
-		logger.Error("invalid fieldValue kind=%d, type=%+v", kind, fieldValue.Interface())
+		logo.Error("invalid fieldValue kind=%d, type=%+v", kind, fieldValue.Interface())
 	}
 }

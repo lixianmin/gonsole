@@ -2,7 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/got/randx"
-	"github.com/lixianmin/road/logger"
+	"github.com/lixianmin/logo"
 	"sync"
 	"time"
 )
@@ -30,7 +30,7 @@ type Topic struct {
 
 func (topic *Topic) start() {
 	if topic.Interval <= 0 || topic.BuildResponse == nil {
-		logger.Error("topic.Interval <= 0 || topic.BuildResponse == nil")
+		logo.Error("topic.Interval <= 0 || topic.BuildResponse == nil")
 		return
 	}
 

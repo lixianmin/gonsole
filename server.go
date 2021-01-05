@@ -3,10 +3,10 @@ package gonsole
 import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/logo"
 	"github.com/lixianmin/road"
 	"github.com/lixianmin/road/component"
 	"github.com/lixianmin/road/epoll"
-	"github.com/lixianmin/road/logger"
 	"net/http"
 	"net/http/pprof"
 	"runtime"
@@ -31,12 +31,10 @@ type Server struct {
 
 func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
-	logger.Init(args.Logger)
 
 	var servePath = args.UrlRoot + "/" + args.WebsocketPath
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
-		road.WithLogger(args.Logger),
 		road.WithSessionRateLimitBySecond(2),
 	)
 
@@ -62,14 +60,14 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 		var remoteAddress = session.RemoteAddr().String()
 		// console.challenge协议不能随便发，因为默认情况下pitaya client不认识这个协议，会导致pitaya.connect失败
 		//_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
-		logger.Info("client connected, remoteAddress=%q.", remoteAddress)
+		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	logger.Info("Gonsole: GoVersion     = %s", runtime.Version())
-	logger.Info("Gonsole: GitBranchName = %s", GitBranchName)
-	logger.Info("Gonsole: GitCommitId   = %s", GitCommitId)
-	logger.Info("Gonsole: AppBuildTime  = %s", AppBuildTime)
-	logger.Info("Starting Gonsole Server")
+	logo.Info("Gonsole: GoVersion     = %s", runtime.Version())
+	logo.Info("Gonsole: GitBranchName = %s", GitBranchName)
+	logo.Info("Gonsole: GitCommitId   = %s", GitCommitId)
+	logo.Info("Gonsole: AppBuildTime  = %s", AppBuildTime)
+	logo.Info("Starting Gonsole Server")
 	return server
 }
 

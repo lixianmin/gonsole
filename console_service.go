@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/logo"
 	"github.com/lixianmin/road"
-	"github.com/lixianmin/road/logger"
 	"regexp"
 	"runtime/debug"
 	"sort"
@@ -72,7 +72,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 	// 防止panic
 	defer func() {
 		if rec := recover(); rec != nil {
-			logger.Error("panic - %v \n%s", rec, debug.Stack())
+			logo.Error("panic - %v \n%s", rec, debug.Stack())
 		}
 	}()
 

@@ -36,10 +36,10 @@ func newClient(session *road.Session) *Client {
 //	if err == nil {
 //		err = client.session.Push("console.html", jsonBytes)
 //		if err != nil {
-//			logger.Info("err=%q", err)
+//			logo.Info("err=%q", err)
 //		}
 //	} else {
-//		logger.Warn("Can not marshal bean=%v, err=%s", bean, err)
+//		logo.Warn("Can not marshal bean=%v, err=%s", bean, err)
 //	}
 //}
 

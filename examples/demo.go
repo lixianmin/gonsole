@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
-	"github.com/lixianmin/road/logger"
+	"github.com/lixianmin/logo"
 	"log"
 	"net/http"
 	"time"
@@ -32,13 +32,13 @@ func main() {
 		var start = time.Now()
 		var ret, err = rawMethod()
 		var delta = time.Since(start)
-		logger.Info("cost time = %s", delta)
+		logo.Info("cost time = %s", delta)
 		return ret, err
 	})
 
 	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
 		var ret, err = rawMethod()
-		logger.Info("hello world")
+		logo.Info("hello world")
 		return ret, err
 	})
 
