@@ -25,7 +25,7 @@ type ServerArgs struct {
 	UrlRoot         string            // 项目目录，表现在url中
 	UserPasswords   map[string]string // 可以登陆的用户名与密码
 	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
-	WebsocketPath   string            // websocket监听的路径
+	WebSocketPath   string            // websocket监听的路径
 }
 
 func (args *ServerArgs) checkArgs() {

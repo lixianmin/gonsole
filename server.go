@@ -32,7 +32,7 @@ type Server struct {
 func NewServer(mux IServeMux, args ServerArgs) *Server {
 	args.checkArgs()
 
-	var servePath = args.UrlRoot + "/" + args.WebsocketPath
+	var servePath = args.UrlRoot + "/" + args.WebSocketPath
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
@@ -45,7 +45,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	}
 
 	server.RegisterService("console", newConsoleService(server))
-	server.registerHandlers(mux, args.WebsocketPath)
+	server.registerHandlers(mux, args.WebSocketPath)
 	server.registerBuiltinCommands()
 	server.registerBuiltinTopics()
 

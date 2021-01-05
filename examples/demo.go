@@ -46,7 +46,7 @@ func main() {
 		Name:     "hi",
 		Note:     "打印 hi console",
 		IsPublic: false,
-		Handler: func(client *gonsole.Client, args [] string) (*gonsole.Response, error) {
+		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			var bean struct {
 				Text string
 			}
@@ -62,7 +62,7 @@ func main() {
 		Interval: 5 * time.Second,
 		IsPublic: true,
 		BuildResponse: func() *gonsole.Response {
-			return gonsole.NewDefaultResponse("hi console");
+			return gonsole.NewDefaultResponse("hi console")
 		},
 	})
 
