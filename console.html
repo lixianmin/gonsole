@@ -317,10 +317,11 @@
                                 if (count > 1) {
                                     const items = new Array(count);
                                     for (let i = 0; i < count; i++) {
-                                        items[i] = "<li>" + names[i] + "&nbsp;&nbsp;" + notes[i] + "</li>";
+                                        items[i] = `<tr> <td>${i+1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
                                     }
 
-                                    const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                                    const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
+                                    const result = header + items.join("") + "</table>";
                                     printWithTimestamp(result);
                                     println();
                                 }
