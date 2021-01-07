@@ -29,7 +29,8 @@ type (
 	}
 
 	hintRe struct {
-		Hints []string `json:"hints"`
+		Names []string `json:"names"`
+		Notes []string `json:"notes"`
 	}
 
 	commandRqt struct {
@@ -141,25 +142,27 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, 
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.server.getCommands()
 	var builtins = []string{"sub", "unsub"}
-	var hints = make([]string, 0, len(commands)+len(builtins))
+
+	var names = make([]string, 0, len(commands)+len(builtins))
+	//var notes = make([]string, 0, len(names))
 
 	for _, name := range builtins {
 		if strings.HasPrefix(name, head) {
-			hints = append(hints, name)
+			names = append(names, name)
 		}
 	}
 
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
-			hints = append(hints, cmd.GetName())
+			names = append(names, cmd.GetName())
 		}
 	}
 
-	sort.Slice(hints, func(i, j int) bool {
-		return hints[i] < hints[j]
+	sort.Slice(names, func(i, j int) bool {
+		return names[i] < names[j]
 	})
 
-	var result = &hintRe{Hints: hints}
+	var result = &hintRe{Names: names}
 	return result, nil
 }
 
