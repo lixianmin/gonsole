@@ -25,7 +25,7 @@ func ToHtmlTable(data interface{}) string {
 	case reflect.Struct:
 		return toHtmlTableStruct(dataValue)
 	default:
-		logo.Error("data should be slice")
+		logo.Error("data should be slice or struct")
 		return ""
 	}
 }
