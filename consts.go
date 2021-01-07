@@ -17,3 +17,8 @@ const (
 var GitBranchName string // git分支名
 var GitCommitId string   // git提交id
 var AppBuildTime string  // 应用构建时间
+
+
+// 内置的两个指令
+var subUnsubNames = []string{"sub", "unsub"}
+var subUnsubNotes = []string{"订阅主题，例：sub top", "取消订阅主题，例：unsub top"}

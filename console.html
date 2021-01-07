@@ -310,13 +310,14 @@
 
                         starx.request("console.hint", bean, function (obj) {
                             const names = obj.names;
+                            const notes = obj.notes;
                             const count = names.length;
                             if (count > 0) {
                                 inputBox.value = longestCommonPrefix(names);
                                 if (count > 1) {
                                     const items = new Array(count);
                                     for (let i = 0; i < count; i++) {
-                                        items[i] = "<li>" + names[i] + "</li>";
+                                        items[i] = "<li>" + names[i] + "&nbsp;&nbsp;" + notes[i] + "</li>";
                                     }
 
                                     const result = "<b>参考命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
@@ -356,7 +357,7 @@
                         }
                     }
                 });
-                
+
                 starx.on("disconnect", function () {
                     printWithTimestamp("<b> disconnected from server </b>");
                 })

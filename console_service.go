@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/got/sortx"
 	"github.com/lixianmin/logo"
 	"github.com/lixianmin/road"
 	"regexp"
 	"runtime/debug"
-	"sort"
 	"strings"
 )
 
@@ -141,28 +141,29 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, 
 
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.server.getCommands()
-	var builtins = []string{"sub", "unsub"}
 
-	var names = make([]string, 0, len(commands)+len(builtins))
-	//var notes = make([]string, 0, len(names))
+	var names = make([]string, 0, len(commands)+len(subUnsubNames))
+	var notes = make([]string, 0, len(names))
 
-	for _, name := range builtins {
-		if strings.HasPrefix(name, head) {
-			names = append(names, name)
+	for i := range subUnsubNames {
+		if strings.HasPrefix(subUnsubNames[i], head) {
+			names = append(names, subUnsubNames[i])
+			notes = append(notes, subUnsubNotes[i])
 		}
 	}
 
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
 			names = append(names, cmd.GetName())
+			notes = append(notes, cmd.GetNote())
 		}
 	}
 
-	sort.Slice(names, func(i, j int) bool {
+	sortx.SliceBy(names, notes, func(i, j int) bool {
 		return names[i] < names[j]
 	})
 
-	var result = &hintRe{Names: names}
+	var result = &hintRe{Names: names, Notes: notes}
 	return result, nil
 }
 
