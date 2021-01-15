@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/lixianmin/got v0.0.0-20210111053605-23e16ba063b7
-	github.com/lixianmin/logo v0.0.0-20210111141826-605982c360c8
-	github.com/lixianmin/road v0.0.0-20210111142035-63ad2d50b7dd
+	github.com/lixianmin/logo v0.0.0-20210115065022-2b5428bed605
+	github.com/lixianmin/road v0.0.0-20210115065211-0f91b1d5d62e
 	golang.org/x/sys v0.0.0-20201116194326-cc9327a14d48
 )
