@@ -37,6 +37,7 @@ func DeadlockDetect(args []string, deadlockIgnores []string) string {
 
 	// 匹配title
 	var titlePattern, _ = regexp.Compile(`goroutine.*\[.*?(\d+) minutes\]:`)
+	var addressPattern, _= regexp.Compile(`(0x[0-9a-z]+)`)
 
 	// 匹配一个调用方法
 	//var funcPattern, _ = regexp.Compile(`\s*(.*)\(.*\)`)
@@ -50,13 +51,14 @@ func DeadlockDetect(args []string, deadlockIgnores []string) string {
 		} else if !isIgnored {
 			if strings.TrimSpace(line) == "" {
 				// 此分支是一条记录的结束
-				body := strings.Join(list, "<br>")
+				var body = strings.Join(list, "<br>")
 				body = strings.ReplaceAll(body, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
 
-				item, ok := itemMap[body]
+				var bodyKey = addressPattern.ReplaceAllString(body, "0x1029")
+				item, ok := itemMap[bodyKey]
 				if !ok {
 					item = &DetectItem{}
-					itemMap[body] = item
+					itemMap[bodyKey] = item
 				}
 
 				item.Count += 1
