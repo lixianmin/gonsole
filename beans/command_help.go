@@ -86,7 +86,7 @@ func FetchPProfHelp(args []string) []CommandHelp {
 
 	list = append(list, CommandHelp{
 		Name: "goroutine",
-		Note: addCopyButton(fmt.Sprintf("curl -G -k %s/debug/pprof/goroutine?debug=2 > tmp.prof", host)),
+		Note: addCopyButton(fmt.Sprintf("curl -G -k %s/debug/pprof/goroutine?debug=2 > goroutine.list.txt", host)),
 	})
 
 	return list

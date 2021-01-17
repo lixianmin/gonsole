@@ -31,6 +31,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var tmpl = template.Must(template.ParseFiles(args.TemplatePath))
 	var pattern = args.UrlRoot + "/console"
 
+	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var data struct {
 			AutoLoginLimit int64
@@ -174,7 +175,6 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
-				IP:            tools.GetLocalIP(),
 				GoVersion:     runtime.Version(),
 				GitBranchName: GitBranchName,
 				GitCommitId:   GitCommitId,

@@ -19,6 +19,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TopicTop struct {
+	IP           string `json:"ip"`
 	UpTime       string `json:"uptime"`
 	CpuUsage     string `json:"cpu"`
 	SysMemory    string `json:"sys"`
@@ -56,6 +57,7 @@ func NewTopicTop() *TopicTop {
 		body.TotalMemory = convert.ToHuman(vm.Total)
 	}
 
+	body.IP = tools.GetLocalIP()
 	body.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
 	return body
 }
