@@ -47,7 +47,7 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 
 	server.RegisterService("console", newConsoleService(server))
 	server.registerHandlers(mux, args.WebSocketPath)
-	server.registerBuiltinCommands()
+	server.registerBuiltinCommands(args.Port)
 	server.registerBuiltinTopics()
 
 	if args.EnablePProf {

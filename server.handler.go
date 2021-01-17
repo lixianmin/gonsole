@@ -76,7 +76,7 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 	})
 }
 
-func (server *Server) registerBuiltinCommands() {
+func (server *Server) registerBuiltinCommands(port int) {
 	server.RegisterCommand(&Command{
 		Name:      "help",
 		Note:      "帮助中心",
@@ -105,7 +105,7 @@ func (server *Server) registerBuiltinCommands() {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords)
+			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords, port)
 			return NewDefaultResponse(data), nil
 		}})
 

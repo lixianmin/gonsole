@@ -14,12 +14,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandAuth struct {
-	ServerAddress string `json:"server"`
+	GPID          string `json:"gpid"`
 	ClientAddress string `json:"client"`
 	Text          string `json:"text"`
 }
 
-func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string) *CommandAuth {
+func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string, port int) *CommandAuth {
 	var bean = &CommandAuth{}
 
 	if len(args) < 3 {
@@ -35,7 +35,7 @@ func NewCommandAuth(session *road.Session, args []string, userPasswords map[stri
 		return bean
 	}
 
-	bean.ServerAddress = tools.GetLocalIP()
+	bean.GPID = tools.GetGPID(port)
 	bean.ClientAddress = session.RemoteAddr().String()
 	bean.Text = "验证成功"
 	session.Attachment().Put(ifs.KeyIsAuthorized, true)
