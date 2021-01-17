@@ -174,6 +174,7 @@ func (server *Server) registerBuiltinCommands() {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
+				IP:            tools.GetLocalIP(),
 				GoVersion:     runtime.Version(),
 				GitBranchName: GitBranchName,
 				GitCommitId:   GitCommitId,
