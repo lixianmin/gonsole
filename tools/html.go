@@ -127,7 +127,7 @@ func writeTableData(sb *strings.Builder, fieldType reflect.StructField, fieldVal
 	case reflect.Struct:
 		var t, ok = fieldValue.Interface().(time.Time)
 		if ok {
-			var v = timex.FormatTime(t)
+			var v = t.Format(timex.TimeLayout)
 			sb.WriteString(v)
 			break
 		}
