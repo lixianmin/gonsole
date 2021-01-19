@@ -60,7 +60,7 @@ func NewCommandLogList(logRoot string) *CommandLogList {
 			logFiles = append(logFiles, LogFileInfo{
 				Size:    info.Size(),
 				Path:    path,
-				ModTime: timex.FormatTime(info.ModTime()),
+				ModTime: info.ModTime().Format(timex.Layout),
 				Sample:  readFileSample(path, info.Size()),
 			})
 		}

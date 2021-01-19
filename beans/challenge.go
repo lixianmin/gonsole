@@ -29,7 +29,7 @@ func NewChallenge(gpid string, clientRemoteAddress string) *Challenge {
 		Timestamp:           tools.GetTimestamp(),
 		GPID:                gpid,
 		ClientRemoteAddress: clientRemoteAddress,
-		UpTime:              fmt.Sprintf("%s ( %s )", tools.FormatDuration(uptime), timex.FormatTime(startProcessTime)),
+		UpTime:              fmt.Sprintf("%s ( %s )", tools.FormatDuration(uptime), startProcessTime.Format(timex.Layout)),
 	}
 
 	return bean
