@@ -19,6 +19,9 @@ type TestHtml struct {
 	Name       string
 	CreateTime time.Time
 	IsMan      bool
+	Nil        *int
+	SliceNil   []int
+	Err        error
 }
 
 func TestToHtmlTableStruct(t *testing.T) {
@@ -28,6 +31,9 @@ func TestToHtmlTableStruct(t *testing.T) {
 		Name:       "pet",
 		CreateTime: time.Now(),
 		IsMan:      true,
+		Nil:        nil,
+		SliceNil:   nil,
+		Err:        fmt.Errorf("i_am_error"),
 	}
 
 	var html = ToHtmlTable(item)
