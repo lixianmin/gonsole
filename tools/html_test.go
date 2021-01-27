@@ -59,6 +59,13 @@ func TestToHtmlTableSlice(t *testing.T) {
 	fmt.Println(html)
 }
 
+func TestToHtmlTableStringSlice(t *testing.T) {
+	var list = []interface{}{123.0, true, 1, "world"}
+
+	var html = ToHtmlTable(list)
+	fmt.Println(html)
+}
+
 func TestToHtmlTablePointer(t *testing.T) {
 	var list = []*TestHtml{{
 		Height:     10.29,

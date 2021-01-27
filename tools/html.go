@@ -33,13 +33,20 @@ func toHtmlTableStruct(item reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
 	b = append(b, "<table><tr>"...)
-	b, numField := writeTableHead(b, item)
+	b, numField, kind := writeTableHead(b, item)
 
 	b = append(b, "<tr>"...)
 	for j := 0; j < numField; j++ {
-		var fieldType = item.Type().Field(j)
-		var fieldValue = item.Field(j)
-		b = writeTableData(b, fieldType, fieldValue)
+		switch kind {
+		case reflect.Struct:
+			var fieldType = item.Type().Field(j)
+			var fieldValue = item.Field(j)
+			b = writeTableData(b, fieldType, fieldValue)
+		default:
+			b = append(b, "<td>"...)
+			b = appendField(b, item.Interface())
+		}
+
 	}
 
 	b = append(b, "</table>"...)
@@ -57,7 +64,7 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 
 	// 表头：第一列用于显示序号
 	b = append(b, "<table><tr><th>"...)
-	b, numField := writeTableHead(b, listValue.Index(0))
+	b, numField, kind := writeTableHead(b, listValue.Index(0))
 	for i := 0; i < count; i++ {
 		var item = listValue.Index(i)
 		item = reflect.Indirect(item)
@@ -66,10 +73,16 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 		b = append(b, "<tr><td>"...)
 		b = strconv.AppendInt(b, int64(i+1), 10)
 
-		for j := 0; j < numField; j++ {
-			var fieldType = item.Type().Field(j)
-			var fieldValue = item.Field(j)
-			b = writeTableData(b, fieldType, fieldValue)
+		switch kind {
+		case reflect.Struct:
+			for j := 0; j < numField; j++ {
+				var fieldType = item.Type().Field(j)
+				var fieldValue = item.Field(j)
+				b = writeTableData(b, fieldType, fieldValue)
+			}
+		default:
+			b = append(b, "<td>"...)
+			b = appendField(b, item.Interface())
 		}
 	}
 
@@ -78,23 +91,30 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	return html
 }
 
-func writeTableHead(b []byte, item reflect.Value) ([]byte, int) {
+func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
 	// 每一列的名字
 	item = reflect.Indirect(item)
 	var itemType = item.Type()
-	var numField = itemType.NumField()
-	for i := 0; i < numField; i++ {
-		var field = itemType.Field(i)
-		var name = field.Name
-		if unicode.IsLower(rune(name[0])) {
-			continue
+	var kind = itemType.Kind()
+	switch kind {
+	case reflect.Struct:
+		var numField = itemType.NumField()
+		for i := 0; i < numField; i++ {
+			var field = itemType.Field(i)
+			var name = field.Name
+			if unicode.IsLower(rune(name[0])) {
+				continue
+			}
+
+			b = append(b, "<th>"...)
+			b = append(b, name...)
 		}
 
+		return b, numField, kind
+	default:
 		b = append(b, "<th>"...)
-		b = append(b, name...)
+		return b, 1, kind
 	}
-
-	return b, numField
 }
 
 func writeTableData(b []byte, fieldType reflect.StructField, fieldValue reflect.Value) []byte {
