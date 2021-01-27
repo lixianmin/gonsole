@@ -112,7 +112,7 @@ func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
 
 		return b, numField, kind
 	default:
-		b = append(b, "<th>"...)
+		b = append(b, "<th>[_]"...)
 		return b, 1, kind
 	}
 }
