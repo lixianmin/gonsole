@@ -1,10 +1,11 @@
 package tools
 
 import (
+	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
-	"github.com/lixianmin/logo/tools"
 	"reflect"
 	"strconv"
+	"time"
 	"unicode"
 )
 
@@ -103,6 +104,52 @@ func writeTableData(b []byte, fieldType reflect.StructField, fieldValue reflect.
 	}
 
 	b = append(b, "<td>"...)
-	b = tools.AppendJson(b, fieldValue.Interface())
+	b = appendField(b, fieldValue.Interface())
 	return b
+}
+
+func appendField(b []byte, v interface{}) []byte {
+	switch v := v.(type) {
+	case nil:
+		return append(b, "<nil>"...)
+	case string:
+		return append(b, v...)
+	case []byte:
+		return append(b, v...)
+	case int:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int8:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int16:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int32:
+		return strconv.AppendInt(b, int64(v), 10)
+	case int64:
+		return strconv.AppendInt(b, v, 10)
+	case uint:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint8:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint16:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint32:
+		return strconv.AppendUint(b, uint64(v), 10)
+	case uint64:
+		return strconv.AppendUint(b, v, 10)
+	case float32:
+		return strconv.AppendFloat(b, float64(v), 'f', -1, 64)
+	case float64:
+		return strconv.AppendFloat(b, v, 'f', -1, 64)
+	case bool:
+		return strconv.AppendBool(b, v)
+	case error:
+		return append(b, v.Error()...)
+	case time.Time:
+		//b = append(b, '"')
+		b = v.AppendFormat(b, time.RFC3339Nano)
+		//b = append(b, '"')
+		return b
+	default:
+		return append(b, convert.ToJson(v)...)
+	}
 }
