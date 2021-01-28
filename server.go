@@ -3,6 +3,7 @@ package gonsole
 import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
 	"github.com/lixianmin/road"
 	"github.com/lixianmin/road/component"
@@ -21,18 +22,40 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Server struct {
-	args ServerArgs
-	app  *road.App
+	options serverOptions
+	app     *road.App
 
 	gpid     string
 	commands sync.Map
 	topics   sync.Map
 }
 
-func NewServer(mux IServeMux, args ServerArgs) *Server {
-	args.checkArgs()
+func NewServer(mux IServeMux, opts ...ServerOption) *Server {
+	// 默认值
+	var options = serverOptions{
+		ReadBufferSize:  4096,
+		WriteBufferSize: 4096,
 
-	var servePath = args.UrlRoot + "/" + args.WebSocketPath
+		HomePageTemplate: "vendor/github.com/lixianmin/gonsole/console.html",
+		HomePageTitle:    "Console",
+		HomePageBody:     "Input 'help' and press 'Enter' to fetch builtin commands. <a href=\"https://github.com/lixianmin/gonsole\">learn more</a>",
+
+		AutoLoginTime:   timex.Day,
+		EnablePProf:     false,
+		LogListRoot:     "logs",
+		Port:            8888,
+		UrlRoot:         "",
+		UserPasswords:   make(map[string]string),
+		DeadlockIgnores: nil,
+		WebSocketPath:   "",
+	}
+
+	// 初始化
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var servePath = options.UrlRoot + "/" + options.WebSocketPath
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
@@ -40,17 +63,17 @@ func NewServer(mux IServeMux, args ServerArgs) *Server {
 	)
 
 	var server = &Server{
-		args: args,
-		app:  app,
-		gpid: tools.GetGPID(args.Port),
+		options: options,
+		app:     app,
+		gpid:    tools.GetGPID(options.Port),
 	}
 
 	server.RegisterService("console", newConsoleService(server))
-	server.registerHandlers(mux, args.WebSocketPath)
-	server.registerBuiltinCommands(args.Port)
+	server.registerHandlers(mux, options.WebSocketPath)
+	server.registerBuiltinCommands(options.Port)
 	server.registerBuiltinTopics()
 
-	if args.EnablePProf {
+	if options.EnablePProf {
 		server.enablePProf(mux)
 	}
 

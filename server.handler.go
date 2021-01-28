@@ -27,36 +27,38 @@ func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
 }
 
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
-	var args = server.args
-	var tmpl = template.Must(template.ParseFiles(args.TemplatePath))
-	var pattern = args.UrlRoot + "/console"
+	var options = server.options
+	var tmpl = template.Must(template.ParseFiles(options.HomePageTemplate))
+	var pattern = options.UrlRoot + "/console"
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var data struct {
 			AutoLoginLimit int64
 			Title          string
+			Body           string
 			UrlRoot        string
 			WebsocketPath  string
 		}
 
-		data.AutoLoginLimit = int64(args.AutoLoginLimit / time.Millisecond)
-		data.Title = args.Title
-		data.UrlRoot = args.UrlRoot
+		data.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
+		data.Title = options.HomePageTitle
+		data.Body = options.HomePageBody
+		data.UrlRoot = options.UrlRoot
 		data.WebsocketPath = websocketPath
 		_ = tmpl.Execute(writer, data)
 	})
 }
 
 func (server *Server) handlerResourceFile(mux IServeMux, relativePath string) {
-	var pattern = server.args.UrlRoot + relativePath
+	var pattern = server.options.UrlRoot + relativePath
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var path = request.URL.Path
 		if len(path) < 1 {
 			return
 		}
 
-		var root = filepath.Dir(server.args.TemplatePath)
+		var root = filepath.Dir(server.options.HomePageTemplate)
 		var filename = filepath.Join(root, path)
 		RequestFileByRange(filename, writer, request)
 	})
@@ -64,7 +66,7 @@ func (server *Server) handlerResourceFile(mux IServeMux, relativePath string) {
 
 // 这个方法在gin中由于pattern不一样，需要被重写
 func (server *Server) handleLogFiles(mux IServeMux) {
-	var pattern = "/" + server.args.LogRoot + "/"
+	var pattern = "/" + server.options.LogListRoot + "/"
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var logFilePath = request.URL.Path
 		if len(logFilePath) < 1 {
@@ -92,7 +94,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 				data += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
 
-			if server.args.EnablePProf {
+			if server.options.EnablePProf {
 				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
@@ -105,7 +107,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var data = beans.NewCommandAuth(client.Session(), args, server.args.UserPasswords, port)
+			var data = beans.NewCommandAuth(client.Session(), args, server.options.UserPasswords, port)
 			return NewDefaultResponse(data), nil
 		}})
 
@@ -115,7 +117,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		IsPublic:  false,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var data = beans.NewCommandLogList(server.args.LogRoot)
+			var data = beans.NewCommandLogList(server.options.LogListRoot)
 			var ret = &Response{Operation: "log.list", Data: data}
 			return ret, nil
 		},
@@ -203,7 +205,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Note:      "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var html = beans.DeadlockDetect(args, server.args.DeadlockIgnores)
+			var html = beans.DeadlockDetect(args, server.options.DeadlockIgnores)
 			if html != "" {
 				return NewHtmlResponse(html), nil
 			} else {
