@@ -16,9 +16,9 @@ type serverOptions struct {
 	ReadBufferSize  int
 	WriteBufferSize int
 
-	HomePageTemplate string // 主页（console.html）模板文件的路径名
-	HomePageTitle    string // 主页（console.html）标题
-	HomePageBody     string // 主页（console.html）主体
+	PageTemplate string // 主页（console.html）模板文件的路径名
+	PageTitle    string // 主页（console.html）标题
+	PageBody     string // 主页（console.html）主体
 
 	AutoLoginTime   time.Duration     // 如果手动登录过，则在时限内自动登录
 	EnablePProf     bool              // 激活pprof
@@ -81,23 +81,23 @@ func WithPort(port int) ServerOption {
 }
 
 // 主页（console.html）模板文件的路径名
-func WithHomePageTemplate(path string) ServerOption {
+func WithPageTemplate(path string) ServerOption {
 	return func(options *serverOptions) {
-		options.HomePageTemplate = path
+		options.PageTemplate = path
 	}
 }
 
 // 主页（console.html）标题
-func WithHomePageTitle(title string) ServerOption {
+func WithPageTitle(title string) ServerOption {
 	return func(options *serverOptions) {
-		options.HomePageTitle = title
+		options.PageTitle = title
 	}
 }
 
 // 主页（console.html）主体
-func WithHomePageBody(body string) ServerOption {
+func WithPageBody(body string) ServerOption {
 	return func(options *serverOptions) {
-		options.HomePageBody = body
+		options.PageBody = body
 	}
 }
 

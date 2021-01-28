@@ -21,8 +21,8 @@ func main() {
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux,
 		gonsole.WithPort(webPort),
-		gonsole.WithHomePageTemplate("console.html"),
-		gonsole.WithHomePageBody("<H1>This is a very huge body</H1>"),
+		gonsole.WithPageTemplate("console.html"),
+		gonsole.WithPageBody("<H1>This is a very huge body</H1>"),
 		gonsole.WithUserPasswords(map[string]string{"xmli": "123456"}),
 		gonsole.WithEnablePProf(true),
 	)

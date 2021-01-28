@@ -28,7 +28,7 @@ func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
 
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var options = server.options
-	var tmpl = template.Must(template.ParseFiles(options.HomePageTemplate))
+	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
 	var pattern = options.UrlRoot + "/console"
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
@@ -42,8 +42,8 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 		}
 
 		data.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
-		data.Title = options.HomePageTitle
-		data.Body = options.HomePageBody
+		data.Title = options.PageTitle
+		data.Body = options.PageBody
 		data.UrlRoot = options.UrlRoot
 		data.WebsocketPath = websocketPath
 		_ = tmpl.Execute(writer, data)
@@ -58,7 +58,7 @@ func (server *Server) handlerResourceFile(mux IServeMux, relativePath string) {
 			return
 		}
 
-		var root = filepath.Dir(server.options.HomePageTemplate)
+		var root = filepath.Dir(server.options.PageTemplate)
 		var filename = filepath.Join(root, path)
 		RequestFileByRange(filename, writer, request)
 	})
