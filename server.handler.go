@@ -20,9 +20,10 @@ Copyright (C) - All Rights Reserved
 
 func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
 	server.handleConsolePage(mux, websocketPath)
-	server.handlerResourceFile(mux, "/res/js/sha256.min.js")
-	server.handlerResourceFile(mux, "/res/js/protocol.js")
-	server.handlerResourceFile(mux, "/res/js/starx.js")
+	server.handleResourceFile(mux, "/res/js/sha256.min.js")
+	server.handleResourceFile(mux, "/res/js/protocol.js")
+	server.handleResourceFile(mux, "/res/js/starx.js")
+	server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
 
@@ -50,7 +51,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	})
 }
 
-func (server *Server) handlerResourceFile(mux IServeMux, relativePath string) {
+func (server *Server) handleResourceFile(mux IServeMux, relativePath string) {
 	var pattern = server.options.UrlRoot + relativePath
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var path = request.URL.Path
@@ -75,6 +76,14 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 
 		logFilePath = logFilePath[1:]
 		RequestFileByRange(logFilePath, writer, request)
+	})
+}
+
+func (server *Server) handleHealth(mux IServeMux) {
+	var pattern = server.options.UrlRoot + "/health"
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		var message = `{"status":"UP"}`
+		_, _ = writer.Write([]byte(message))
 	})
 }
 

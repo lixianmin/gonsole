@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/timex"
@@ -87,11 +88,13 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
+	var consoleUrl = fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.UrlRoot)
 	logo.Info("Gonsole: GoVersion     = %s", runtime.Version())
 	logo.Info("Gonsole: GitBranchName = %s", GitBranchName)
 	logo.Info("Gonsole: GitCommitId   = %s", GitCommitId)
 	logo.Info("Gonsole: AppBuildTime  = %s", AppBuildTime)
-	logo.Info("Starting Gonsole Server")
+	logo.Info("Gonsole: console       = %s", consoleUrl)
+	logo.Info("Starting server")
 	return server
 }
 
