@@ -26,9 +26,10 @@ type Server struct {
 	options serverOptions
 	app     *road.App
 
-	gpid     string
-	commands sync.Map
-	topics   sync.Map
+	gpid       string
+	consoleUrl string
+	commands   sync.Map
+	topics     sync.Map
 }
 
 func NewServer(mux IServeMux, opts ...ServerOption) *Server {
@@ -64,9 +65,10 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	)
 
 	var server = &Server{
-		options: options,
-		app:     app,
-		gpid:    tools.GetGPID(options.Port),
+		options:    options,
+		app:        app,
+		gpid:       tools.GetGPID(options.Port),
+		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.UrlRoot),
 	}
 
 	server.RegisterService("console", newConsoleService(server))
@@ -88,12 +90,11 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	var consoleUrl = fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.UrlRoot)
 	logo.Info("Gonsole: GoVersion     = %s", runtime.Version())
 	logo.Info("Gonsole: GitBranchName = %s", GitBranchName)
 	logo.Info("Gonsole: GitCommitId   = %s", GitCommitId)
 	logo.Info("Gonsole: AppBuildTime  = %s", AppBuildTime)
-	logo.Info("Gonsole: console       = %s", consoleUrl)
+	logo.Info("Gonsole: console       = %s", server.consoleUrl)
 	logo.Info("Starting server")
 	return server
 }
@@ -165,6 +166,10 @@ func (server *Server) getTopics() []ifs.Command {
 
 func (server *Server) GPID() string {
 	return server.gpid
+}
+
+func (server *Server) ConsoleUrl() string {
+	return server.consoleUrl
 }
 
 func (server *Server) App() *road.App {
