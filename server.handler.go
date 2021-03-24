@@ -23,7 +23,7 @@ func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
 	server.handleResourceFile(mux, "/res/js/sha256.min.js")
 	server.handleResourceFile(mux, "/res/js/protocol.js")
 	server.handleResourceFile(mux, "/res/js/starx.js")
-	server.handleHealth(mux)
+	//server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
 
@@ -79,13 +79,13 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 	})
 }
 
-func (server *Server) handleHealth(mux IServeMux) {
-	var pattern = server.options.UrlRoot + "/health"
-	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		var message = `{"status":"UP"}`
-		_, _ = writer.Write([]byte(message))
-	})
-}
+//func (server *Server) handleHealth(mux IServeMux) {
+//	var pattern = server.options.UrlRoot + "/health"
+//	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+//		var message = `{"status":"UP"}`
+//		_, _ = writer.Write([]byte(message))
+//	})
+//}
 
 func (server *Server) registerBuiltinCommands(port int) {
 	server.RegisterCommand(&Command{
