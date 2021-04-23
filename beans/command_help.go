@@ -3,6 +3,7 @@ package beans
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
+	"net/url"
 	"sort"
 )
 
@@ -60,7 +61,9 @@ func fetchCommandHelpImpl(list []CommandHelp, commands []ifs.Command, isAuthoriz
 func FetchPProfHelp(args []string) []CommandHelp {
 	var host = ""
 	if len(args) >= 2 {
-		host = args[1]
+		if u, err := url.Parse(args[1]); err == nil {
+			host = u.Scheme + "://" + u.Host
+		}
 	}
 
 	var list = make([]CommandHelp, 0, 8)

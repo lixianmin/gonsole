@@ -98,7 +98,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 				data += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
 
-			if server.options.EnablePProf {
+			if isAuthorized && server.options.EnablePProf {
 				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 

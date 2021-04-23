@@ -186,7 +186,7 @@ func (server *Server) enablePProf(mux IServeMux) {
 		return pprof.Handler(name).ServeHTTP
 	}
 
-	const root = ""
+	const root = "" // 这个不能随便改，改完了能打开页面，但看不到数据；去看看pprof.Index()的实现，里面路径写死了
 	mux.HandleFunc(root+"/debug/pprof/", pprof.Index)
 	mux.HandleFunc(root+"/debug/pprof/cmdline", pprof.Cmdline)
 	mux.HandleFunc(root+"/debug/pprof/profile", pprof.Profile)
