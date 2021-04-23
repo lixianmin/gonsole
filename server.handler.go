@@ -111,6 +111,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		IsPublic:  true,
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
+			server.lastAuthTime.Store(time.Now())
 			var data = beans.NewCommandAuth(client.Session(), args, server.options.UserPasswords, port)
 			return NewDefaultResponse(data), nil
 		}})

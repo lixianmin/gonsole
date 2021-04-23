@@ -13,6 +13,8 @@ import (
 	"net/http/pprof"
 	"runtime"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 /********************************************************************
@@ -26,10 +28,11 @@ type Server struct {
 	options serverOptions
 	app     *road.App
 
-	gpid       string
-	consoleUrl string
-	commands   sync.Map
-	topics     sync.Map
+	gpid         string
+	consoleUrl   string
+	commands     sync.Map
+	topics       sync.Map
+	lastAuthTime atomic.Value
 }
 
 func NewServer(mux IServeMux, opts ...ServerOption) *Server {
@@ -76,6 +79,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.UrlRoot),
 	}
 
+	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
 	server.RegisterService("console", newConsoleService(server))
 	server.registerHandlers(mux, options)
 	server.registerBuiltinCommands(options.Port)
@@ -182,19 +186,31 @@ func (server *Server) App() *road.App {
 }
 
 func (server *Server) enablePProf(mux IServeMux) {
-	var handler = func(name string) func(w http.ResponseWriter, r *http.Request) {
-		return pprof.Handler(name).ServeHTTP
+	var handler = func(processor func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+		return func(w http.ResponseWriter, r *http.Request) {
+			const validTime = 10 * time.Minute
+
+			var lastAuthTime = server.lastAuthTime.Load().(time.Time)
+			var pastTime = time.Now().Sub(lastAuthTime)
+			if pastTime > validTime {
+				// 下面返回的数据，其实识别不了，会报：unrecognized profile format
+				_, _ = w.Write([]byte(fmt.Sprintf(`安全起见：使用auth指令登录后%s内可以查看pprof信息，请重新登录`, timex.FormatDuration(validTime))))
+				return
+			}
+
+			processor(w, r)
+		}
 	}
 
 	const root = "" // 这个不能随便改，改完了能打开页面，但看不到数据；去看看pprof.Index()的实现，里面路径写死了
-	mux.HandleFunc(root+"/debug/pprof/", pprof.Index)
-	mux.HandleFunc(root+"/debug/pprof/cmdline", pprof.Cmdline)
-	mux.HandleFunc(root+"/debug/pprof/profile", pprof.Profile)
-	mux.HandleFunc(root+"/debug/pprof/symbol", pprof.Symbol)
-	mux.HandleFunc(root+"/debug/pprof/trace", pprof.Trace)
-	mux.HandleFunc(root+"/debug/pprof/block", handler("block"))
-	mux.HandleFunc(root+"/debug/pprof/goroutine", handler("goroutine"))
-	mux.HandleFunc(root+"/debug/pprof/heap", handler("heap"))
-	mux.HandleFunc(root+"/debug/pprof/mutex", handler("mutex"))
-	mux.HandleFunc(root+"/debug/pprof/threadcreate", handler("threadcreate"))
+	mux.HandleFunc(root+"/debug/pprof/", handler(pprof.Index))
+	mux.HandleFunc(root+"/debug/pprof/cmdline", handler(pprof.Cmdline))
+	mux.HandleFunc(root+"/debug/pprof/profile", handler(pprof.Profile))
+	mux.HandleFunc(root+"/debug/pprof/symbol", handler(pprof.Symbol))
+	mux.HandleFunc(root+"/debug/pprof/trace", handler(pprof.Trace))
+	mux.HandleFunc(root+"/debug/pprof/block", handler(pprof.Handler("block").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/goroutine", handler(pprof.Handler("goroutine").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/heap", handler(pprof.Handler("heap").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/mutex", handler(pprof.Handler("mutex").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/threadcreate", handler(pprof.Handler("threadcreate").ServeHTTP))
 }
