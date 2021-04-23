@@ -18,11 +18,11 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (server *Server) registerHandlers(mux IServeMux, websocketPath string) {
-	server.handleConsolePage(mux, websocketPath)
-	server.handleResourceFile(mux, "/res/js/sha256.min.js")
-	server.handleResourceFile(mux, "/res/js/protocol.js")
-	server.handleResourceFile(mux, "/res/js/starx.js")
+func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
+	server.handleConsolePage(mux, options.WebSocketPath)
+	server.handleResourceFile(mux, "res/js/sha256.min.js")
+	server.handleResourceFile(mux, "res/js/protocol.js")
+	server.handleResourceFile(mux, "res/js/starx.js")
 	//server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
@@ -52,15 +52,10 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 }
 
 func (server *Server) handleResourceFile(mux IServeMux, relativePath string) {
-	var pattern = server.options.UrlRoot + relativePath
+	var pattern = server.options.UrlRoot + "/" + relativePath
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		var path = request.URL.Path
-		if len(path) < 1 {
-			return
-		}
-
 		var root = filepath.Dir(server.options.PageTemplate)
-		var filename = filepath.Join(root, path)
+		var filename = filepath.Join(root, relativePath)
 		RequestFileByRange(filename, writer, request)
 	})
 }

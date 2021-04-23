@@ -57,6 +57,11 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		opt(&options)
 	}
 
+	// 这个是为了consoleUrl格式化的时候使用
+	if options.UrlRoot != "" && options.UrlRoot[0] != '/' {
+		options.UrlRoot = "/" + options.UrlRoot
+	}
+
 	var servePath = options.UrlRoot + "/" + options.WebSocketPath
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
@@ -72,7 +77,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	server.RegisterService("console", newConsoleService(server))
-	server.registerHandlers(mux, options.WebSocketPath)
+	server.registerHandlers(mux, options)
 	server.registerBuiltinCommands(options.Port)
 	server.registerBuiltinTopics()
 
