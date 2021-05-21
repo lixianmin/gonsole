@@ -61,8 +61,10 @@
 
             function addHistory(command) {
                 const size = history.length;
-                if (size === 0 || history[size-1] !== command) {
+                if (size === 0 || history[size - 1] !== command) {
                     historyIndex = history.push(command);
+                } else { // addHistory()都是在输入命令时才调用的，这时historyIndex很可能处于history数组的中间位置，将其调整到最后
+                    historyIndex = history.length;
                 }
             }
 
@@ -85,7 +87,7 @@
             }
 
             function printWithTimestamp(html) {
-                printHtml("[" + (new Date()).Format("hh:mm:ss.S") +  "]" + html);
+                printHtml("[" + (new Date()).Format("hh:mm:ss.S") + "]" + html);
             }
 
             function sendBean(route, msg, callback) {
@@ -320,7 +322,7 @@
                                 if (count > 1) {
                                     const items = new Array(count);
                                     for (let i = 0; i < count; i++) {
-                                        items[i] = `<tr> <td>${i+1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
+                                        items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
                                     }
 
                                     const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
