@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -202,13 +203,27 @@ func (server *Server) enablePProf(mux IServeMux) {
 		}
 	}
 
+	// block需要特殊处理
+	var blockHandler = func(w http.ResponseWriter, r *http.Request) {
+		rate, _ := strconv.Atoi(r.FormValue("rate"))
+		if rate == 0 {
+			rate = 10000
+		}
+
+		// 这个需要先设值，再解绑
+		runtime.SetBlockProfileRate(rate)
+		defer runtime.SetBlockProfileRate(0)
+
+		pprof.Handler("block").ServeHTTP(w, r)
+	}
+
 	const root = "" // 这个不能随便改，改完了能打开页面，但看不到数据；去看看pprof.Index()的实现，里面路径写死了
 	mux.HandleFunc(root+"/debug/pprof/", handler(pprof.Index))
 	mux.HandleFunc(root+"/debug/pprof/cmdline", handler(pprof.Cmdline))
 	mux.HandleFunc(root+"/debug/pprof/profile", handler(pprof.Profile))
 	mux.HandleFunc(root+"/debug/pprof/symbol", handler(pprof.Symbol))
 	mux.HandleFunc(root+"/debug/pprof/trace", handler(pprof.Trace))
-	mux.HandleFunc(root+"/debug/pprof/block", handler(pprof.Handler("block").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/block", handler(blockHandler))
 	mux.HandleFunc(root+"/debug/pprof/goroutine", handler(pprof.Handler("goroutine").ServeHTTP))
 	mux.HandleFunc(root+"/debug/pprof/heap", handler(pprof.Handler("heap").ServeHTTP))
 	mux.HandleFunc(root+"/debug/pprof/mutex", handler(pprof.Handler("mutex").ServeHTTP))

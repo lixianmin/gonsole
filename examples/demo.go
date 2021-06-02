@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -75,5 +77,24 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	loom.Go(goLoop)
 	log.Fatal(srv.ListenAndServe())
+}
+
+func goLoop(later loom.Later) {
+	var lock = &sync.Mutex{}
+	lock.Lock()
+	go func() {
+		lock.Lock()
+	}()
+
+	var timer = later.NewTimer(5 * time.Minute)
+
+	for {
+		select {
+		case <-timer.C:
+			fmt.Printf("timer triggered, unlock \n")
+			lock.Unlock()
+		}
+	}
 }
