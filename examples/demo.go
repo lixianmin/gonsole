@@ -59,6 +59,25 @@ func main() {
 		},
 	})
 
+	server.RegisterCommand(&gonsole.Command{
+		Name:     "test_struct_sort_table_by_head",
+		Note:     "测试结构体排序",
+		IsPublic: true,
+		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+			var bean struct {
+				Text string
+				Name string
+				Age  int
+			}
+
+			bean.Text = "hello"
+			bean.Name = "world"
+			bean.Age = 20
+			var html = gonsole.ToHtmlTable(bean)
+			return gonsole.NewHtmlResponse(html), nil
+		},
+	})
+
 	server.RegisterTopic(&gonsole.Topic{
 		Name:     "hi",
 		Note:     "广播hi console（每5s）",

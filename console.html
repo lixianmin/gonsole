@@ -31,6 +31,49 @@
             box.value = lastValue;
         }
 
+        function sortTableByHead(index) {
+            let that = this;
+            if (typeof that.flag === 'undefined') {
+                this.flag = -1;
+            }
+            this.flag *= -1;
+
+            let elementTable = this.parentElement.parentElement.parentElement;
+            let tHead = elementTable.getElementsByTagName("thead")[0];
+            let tBody = elementTable.getElementsByTagName('tbody')[0];
+            let headCells = tHead.rows[0].cells;
+            let bodyRows = tBody.rows;
+
+            let arr = Array.prototype.slice.call(bodyRows);
+            for (let i = 0; i < headCells.length; i++) {
+                if (headCells[i] !== that) {
+                    headCells[i].setAttribute('data-text', '');
+                    headCells[i].flag = -1;
+                }
+            }
+
+            let arrow = that.flag === 1 ? '\u2193' : '\u2191';
+            this.setAttribute('data-text', arrow);
+
+            arr.sort(function (a, b) {
+                let curCol = a.cells[index].innerHTML;
+                let nexCol = b.cells[index].innerHTML;
+                let curColNum = parseFloat(curCol);
+                let nexColNum = parseFloat(nexCol);
+                if (isNaN(curColNum) || isNaN(nexColNum)) {
+                    return (curCol.localeCompare(nexCol)) * that.flag;
+                }
+                return (curColNum - nexColNum) * that.flag;
+            })
+
+            let frg = document.createDocumentFragment();
+            for (let i = 0; i < arr.length; i++) {
+                frg.appendChild(arr[i]);
+            }
+            tBody.appendChild(frg);
+            frg = null;
+        }
+
         window.onload = function () {
             let conn;
             const mainPanel = document.getElementById("mainPanel");
@@ -387,6 +430,8 @@
 
         table { border-width: 1px; border-color: #729ea5;border-collapse: collapse;}
         th { background-color:#004949; border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;text-align:left;}
+        th:hover { cursor: pointer;}
+        th:after { content: attr(data-text); font-size: small; margin-left: 5px;}
         td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
 
         /*https://www.runoob.com/css/css-tooltip.html*/

@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"fmt"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
 	"reflect"
@@ -32,8 +33,9 @@ func ToHtmlTable(data interface{}) string {
 func toHtmlTableStruct(item reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
-	b = append(b, "<table><tr>"...)
+	b = append(b, "<table><thead>"...)
 	b, numField, kind := writeTableHead(b, item)
+	b = append(b, "</thead><tbody>"...)
 
 	b = append(b, "<tr>"...)
 	for j := 0; j < numField; j++ {
@@ -49,7 +51,7 @@ func toHtmlTableStruct(item reflect.Value) string {
 
 	}
 
-	b = append(b, "</table>"...)
+	b = append(b, "<tbody></table>"...)
 	var html = string(b)
 	return html
 }
@@ -63,8 +65,10 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
 	// 表头：第一列用于显示序号
-	b = append(b, "<table><tr><th>"...)
+	b = append(b, "<table><thead><th>"...)
 	b, numField, kind := writeTableHead(b, listValue.Index(0))
+	b = append(b, "</thead><tbody>"...)
+
 	for i := 0; i < count; i++ {
 		var item = listValue.Index(i)
 		item = reflect.Indirect(item)
@@ -86,7 +90,7 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 		}
 	}
 
-	b = append(b, "</table>"...)
+	b = append(b, "<tbody></table>"...)
 	var html = string(b)
 	return html
 }
@@ -106,13 +110,14 @@ func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
 				continue
 			}
 
-			b = append(b, "<th>"...)
+			// 支持点击表格头排序，参考：https://obligat.github.io/js/table-sort.html
+			b = append(b, fmt.Sprintf("<th class='th' onclick='sortTableByHead.call(this, %d)' >", i)...)
 			b = append(b, name...)
 		}
 
 		return b, numField, kind
 	default:
-		b = append(b, "<th>[]"...)
+		b = append(b, "<th class='th'>[]"...)
 		return b, 1, kind
 	}
 }
