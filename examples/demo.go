@@ -61,8 +61,8 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "test_struct_sort_table_by_head",
-		Note:     "测试结构体排序",
+		Name:     "test_slice_sort_table_by_head",
+		Note:     "测试slice排序",
 		IsPublic: true,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
@@ -82,6 +82,28 @@ func main() {
 			}
 
 			var html = gonsole.ToHtmlTable(beans)
+			return gonsole.NewHtmlResponse(html), nil
+		},
+	})
+
+	server.RegisterCommand(&gonsole.Command{
+		Name:     "test_struct_sort_table_by_head",
+		Note:     "测试结构体排序",
+		IsPublic: true,
+		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+			type Bean struct {
+				Text string
+				Name string
+				Age  int
+				Time string
+				Hit  float32
+			}
+
+			var now = time.Now()
+			var layout = "2006-01-02"
+			var bean = Bean{"hello", "world", 20, now.Format(layout), 1.1}
+
+			var html = gonsole.ToHtmlTable(bean)
 			return gonsole.NewHtmlResponse(html), nil
 		},
 	})
