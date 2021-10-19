@@ -12,7 +12,7 @@ const (
 //InternalError = 500 // 内部错误
 )
 
-// 参考：《编译时向 go 程序写入 git 版本信息》
+// GitBranchName 参考：《编译时向 go 程序写入 git 版本信息》
 // http://mengqi.info/html/2015/201502171941-build-go-program-with-git-version.html
 var GitBranchName string // git分支名
 var GitCommitId string   // git提交id
