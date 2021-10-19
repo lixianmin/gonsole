@@ -111,7 +111,7 @@ func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
 			}
 
 			// 支持点击表格头排序，参考：https://obligat.github.io/js/table-sort.html
-			b = append(b, fmt.Sprintf("<th class='th' onclick='sortTableByHead.call(this, %d)' >", i)...)
+			b = append(b, fmt.Sprintf("<th class='th' onclick='sortTableByHead.call(this, %d)' >", i+1)...)
 			b = append(b, name...)
 		}
 

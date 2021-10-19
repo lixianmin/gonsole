@@ -42,7 +42,7 @@ func ToSnakeName(name string) string {
 	return result
 }
 
-// https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/
+// RequestFileByRange https://delveshal.github.io/2018/05/17/golang-%E5%AE%9E%E7%8E%B0%E6%96%87%E4%BB%B6%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0-demo/
 func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *http.Request) {
 	var start, end int64
 	_, _ = fmt.Sscanf(request.Header.Get("Range"), "bytes=%d-%d", &start, &end)

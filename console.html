@@ -58,11 +58,12 @@
             arr.sort(function (a, b) {
                 let curCol = a.cells[index].innerHTML;
                 let nexCol = b.cells[index].innerHTML;
+                if (isNaN(curCol) || isNaN(nexCol)) {
+                    return (('' + curCol).localeCompare(nexCol)) * that.flag;
+                }
+
                 let curColNum = parseFloat(curCol);
                 let nexColNum = parseFloat(nexCol);
-                if (isNaN(curColNum) || isNaN(nexColNum)) {
-                    return (curCol.localeCompare(nexCol)) * that.flag;
-                }
                 return (curColNum - nexColNum) * that.flag;
             })
 
