@@ -34,7 +34,7 @@ func toHtmlTableStruct(item reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
 	b = append(b, "<table><thead>"...)
-	b, numField, kind := writeTableHead(b, item)
+	b, numField, kind := writeTableHead(b, item, 0)
 	b = append(b, "</thead><tbody>"...)
 
 	b = append(b, "<tr>"...)
@@ -65,8 +65,8 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
 	// 表头：第一列用于显示序号
-	b = append(b, "<table><thead><th>"...)
-	b, numField, kind := writeTableHead(b, listValue.Index(0))
+	b = append(b, "<table><thead><th class='th' onclick='sortTableByHead.call(this,0)'>"...)
+	b, numField, kind := writeTableHead(b, listValue.Index(0), 1) // 因为前面会单加一列『序号』，因此deltaIndex=1
 	b = append(b, "</thead><tbody>"...)
 
 	for i := 0; i < count; i++ {
@@ -95,7 +95,7 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	return html
 }
 
-func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
+func writeTableHead(b []byte, item reflect.Value, deltaIndex int) ([]byte, int, reflect.Kind) {
 	// 每一列的名字
 	item = reflect.Indirect(item)
 	var itemType = item.Type()
@@ -111,7 +111,7 @@ func writeTableHead(b []byte, item reflect.Value) ([]byte, int, reflect.Kind) {
 			}
 
 			// 支持点击表格头排序，参考：https://obligat.github.io/js/table-sort.html
-			b = append(b, fmt.Sprintf("<th class='th' onclick='sortTableByHead.call(this, %d)' >", i+1)...)
+			b = append(b, fmt.Sprintf("<th class='th' onclick='sortTableByHead.call(this,%d)'>", i+deltaIndex)...)
 			b = append(b, name...)
 		}
 
