@@ -95,7 +95,7 @@
                 const jsonObj = JSON.parse(json);
                 if (jsonObj) {
                     history = jsonObj;
-                    historyIndex = history.length - 1;
+                    historyIndex = history.length; // 初始大小
                 }
 
                 window.onunload = function () {
@@ -105,9 +105,10 @@
 
             function addHistory(command) {
                 const size = history.length;
+                // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
                 if (size === 0 || history[size - 1] !== command) {
                     historyIndex = history.push(command);
-                } else { // addHistory()都是在输入命令时才调用的，这时historyIndex很可能处于history数组的中间位置，将其调整到最后
+                } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
                     historyIndex = history.length;
                 }
             }
