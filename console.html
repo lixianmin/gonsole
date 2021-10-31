@@ -92,22 +92,6 @@
             let isAuthorizing = false;
 
             const myHost = window.location.host + {{.UrlRoot}};
-
-            // 将history存储到localStorage中
-            if (localStorage) {
-                const key = "history";
-                const json = localStorage.getItem(key);
-                const jsonObj = JSON.parse(json);
-                if (jsonObj) {
-                    history = jsonObj;
-                    historyIndex = history.length; // 初始大小
-                }
-
-                window.onunload = function () {
-                    localStorage.setItem(key, JSON.stringify(history.slice(-100)));
-                };
-            }
-
             function addHistory(command) {
                 const size = history.length;
                 // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
@@ -334,28 +318,6 @@
 
                     mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
                     return false;
-                } else if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
-                    const isArrowUp = evt.key === 'ArrowUp';
-                    let isChanged = false;
-                    if (isArrowUp && historyIndex > 0) {
-                        historyIndex -= 1;
-                        isChanged = true;
-                    } else if (!isArrowUp && historyIndex < history.length) {
-                        historyIndex += 1;
-                        isChanged = true;
-                    }
-
-                    if (isChanged) {
-                        inputBox.value = historyIndex < history.length ? history[historyIndex] : '';
-                        setTimeout(function () {
-                                let position = inputBox.value.length;
-                                inputBox.setSelectionRange(position, position);
-                                inputBox.focus();
-                            }
-                            , 0);
-                    }
-
-                    return false;
                 } else if (evt.key === 'Tab') {
                     const text = inputBox.value.trim();
                     if (text.length > 0) {
@@ -393,9 +355,9 @@
             };
 
             if (window["WebSocket"]) {
-                const isHttps = "https:" === document.location.protocol;
-                const protocol = isHttps ? "wss://" : "ws://";
-                const url = protocol + myHost + "/" + {{.WebsocketPath}};
+                const isHttps = "https:" === document.location.protocol
+                const protocol = isHttps ? "wss://" : "ws://"
+                const url = protocol + myHost + "/" + {{.WebsocketPath}}
 
                 starx.init({url: url}, function () {
                     // 自动登录
@@ -455,8 +417,85 @@
 </head>
 <body>
 <div id="mainPanel"></div>
-<form id="form">
-    <input id="inputBox" type="text" value=""/>
-</form>
+
+<div id="inputBoxDiv">
+    <form id="form">
+        <input id="inputBox" ref="mainPanel" v-model="text" placeholder="输入命令后回车"
+                                             @keydown.enter="on_enter" @keydown.up.down.stop="on_up_down"
+        />
+    </form>
+</div>
+
+<script src="https://unpkg.com/vue@next"></script>
+<script>
+    const InputBoxHandler = {
+        data() {
+            return {
+                text: ""
+                , historyIndex: -1
+                , history:[]
+            }
+        }
+        , mounted() {
+            if (localStorage) {
+                const key = "history"
+                const json = localStorage.getItem(key)
+                const jsonObj = JSON.parse(json)
+                if (jsonObj) {
+                    this.history = jsonObj
+                    this.historyIndex = this.history.length; // 初始大小
+                }
+            }
+        }
+        , beforeUnmount() {
+            if (localStorage) { // 将history存储到localStorage中
+                const key = "history"
+                localStorage.setItem(key, JSON.stringify(this.history.slice(-100)))
+            }
+        }
+        , methods: {
+            on_enter(evt) {
+
+            }
+            , on_up_down(evt) {
+                const isArrowUp = evt.key === 'ArrowUp'
+                let isChanged = false
+                let index = this.historyIndex
+                if (isArrowUp && index > 0) {
+                    index -= 1
+                    isChanged = true
+                } else if (!isArrowUp && index+1 < this.history.length) {
+                    index += 1
+                    isChanged = true
+                }
+
+                if (isChanged) {
+                    this.historyIndex = index
+                    this.text = index < this.history.length ? this.history[index] : ''
+                    setTimeout(function () {
+                            let position = this.text.length
+                            this.$el.setSelectionRange(position, position)
+                            this.$el.focus()
+                        }, 0)
+                }
+            }
+            , appendLog(item) {
+                const mainPanel = document.getElementById("mainPanel")
+                let doScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1
+                mainPanel.appendChild(item)
+                if (doScroll) {
+                    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight
+                }
+            }
+            , printHtml(html) {
+                const item = document.createElement("div")
+                item.innerHTML = html
+                this.appendLog(item)
+            }
+        }
+    }
+
+    Vue.createApp(InputBoxHandler).mount('#inputBoxDiv')
+</script>
 </body>
 </html>
