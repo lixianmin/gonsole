@@ -56,15 +56,20 @@
             this.setAttribute('data-text', arrow);
 
             arr.sort(function (a, b) {
-                let curCol = a.cells[index].innerHTML;
-                let nexCol = b.cells[index].innerHTML;
-                if (isNaN(curCol) || isNaN(nexCol)) {
-                    return (('' + curCol).localeCompare(nexCol)) * that.flag;
-                }
+                let sa = a.cells[index].innerHTML;
+                let sb = b.cells[index].innerHTML;
 
-                let curColNum = parseFloat(curCol);
-                let nexColNum = parseFloat(nexCol);
-                return (curColNum - nexColNum) * that.flag;
+                if (null === sa || "" === sa) {
+                    return 1;
+                } else if (null === sb || "" === sb) {
+                    return -1;
+                } else if (isNaN(sa) || isNaN(sb)) {
+                    return (('' + sa).localeCompare(sb)) * that.flag;
+                } else {
+                    let curColNum = parseFloat(sa);
+                    let nexColNum = parseFloat(sb);
+                    return (curColNum - nexColNum) * that.flag;
+                }
             })
 
             let frg = document.createDocumentFragment();

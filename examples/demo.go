@@ -71,14 +71,16 @@ func main() {
 				Age  int
 				Time string
 				Hit  float32
+				EmptyNum string
 			}
 
 			var now = time.Now()
 			var layout = "2006-01-02"
-			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1},
-				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2},
-				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3},
-				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4},
+			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1, ""},
+				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2, ""},
+				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3, "10"},
+				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
+				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "2"},
 			}
 
 			var html = gonsole.ToHtmlTable(beans)
