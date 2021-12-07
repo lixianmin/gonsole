@@ -182,10 +182,12 @@ func (server *Server) registerBuiltinCommands(port int) {
 		isBuiltin: true,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
-				GoVersion:     runtime.Version(),
-				GitBranchName: GitBranchName,
-				GitCommitId:   GitCommitId,
-				AppBuildTime:  AppBuildTime,
+				GoVersion:        runtime.Version(),
+				GitBranchName:    GitBranchName,
+				GitCommitId:      GitCommitId,
+				GitCommitMessage: GitCommitMessage,
+				GitCommitTime:    GitCommitTime,
+				AppBuildTime:     AppBuildTime,
 			}
 
 			var html = tools.ToHtmlTable(info)
