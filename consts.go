@@ -16,7 +16,7 @@ const (
 // http://mengqi.info/html/2015/201502171941-build-go-program-with-git-version.html
 /*
 IMPORT_PATH=github.com/lixianmin/gonsole
-FLAGS="-w -s -X $IMPORT_PATH.GitBranchName=`git rev-parse --abbrev-ref HEAD` -X $IMPORT_PATH.GitCommitId=`git log --pretty=format:\"%h\" -1` -X $IMPORT_PATH.GitCommitMessage=`git show -s --format=%s` -X $IMPORT_PATH.GitCommitTime=`git log --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:%ad -1` -X $IMPORT_PATH.AppBuildTime=`date +%Y-%m-%dT%H:%M:%S`"
+FLAGS="-w -s -X $IMPORT_PATH.GitBranchName=`git rev-parse --abbrev-ref HEAD` -X $IMPORT_PATH.GitCommitId=`git log --pretty=format:\"%h\" -1` -X '$IMPORT_PATH.GitCommitMessage=`git show -s --format=%s`' -X $IMPORT_PATH.GitCommitTime=`git log --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:%ad -1` -X $IMPORT_PATH.AppBuildTime=`date +%Y-%m-%dT%H:%M:%S`"
 go build -ldflags "$FLAGS" -mod vendor -gcflags "-N -l"
 */
 var GitBranchName string    // git分支名: git rev-parse --abbrev-ref HEAD
