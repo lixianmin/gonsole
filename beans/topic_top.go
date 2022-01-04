@@ -3,9 +3,9 @@ package beans
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/tools"
-	"github.com/lixianmin/gonsole/tools/gopsutil/cpu"
-	"github.com/lixianmin/gonsole/tools/gopsutil/mem"
 	"github.com/lixianmin/got/convert"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 	"runtime"
 	"strings"
 	"time"
