@@ -124,21 +124,18 @@
         .tips:hover .tips_text { visibility: visible; }
 
         #mainPanel {margin: 0;padding: 0.5em 0.5em 0.5em 0.5em;position: absolute;top: 0.5em;left: 0.5em;right: 0.5em;bottom: 3em;overflow: auto;}
-        #form {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
+        #inputBoxDiv {padding: 0 0.5em 0 0.5em;margin: 0;position: absolute;bottom: 1em;left: 1px;width: 100%;overflow: hidden;}
         #inputBox {width:100%;height:1.6em;font-size:1.5em; background-color: #073642; color: #859900}
-
     </style>
 </head>
 <body>
 <div id="mainPanel"></div>
 <div id="inputBoxDiv">
-    <form id="form">
-        <input id="inputBox" ref="mainPanel" v-model="text" placeholder="Tab补全命令, Enter执行命令"
-               @keydown.enter.prevent = "on_enter"
-               @keydown.tab.prevent = "on_tab"
-               @keydown.up.down.prevent = "on_up_down"
-        />
-    </form>
+    <input id="inputBox" ref="mainPanel" v-model="text" placeholder="Tab补全命令, Enter执行命令"
+           @keydown.enter.prevent = "on_enter"
+           @keydown.tab.prevent = "on_tab"
+           @keydown.up.down.prevent = "on_up_down"
+    />
 </div>
 
 <script>
@@ -184,7 +181,7 @@
             this.$el.focus();
             this.printHtml({{.Body}});
             this.println();
-
+            
             starx.on("console.html", this.onHtml);
             starx.on("console.default", this.onDefault);
 
