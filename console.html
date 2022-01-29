@@ -5,6 +5,7 @@
     <script type="text/javascript" src="res/js/sha256.min.js"></script>
     <script type="text/javascript" src="res/js/protocol.js"></script>
     <script type="text/javascript" src="res/js/starx.js"></script>
+    <script type="text/javascript" src="res/js/vue.global.prod.js"></script>
     <script type="text/javascript">
         Date.prototype.Format = function (fmt) {
             let o = {
@@ -81,157 +82,7 @@
         }
 
         window.onload = function () {
-            let conn;
-            const mainPanel = document.getElementById("mainPanel");
             const inputBox = document.getElementById("inputBox");
-
-            let history = Array();
-            let historyIndex = -1;
-
-            let username = "";
-            let isAuthorizing = false;
-
-            const myHost = window.location.host + {{.UrlRoot}};
-            function addHistory(command) {
-                const size = history.length;
-                // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
-                if (size === 0 || history[size - 1] !== command) {
-                    historyIndex = history.push(command);
-                } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
-                    historyIndex = history.length;
-                }
-            }
-
-            function appendLog(item) {
-                let doScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1;
-                mainPanel.appendChild(item);
-                if (doScroll) {
-                    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight;
-                }
-            }
-
-            function printHtml(html) {
-                const item = document.createElement("div");
-                item.innerHTML = html;
-                appendLog(item);
-            }
-
-            function println() {
-                printHtml("<br>");
-            }
-
-            function printWithTimestamp(html) {
-                printHtml("[" + (new Date()).Format("hh:mm:ss.S") + "]" + html);
-            }
-
-            function sendBean(route, msg, callback) {
-                const json = JSON.stringify(msg);
-                printWithTimestamp("<b>client请求：</b>");
-                printHtml(json);
-                println();
-                starx.request(route, msg, callback);
-            }
-
-            function getHumanReadableSize(size) {
-                if (size < 1024) {
-                    return size + "B";
-                }
-
-                if (size < 1048576) {
-                    return (size / 1024.0).toFixed(1) + "K";
-                }
-
-                return (size / 1048576.0).toFixed(1) + "M";
-            }
-
-            function longestCommonPrefix(strs) {
-                if (strs.length < 2) return strs.join();
-                let str = strs[0];
-                for (let i = 1; i < strs.length; i++) {
-                    for (let j = str.length; j > 0; j--) {
-                        if (str !== strs[i].substr(0, j)) str = str.substr(0, j - 1);
-                        else break
-                    }
-                }
-                return str
-            }
-
-            function login(username, password) {
-                const key = "hey pet!";
-                const digest = sha256.hmac(key, password);
-
-                const bean = {
-                    command: "auth " + username + " " + digest,
-                };
-
-                sendBean("console.command", bean, onCommand);
-            }
-
-            starx.on("console.html", onHtml);
-            starx.on("console.default", onDefault);
-
-            function onCommand(obj) {
-                switch (obj.op) {
-                    case "log.list":
-                        onLogList(obj.data);
-                        break;
-                    case "history":
-                        onHistory(obj.data);
-                        break;
-                    case "html":
-                        onHtml(obj);
-                        break;
-                    case "empty":
-                        break;
-                    default:
-                        onDefault(obj);
-                }
-            }
-
-            function onHtml(obj) {
-                printWithTimestamp("<b>server响应：</b>" + obj.data);
-                println();
-            }
-
-            function onDefault(obj) {
-                const text = JSON.stringify(obj);
-                printWithTimestamp("<b>server响应：</b>" + text);
-                println();
-            }
-
-            function onLogList(data) {
-                const host = document.location.protocol + "//" + myHost;
-                const logFiles = data.logFiles;
-                const fileCount = logFiles.length;
-                const links = new Array(fileCount);
-                let totalSize = 0;
-                for (let i = 0; i < fileCount; i++) {
-                    const fi = logFiles[i];
-                    totalSize += fi.size;
-                    let sizeText = getHumanReadableSize(fi.size);
-                    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
-                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
-                                </div></td> <td>${fi.mod_time}</td> </tr>`;
-                }
-
-                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-                result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
-                printWithTimestamp(result);
-                println();
-            }
-
-            function onHistory(obj) {
-                const count = history.length;
-                const items = new Array(count);
-                for (let i = 0; i < count; i++) {
-                    items[i] = "<li>" + history[i] + "</li>";
-                }
-
-                let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
-                printWithTimestamp(result);
-                println();
-            }
-
             document.onkeydown = function (evt) {
                 // 回车
                 if (evt.key === 'Enter') {
@@ -244,143 +95,6 @@
                     }
                 }
             };
-
-            inputBox.onkeydown = function (evt) {
-                // 回车
-                if (evt.key === 'Enter') {
-                    let command = inputBox.value.trim();
-                    if (command !== "") {
-                        inputBox.value = "";
-
-                        // 检查是不是调用history命令
-                        if (command.startsWith("!")) {
-                            const index = parseInt(command.substr(1)) - 1;
-                            if (!isNaN(index) && index >= 0 && index < history.length) {
-                                command = history[index];
-                            }
-                        }
-
-                        let texts = command.split(/\s+/);  // 支持连续多个空格
-                        let textsLength = texts.length;
-                        const name = texts[0];
-
-                        if (name === 'help') {
-                            const host = document.location.protocol + "//" + myHost;
-                            const bean = {
-                                command: name + " " + host,
-                            };
-
-                            sendBean("console.command", bean, onCommand);
-                            addHistory(command);
-                        } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
-                            const bean = {
-                                topic: texts[1],
-                            };
-
-                            const route = "console." + name;
-                            sendBean(route, bean, onCommand);
-                            addHistory(command);
-                        } else if (textsLength >= 2 && name === "auth") {
-                            username = texts[1];
-                            isAuthorizing = true;
-                            inputBox.type = "password";
-                            printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
-                            addHistory(command);
-                        } else if (isAuthorizing && textsLength >= 1) {
-                            isAuthorizing = false;
-                            inputBox.type = "text";
-
-                            const password = name;
-                            login(username, password);
-
-                            if (localStorage) {
-                                const key = "autoLoginUser";
-                                const item = {
-                                    username: username,
-                                    password: password,
-                                    expireTime: new Date().getTime() + {{.AutoLoginLimit}},
-                                };
-
-                                const data = JSON.stringify(item);
-                                localStorage.setItem(key, data);
-                            }
-                        } else {
-                            const bean = {
-                                command: texts.join(' '),
-                            };
-
-                            sendBean("console.command", bean, onCommand);
-                            addHistory(command);
-                        }
-                    } else {
-                        printWithTimestamp('');
-                    }
-
-                    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
-                    return false;
-                } else if (evt.key === 'Tab') {
-                    const text = inputBox.value.trim();
-                    if (text.length > 0) {
-                        const bean = {
-                            head: text,
-                        };
-
-                        starx.request("console.hint", bean, function (obj) {
-                            const names = obj.names;
-                            const notes = obj.notes;
-                            const count = names.length;
-                            if (count > 0) {
-                                inputBox.value = longestCommonPrefix(names);
-                                if (count > 1) {
-                                    const items = new Array(count);
-                                    for (let i = 0; i < count; i++) {
-                                        items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
-                                    }
-
-                                    const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
-                                    const result = header + items.join("") + "</table>";
-                                    printWithTimestamp(result);
-                                    println();
-                                }
-                            }
-                        })
-                    }
-
-                    return false;
-                } else {
-                    // printText(evt.key);
-                }
-
-                return true;
-            };
-
-            if (window["WebSocket"]) {
-                const isHttps = "https:" === document.location.protocol
-                const protocol = isHttps ? "wss://" : "ws://"
-                const url = protocol + myHost + "/" + {{.WebsocketPath}}
-
-                starx.init({url: url}, function () {
-                    // 自动登录
-                    if (localStorage) {
-                        const key = "autoLoginUser";
-                        const json = localStorage.getItem(key);
-                        const jsonObj = JSON.parse(json);
-                        if (jsonObj && new Date().getTime() < jsonObj.expireTime) {
-                            login(jsonObj.username, jsonObj.password);
-                        }
-                    }
-                });
-
-                starx.on("disconnect", function () {
-                    printWithTimestamp("<b> disconnected from server </b>");
-                })
-            } else {
-                printHtml("<b>Your browser does not support WebSockets.</b>");
-            }
-
-            inputBox.focus();
-            printHtml({{.Body}});
-            println();
         };
     </script>
     <style type="text/css">
@@ -417,26 +131,63 @@
 </head>
 <body>
 <div id="mainPanel"></div>
-
 <div id="inputBoxDiv">
     <form id="form">
-        <input id="inputBox" ref="mainPanel" v-model="text" placeholder="输入命令后回车"
-                                             @keydown.enter="on_enter" @keydown.up.down.stop="on_up_down"
+        <input id="inputBox" ref="mainPanel" v-model="text" placeholder="Tab补全命令, Enter执行命令"
+               @keydown.enter.prevent = "on_enter"
+               @keydown.tab.prevent = "on_tab"
+               @keydown.up.down.prevent = "on_up_down"
         />
     </form>
 </div>
 
-<script src="https://unpkg.com/vue@next"></script>
 <script>
     const InputBoxHandler = {
         data() {
             return {
                 text: ""
+                , myHost: ""
+                , username: ""
+                , isAuthorizing: false
                 , historyIndex: -1
                 , history:[]
             }
         }
         , mounted() {
+            this.myHost = window.location.host + {{.UrlRoot}};
+
+            if (window["WebSocket"]) {
+                const isHttps = "https:" === document.location.protocol
+                const protocol = isHttps ? "wss://" : "ws://"
+                const url = protocol + this.myHost + "/" + {{.WebsocketPath}}
+                let that = this;
+
+                starx.init({url: url}, function () {
+                    // 自动登录
+                    if (localStorage) {
+                        const key = "autoLoginUser";
+                        const json = localStorage.getItem(key);
+                        const jsonObj = JSON.parse(json);
+                        if (jsonObj && new Date().getTime() < jsonObj.expireTime) {
+                            that.login(jsonObj.username, jsonObj.password);
+                        }
+                    }
+                });
+
+                starx.on("disconnect", function () {
+                    that.printWithTimestamp("<b> disconnected from server </b>");
+                })
+            } else {
+                this.printHtml("<b>Your browser does not support WebSockets.</b>");
+            }
+
+            this.$el.focus();
+            this.printHtml({{.Body}});
+            this.println();
+
+            starx.on("console.html", this.onHtml);
+            starx.on("console.default", this.onDefault);
+
             if (localStorage) {
                 const key = "history"
                 const json = localStorage.getItem(key)
@@ -445,17 +196,86 @@
                     this.history = jsonObj
                     this.historyIndex = this.history.length; // 初始大小
                 }
-            }
-        }
-        , beforeUnmount() {
-            if (localStorage) { // 将history存储到localStorage中
-                const key = "history"
-                localStorage.setItem(key, JSON.stringify(this.history.slice(-100)))
+
+                // 在unload时将history存储到localStorage中
+                window.onunload = ()=>{
+                    const key = "history"
+                    localStorage.setItem(key, JSON.stringify(this.history.slice(-100)))
+                }
             }
         }
         , methods: {
             on_enter(evt) {
+                let command = this.text.trim();
+                if (command !== "") {
+                    this.text = "";
 
+                    // 检查是不是调用history命令
+                    if (command.startsWith("!")) {
+                        const index = parseInt(command.substr(1)) - 1;
+                        if (!isNaN(index) && index >= 0 && index < this.history.length) {
+                            command = this.history[index];
+                        }
+                    }
+
+                    let texts = command.split(/\s+/);  // 支持连续多个空格
+                    let textsLength = texts.length;
+                    const name = texts[0];
+
+                    if (name === 'help') {
+                        const host = document.location.protocol + "//" + this.myHost;
+                        const bean = {
+                            command: name + " " + host,
+                        };
+
+                        this.sendBean("console.command", bean, this.onCommand);
+                        this.addHistory(command);
+                    } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
+                        const bean = {
+                            topic: texts[1],
+                        };
+
+                        const route = "console." + name;
+                        this.sendBean(route, bean, this.onCommand);
+                        this.addHistory(command);
+                    } else if (textsLength >= 2 && name === "auth") {
+                        this.username = texts[1];
+                        this.isAuthorizing = true;
+                        this.$el.type = "password";
+                        this.printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
+                        this.addHistory(command);
+                    } else if (this.isAuthorizing && textsLength >= 1) {
+                        this.isAuthorizing = false;
+                        this.$el.type = "text";
+
+                        const password = name;
+                        this.login(this.username, password);
+
+                        if (localStorage) {
+                            const key = "autoLoginUser";
+                            const item = {
+                                username: this.username,
+                                password: password,
+                                expireTime: new Date().getTime() + {{.AutoLoginLimit}},
+                            }
+
+                            const data = JSON.stringify(item);
+                            localStorage.setItem(key, data);
+                        }
+                    } else {
+                        const bean = {
+                            command: texts.join(' '),
+                        };
+
+                        this.sendBean("console.command", bean, this.onCommand);
+                        this.addHistory(command);
+                    }
+                } else {
+                    this.printWithTimestamp('');
+                }
+
+                const mainPanel = document.getElementById("mainPanel");
+                mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
             }
             , on_up_down(evt) {
                 const isArrowUp = evt.key === 'ArrowUp'
@@ -472,11 +292,41 @@
                 if (isChanged) {
                     this.historyIndex = index
                     this.text = index < this.history.length ? this.history[index] : ''
+                    let that = this;
                     setTimeout(function () {
-                            let position = this.text.length
-                            this.$el.setSelectionRange(position, position)
-                            this.$el.focus()
+                            let position = that.text.length
+                            that.$el.setSelectionRange(position, position)
+                            that.$el.focus()
                         }, 0)
+                }
+            }
+            , on_tab(evt) {
+                const text = this.text.trim();
+                if (text.length > 0) {
+                    const bean = {
+                        head: text,
+                    };
+
+                    let that = this;
+                    starx.request("console.hint", bean, function (obj) {
+                        const names = obj.names;
+                        const notes = obj.notes;
+                        const count = names.length;
+                        if (count > 0) {
+                            that.text = that.longestCommonPrefix(names);
+                            if (count > 1) {
+                                const items = new Array(count);
+                                for (let i = 0; i < count; i++) {
+                                    items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
+                                }
+
+                                const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
+                                const result = header + items.join("") + "</table>";
+                                that.printWithTimestamp(result);
+                                that.println();
+                            }
+                        }
+                    })
                 }
             }
             , appendLog(item) {
@@ -491,6 +341,118 @@
                 const item = document.createElement("div")
                 item.innerHTML = html
                 this.appendLog(item)
+            }
+            , println() {
+                this.printHtml("<br>");
+            }
+            , printWithTimestamp(html) {
+                this.printHtml("[" + (new Date()).Format("hh:mm:ss.S") + "]" + html);
+            }
+            , sendBean(route, msg, callback) {
+                const json = JSON.stringify(msg);
+                this.printWithTimestamp("<b>client请求：</b>");
+                this.printHtml(json);
+                this.println();
+                starx.request(route, msg, callback);
+            }
+            , onCommand(obj) {
+                switch (obj.op) {
+                    case "log.list":
+                        this.onLogList(obj.data);
+                        break;
+                    case "history":
+                        this.onHistory(obj.data);
+                        break;
+                    case "html":
+                        this.onHtml(obj);
+                        break;
+                    case "empty":
+                        break;
+                    default:
+                        this.onDefault(obj);
+                }
+            }
+            , onHtml(obj) {
+                this.printWithTimestamp("<b>server响应：</b>" + obj.data);
+                this.println();
+            }
+            , onDefault(obj) {
+                const text = JSON.stringify(obj);
+                this.printWithTimestamp("<b>server响应：</b>" + text);
+                this.println();
+            }
+            , onLogList(data) {
+                const host = document.location.protocol + "//" + this.myHost;
+                const logFiles = data.logFiles;
+                const fileCount = logFiles.length;
+                const links = new Array(fileCount);
+                let totalSize = 0;
+                for (let i = 0; i < fileCount; i++) {
+                    const fi = logFiles[i];
+                    totalSize += fi.size;
+                    let sizeText = this.getHumanReadableSize(fi.size);
+                    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
+                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
+                                </div></td> <td>${fi.mod_time}</td> </tr>`;
+                }
+
+                let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + this.getHumanReadableSize(totalSize) + "<br>";
+                result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
+                this.printWithTimestamp(result);
+                this.println();
+            }
+            , onHistory(obj) {
+                const count = this.history.length;
+                const items = new Array(count);
+                for (let i = 0; i < count; i++) {
+                    items[i] = "<li>" + this.history[i] + "</li>";
+                }
+
+                let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>";
+                this.printWithTimestamp(result);
+                this.println();
+            }
+            , addHistory(command) {
+                let history = this.history;
+                const size = history.length;
+                // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
+                if (size === 0 || history[size - 1] !== command) {
+                    this.historyIndex = history.push(command);
+                } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
+                    this.historyIndex = history.length;
+                }
+            }
+            , getHumanReadableSize(size) {
+                if (size < 1024) {
+                    return size + "B";
+                }
+
+                if (size < 1048576) {
+                    return (size / 1024.0).toFixed(1) + "K";
+                }
+
+                return (size / 1048576.0).toFixed(1) + "M";
+            }
+            , longestCommonPrefix(strs) {
+                if (strs.length < 2) return strs.join();
+                let str = strs[0];
+                for (let i = 1; i < strs.length; i++) {
+                    for (let j = str.length; j > 0; j--) {
+                        if (str !== strs[i].substr(0, j)) str = str.substr(0, j - 1);
+                        else break
+                    }
+                }
+                return str
+            }
+            , login(username, password) {
+                const key = "hey pet!";
+                const digest = sha256.hmac(key, password);
+
+                const bean = {
+                    command: "auth " + username + " " + digest,
+                };
+
+                this.sendBean("console.command", bean, this.onCommand);
             }
         }
     }

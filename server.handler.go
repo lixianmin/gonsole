@@ -23,6 +23,7 @@ func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleResourceFile(mux, "res/js/sha256.min.js")
 	server.handleResourceFile(mux, "res/js/protocol.js")
 	server.handleResourceFile(mux, "res/js/starx.js")
+	server.handleResourceFile(mux, "res/js/vue.global.prod.js")
 	//server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
