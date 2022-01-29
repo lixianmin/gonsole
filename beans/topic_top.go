@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
+	"github.com/lixianmin/got/timex"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"runtime"
@@ -58,6 +59,6 @@ func NewTopicTop() *TopicTop {
 	}
 
 	body.IP = tools.GetLocalIP()
-	body.UpTime = tools.FormatDuration(time.Now().Sub(startProcessTime))
+	body.UpTime = timex.FormatDuration(time.Now().Sub(startProcessTime))
 	return body
 }

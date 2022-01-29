@@ -392,11 +392,6 @@
                 return true;
             };
 
-            starx.on("console.challenge", function (data) {
-                printWithTimestamp("<b>server响应：</b>" + JSON.stringify(data));
-                println();
-            });
-
             if (window["WebSocket"]) {
                 const isHttps = "https:" === document.location.protocol;
                 const protocol = isHttps ? "wss://" : "ws://";
