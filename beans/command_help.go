@@ -67,30 +67,23 @@ func FetchPProfHelp(args []string) []CommandHelp {
 	}
 
 	var list = make([]CommandHelp, 0, 8)
-	list = append(list, CommandHelp{
-		Name: fmt.Sprintf("<a href=\"%s/debug/pprof\">pprof</a>", host),
-		Note: "",
-	})
-
-	list = append(list, CommandHelp{
-		Name: "<a href=\"https://github.com/lixianmin/writer/blob/master/golang/pprof.md\">参考文档</a>",
-		Note: "",
-	})
-
-	list = append(list, CommandHelp{
-		Name: "CPU (30s)",
-		Note: addCopyButton(fmt.Sprintf("go tool pprof -http=: %s/debug/pprof/profile", host)),
-	})
-
-	list = append(list, CommandHelp{
-		Name: "Heap",
-		Note: addCopyButton(fmt.Sprintf("go tool pprof -http=: %s/debug/pprof/heap", host)),
-	})
-
-	list = append(list, CommandHelp{
-		Name: "goroutine",
-		Note: addCopyButton(fmt.Sprintf("curl -G -k %s/debug/pprof/goroutine?debug=2 > goroutine.list.txt", host)),
-	})
+	list = append(list,
+		CommandHelp{
+			Name: fmt.Sprintf("<a href=\"%s/debug/pprof\">pprof</a>", host),
+			Note: "",
+		}, CommandHelp{
+			Name: "<a href=\"https://github.com/lixianmin/writer/blob/master/golang/pprof.md\">参考文档</a>",
+			Note: "",
+		}, CommandHelp{
+			Name: "CPU (30s)",
+			Note: addCopyButton(fmt.Sprintf("go tool pprof -http=: %s/debug/pprof/profile", host)),
+		}, CommandHelp{
+			Name: "Heap",
+			Note: addCopyButton(fmt.Sprintf("go tool pprof -http=: %s/debug/pprof/heap", host)),
+		}, CommandHelp{
+			Name: "goroutine",
+			Note: addCopyButton(fmt.Sprintf("curl -G -k %s/debug/pprof/goroutine?debug=2 > goroutine.list.txt", host)),
+		})
 
 	return list
 }
