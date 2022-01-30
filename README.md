@@ -4,7 +4,7 @@
 
 
 -----
-#### 0x01 简述
+#### 0x1 简述
 
 历数各类软件系统，你会发现每一个牛B的系统都会自带一个控制台，用于观察系统状态和调整系统参数，比如Linux, MySQL等。
 
@@ -18,7 +18,7 @@
 
 ----
 
-#### 0x02 基本命令图示
+#### 0x2 基本命令图示
 
 ##### 01 帮助中心 help
 
@@ -40,7 +40,7 @@
 
 
 ----
-#### 0x03 Demo
+#### 0x3 Demo
 1. 直接运行examples/demo/main.go
 1. 在浏览器中输入 http://127.0.0.1:8888/console
 1. 按提示在文件框中输入help命令，查看帮助信息
@@ -77,7 +77,19 @@ func main() {
 }
 ```
 
+
+
+----
+
+#### 0x4 Road Map
+
+1. 引入完成的登录验证方式
+2. 将项目中的js逐步过渡为Vue框架, 目标是梳理代码框架, 通过import减小代码单元的大小
+3. 逐步使用typescript代替javascript, 引入编译机制
+
+
+
 ---
-#### 0x04 感谢JetBrains的免费License支持
+#### 0x5 感谢JetBrains的免费License支持
 
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" style="zoom:20%" />
