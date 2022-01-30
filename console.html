@@ -195,7 +195,7 @@
                 }
 
                 // 在unload时将history存储到localStorage中
-                window.onunload = ()=>{
+                window.onunload = evt =>{
                     const key = "history"
                     localStorage.setItem(key, JSON.stringify(this.history.slice(-100)))
                 }
