@@ -5,9 +5,11 @@ import (
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"html/template"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -20,10 +22,11 @@ Copyright (C) - All Rights Reserved
 
 func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleConsolePage(mux, options.WebSocketPath)
-	server.handleResourceFile(mux, "res/js/sha256.min.js")
-	server.handleResourceFile(mux, "res/js/protocol.js")
-	server.handleResourceFile(mux, "res/js/starx.js")
-	server.handleResourceFile(mux, "res/js/vue.global.prod.js")
+	server.handleResources(mux, "res/js")
+	//server.handleResourceFile(mux, "res/js/sha256.min.js")
+	//server.handleResourceFile(mux, "res/js/protocol.js")
+	//server.handleResourceFile(mux, "res/js/starx.js")
+	//server.handleResourceFile(mux, "res/js/vue.global.prod.js")
 	//server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
@@ -52,13 +55,46 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	})
 }
 
-func (server *Server) handleResourceFile(mux IServeMux, relativePath string) {
-	var pattern = server.options.UrlRoot + "/" + relativePath
-	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		var root = filepath.Dir(server.options.PageTemplate)
-		var filename = filepath.Join(root, relativePath)
-		RequestFileByRange(filename, writer, request)
-	})
+//func (server *Server) handleResourceFile(mux IServeMux, relativePath string) {
+//	var pattern = server.options.UrlRoot + "/" + relativePath
+//	var pageRoot = filepath.Dir(server.options.PageTemplate)
+//	var filename = filepath.Join(pageRoot, relativePath)
+//
+//	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+//		RequestFileByRange(filename, writer, request)
+//	})
+//}
+
+func (server *Server) handleResources(mux IServeMux, directory string) {
+	var isValidResource = func(name string) bool {
+		var extensions = []string{".css", ".html", ".ico", ".js", ".png"}
+		name = strings.ToLower(name)
+
+		for _, item := range extensions {
+			if strings.HasSuffix(name, item) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	var pageRoot = filepath.Dir(server.options.PageTemplate)
+	var walkRoot = filepath.Join(pageRoot, directory)
+
+	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
+		if err == nil && !info.IsDir() && isValidResource(info.Name()) {
+			var pattern = server.options.UrlRoot + "/" + relativePath
+			var filename = filepath.Join(pageRoot, relativePath)
+
+			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+				RequestFileByRange(filename, writer, request)
+			})
+		}
+		return err
+	}); err != nil {
+		panic(err)
+	}
 }
 
 // 这个方法在gin中由于pattern不一样，需要被重写
