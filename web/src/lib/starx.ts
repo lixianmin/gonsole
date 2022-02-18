@@ -8,7 +8,7 @@ import {Packet} from "./packet";
 import {PacketType} from "./packet_type";
 import {strdecode, strencode} from "./protocol";
 import {Message} from "./message";
-import {OctetsStream, SeekOrigin} from "./octets_stream";
+import {OctetsStream} from "./octets_stream";
 import {MessageType} from "./message_type";
 
 type PushHandlerFunc = (data: any) => void
@@ -162,7 +162,7 @@ export default class StartX {
         this.send(packet)
     }
 
-    public connect(params, url: string, callback) {
+    private connectInner(params, url: string, onConnected) {
         console.log('connect to: ' + url)
         params = params || {}
 
@@ -179,6 +179,10 @@ export default class StartX {
             this.reset()
             const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeBuffer)));
             this.send(packet)
+
+            if (onConnected != null) {
+                onConnected()
+            }
         }
 
         const onmessage = (event: MessageEvent) => {
@@ -210,7 +214,7 @@ export default class StartX {
                 this.reconnectAttempts++
 
                 this.reconnectTimer = setTimeout(() => {
-                    this.connect(params, this.reconnectUrl, callback)
+                    this.connectInner(params, this.reconnectUrl, onConnected)
                 }, this.reconnectionDelay)
                 this.reconnectionDelay *= 2
             }
@@ -226,8 +230,7 @@ export default class StartX {
         this.socket = socket
     }
 
-    public init(params, callback) {
-        this.initCallback = callback
+    public connect(params: any, onConnected) {
         this.handshakeCallback = params.handshakeCallback
 
         this.encode = params.encode || this.defaultEncode
@@ -247,7 +250,7 @@ export default class StartX {
         this.handlers[PacketType.Handshake] = this.handleHandshake
         this.handlers[PacketType.Data] = this.handleData
         this.handlers[PacketType.Kick] = this.handleKick
-        this.connect(params, params.url, callback)
+        this.connectInner(params, params.url, onConnected)
     }
 
     private defaultEncode(requestId: number, route, message) {
@@ -342,10 +345,6 @@ export default class StartX {
 
         const packet = Packet.encode(PacketType.HandshakeAck)
         this.send(packet)
-
-        if (this.initCallback) {
-            this.initCallback(this.socket)
-        }
     }
 
     private handleData = (data) => {
@@ -367,7 +366,6 @@ export default class StartX {
     private useCrypto = false
     private encode
     private decode
-    private initCallback
     private requestIdGenerator = 0
 
     private reconnectUrl = ""
