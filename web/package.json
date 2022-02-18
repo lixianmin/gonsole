@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/node": "^17.0.18",
     "moment": "^2.29.1",
     "vue": "^3.2.25"
   },
