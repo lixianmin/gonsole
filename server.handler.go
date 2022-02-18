@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/convert"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -22,12 +23,8 @@ Copyright (C) - All Rights Reserved
 
 func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleConsolePage(mux, options.WebSocketPath)
+	server.handleWebConfig(mux, options.WebSocketPath)
 	server.handleResources(mux, "res/js")
-	//server.handleResourceFile(mux, "res/js/sha256.min.js")
-	//server.handleResourceFile(mux, "res/js/protocol.js")
-	//server.handleResourceFile(mux, "res/js/starx.js")
-	//server.handleResourceFile(mux, "res/js/vue.global.prod.js")
-	//server.handleHealth(mux)
 	server.handleLogFiles(mux)
 }
 
@@ -52,6 +49,35 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 		data.UrlRoot = options.UrlRoot
 		data.WebsocketPath = websocketPath
 		_ = tmpl.Execute(writer, data)
+	})
+}
+
+func (server *Server) handleWebConfig(mux IServeMux, websocketPath string) {
+	var options = server.options
+	var pattern = options.UrlRoot + "/web_config"
+
+	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		var header = writer.Header()
+		header.Set("Content-Type", "application/json")
+		header.Set("Access-Control-Allow-Origin", "*")
+		header.Set("Access-Control-Allow-Credentials", "true")
+
+		var data struct {
+			AutoLoginLimit int64  `json:"autoLoginLimit"`
+			Title          string `json:"title"`
+			Body           string `json:"body"`
+			UrlRoot        string `json:"urlRoot"`
+			WebsocketPath  string `json:"websocketPath"`
+		}
+
+		data.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
+		data.Title = options.PageTitle
+		data.Body = options.PageBody
+		data.UrlRoot = options.UrlRoot
+		data.WebsocketPath = websocketPath
+
+		var json = convert.ToJson(data)
+		_, _ = writer.Write(json)
 	})
 }
 
