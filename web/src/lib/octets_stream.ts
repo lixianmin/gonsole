@@ -189,6 +189,14 @@ export class OctetsStream {
         return this.position
     }
 
+    public tidy() {
+        const count = this.length - this.position
+        BufferTools.blockCopy(this.buffer, this.position, this.buffer, 0, count)
+
+        this.setPosition(0)
+        this.setLength(count)
+    }
+
     public toString(): string {
         return `dirtyBytes=${this.dirtyBytes}, position=${this.position}, length=${this.length}, capacity=${this.capacity}, buffer=${this.buffer}`
     }

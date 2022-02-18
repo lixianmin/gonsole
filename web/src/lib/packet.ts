@@ -81,6 +81,7 @@ export class Packet {
             list.push(pack)
         }
 
+        stream.tidy()
         return list
     }
 

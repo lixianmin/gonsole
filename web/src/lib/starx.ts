@@ -139,6 +139,7 @@ export default class StartX {
 
     private send(packet: Uint8Array) {
         if (this.socket != null) {
+            console.log("send:", packet)
             this.socket.send(packet.buffer)
         } else {
             console.log("socket = null")
@@ -187,6 +188,7 @@ export default class StartX {
 
         const onmessage = (event: MessageEvent) => {
             let data = new Uint8Array(event.data)
+            // console.log("onmessage:", data)
             let stream = this.buffer
 
             stream.write(data, 0, data.length)

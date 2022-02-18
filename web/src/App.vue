@@ -30,14 +30,14 @@ let text = ""
 let username = ""
 let isAuthorizing = false
 let historyIndex = -1
-let history = []
+let history :any[]= []
 let starx = new StartX()
 
 axios.get(url).then((response) => {
   const config = new WebConfig(response.data)
   let url = config.getWebsocketUrl()
   starx.connect({url: url}, () => {
-    console.log("star initialized")
+    console.log("websocket connected")
   })
 
   starx.on("disconnect", () => {
@@ -71,20 +71,21 @@ function sendBean(route, msg, callback) {
 }
 
 function onCommand(obj) {
+  console.log("onCommand -->", obj.op)
   switch (obj.op) {
     case "log.list":
       onLogList(obj.data)
       break;
-      // case "history":
-      //   this.onHistory(obj.data);
-      //   break;
-      // case "html":
-      //   this.onHtml(obj);
-      //   break;
-      // case "empty":
-      //   break;
-      // default:
-      //   onDefault(obj);
+      case "history":
+        onHistory(obj.data);
+        break;
+      case "html":
+        onHtml(obj);
+        break;
+      case "empty":
+        break;
+      default:
+        onDefault(obj)
   }
 }
 
@@ -106,51 +107,52 @@ function on_enter(evt) {
     const name = texts[0];
 
     if (name === 'help') {
+      const host = document.location.protocol + "//" + myHost
       const bean = {
-        command: name,
-      }
+        command: name + " " + host,
+      };
 
       sendBean("console.command", bean, onCommand)
-      // this.addHistory(command);
+      addHistory(command)
     } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
-      // const bean = {
-      //   topic: texts[1],
-      // };
-      //
-      // const route = "console." + name;
-      // this.sendBean(route, bean, this.onCommand);
-      // this.addHistory(command);
+      const bean = {
+        topic: texts[1],
+      };
+
+      const route = "console." + name;
+      sendBean(route, bean, onCommand);
+      addHistory(command);
     } else if (textsLength >= 2 && name === "auth") {
-      // this.username = texts[1];
-      // this.isAuthorizing = true;
-      // this.$el.type = "password";
-      // this.printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
-      // this.addHistory(command);
+      username = texts[1];
+      isAuthorizing = true;
+      // $el.type = "password";
+      printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
+      addHistory(command);
     } else if (isAuthorizing && textsLength >= 1) {
       // this.isAuthorizing = false;
       // this.$el.type = "text";
       //
-      // const password = name;
-      // this.login(this.username, password);
-      //
-      // if (localStorage) {
-      //   const key = "autoLoginUser";
-      //   const item = {
-      //     username: this.username,
-      //     password: password,
-      //     expireTime: new Date().getTime() + {{.AutoLoginLimit}},
-      // }
-      //
-      //   const data = JSON.stringify(item);
-      //   localStorage.setItem(key, data);
-      // }
+      const password = name;
+      login(username, password);
+
+      if (localStorage) {
+        const key = "autoLoginUser";
+        const item = {
+          username: username,
+          password: password,
+          expireTime: new Date().getTime() //+ {{.AutoLoginLimit}},
+      }
+
+        const data = JSON.stringify(item);
+        localStorage.setItem(key, data);
+      }
     } else {
-      // const bean = {
-      //   command: texts.join(' '),
-      // };
-      //
-      // this.sendBean("console.command", bean, this.onCommand);
-      // this.addHistory(command);
+      const bean = {
+        command: texts.join(' '),
+      };
+
+      sendBean("console.command", bean, onCommand)
+      addHistory(command)
     }
   } else {
     printWithTimestamp('')
@@ -160,13 +162,101 @@ function on_enter(evt) {
   // mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
 }
 
-function on_tab() {
-
+function login(username, password) {
+  // const key = "hey pet!";
+  // const digest = sha256.hmac(key, password);
+  //
+  // const bean = {
+  //   command: "auth " + username + " " + digest,
+  // };
+  //
+  // sendBean("console.command", bean, onCommand);
 }
 
-function on_up_down() {
-  let command = text.trim()
-  console.log("command=", command, ", text=", text)
+function addHistory(command) {
+  const size = history.length;
+  // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
+  if (size === 0 || history[size - 1] !== command) {
+    historyIndex = history.push(command)
+  } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
+    historyIndex = history.length;
+  }
+}
+
+function onHistory(obj) {
+  const count = history.length;
+  const items = new Array(count);
+  for (let i = 0; i < count; i++) {
+    items[i] = "<li>" + history[i] + "</li>";
+  }
+
+  let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
+  printWithTimestamp(result);
+  println();
+}
+
+function on_tab(evt) {
+  const text = evt.target.value.trim();
+  if (text.length > 0) {
+    const bean = {
+      head: text,
+    };
+
+    starx.request("console.hint", bean, function (obj) {
+      const names = obj.names;
+      const notes = obj.notes;
+      const count = names.length;
+      if (count > 0) {
+        evt.target.value = longestCommonPrefix(names);
+        if (count > 1) {
+          const items = new Array(count);
+          for (let i = 0; i < count; i++) {
+            items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
+          }
+
+          const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
+          const result = header + items.join("") + "</table>";
+          printWithTimestamp(result);
+          println();
+        }
+      }
+    })
+  }
+}
+
+function on_up_down(evt) {
+  const isArrowUp = evt.key === 'ArrowUp'
+  let isChanged = false
+  let index = historyIndex
+  if (isArrowUp && index > 0) {
+    index -= 1
+    isChanged = true
+  } else if (!isArrowUp && index+1 <history.length) {
+    index += 1
+    isChanged = true
+  }
+
+  if (isChanged) {
+    historyIndex = index
+    text = index < history.length ? history[index] : ''
+    setTimeout(function () {
+      let position = text.length
+      // that.$el.setSelectionRange(position, position)
+      // that.$el.focus()
+    }, 0)
+  }
+}
+
+function longestCommonPrefix(strs) {
+  if (strs.length < 2) return strs.join();
+  let str = strs[0];
+  for (let i = 1; i < strs.length; i++) {
+    for (let j = str.length; j > 0; j--) {
+      if (str !== strs[i].substr(0, j)) str = str.substr(0, j - 1);
+      else break
+    }
+  }
+  return str
 }
 
 function onLogList(data) {
