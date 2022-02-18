@@ -49,6 +49,39 @@ axios.get(url).then((response) => {
   starx.on("console.default", onDefault)
 })
 
+window.onload = function () {
+  const inputBox = document.getElementById("inputBox")
+  document.onkeydown = function (evt) {
+    if (evt.key === 'Enter') {
+      let control = document.activeElement;
+      if (control !== inputBox && inputBox) {
+        inputBox.focus()
+        // return false的意思是：这个按键事件本js处理了，不再传播这个事件。
+        // 默认情况下会继续传播按键事件，Enter会导致页面refresh
+        return false
+      }
+    }
+  }
+}
+
+if (localStorage) {
+  const key = "history"
+  const item = localStorage.getItem(key)
+  if (item){
+    const json = JSON.parse(item)
+    if (json) {
+      history = json
+      historyIndex = history.length; // 初始大小
+    }
+  }
+
+  // 在unload时将history存储到localStorage中
+  window.onunload = evt =>{
+    const key = "history"
+    localStorage.setItem(key, JSON.stringify(history.slice(-100)))
+  }
+}
+
 function onHtml(obj) {
   printWithTimestamp("<b>server响应：</b>" + obj.data)
   println()
@@ -156,9 +189,9 @@ function on_enter(evt) {
     printWithTimestamp('')
   }
 
-  const mainPanel = document.getElementById("mainPanel");
-  if (mainPanel!= null) {
-    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
+  const mainPanel = document.getElementById("mainPanel")
+  if (mainPanel) {
+    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight // 其实在shell中只要有输入就会滚屏
   }
 }
 
@@ -247,15 +280,19 @@ function on_up_down(evt) {
   }
 }
 
-function longestCommonPrefix(strs) {
-  if (strs.length < 2) return strs.join();
-  let str = strs[0];
-  for (let i = 1; i < strs.length; i++) {
+function longestCommonPrefix(list) {
+  if (list.length < 2) {
+    return list.join()
+  }
+
+  let str = list[0];
+  for (let i = 1; i < list.length; i++) {
     for (let j = str.length; j > 0; j--) {
-      if (str !== strs[i].substr(0, j)) str = str.substr(0, j - 1);
+      if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1);
       else break
     }
   }
+
   return str
 }
 
@@ -291,7 +328,6 @@ function getHumanReadableSize(size) {
 
   return (size / 1048576.0).toFixed(1) + "M";
 }
-
 
 </script>
 
