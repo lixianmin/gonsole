@@ -1,10 +1,8 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from './components/HelloWorld.vue'
 import axios from 'axios'
 import StartX from "./lib/starx";
 import {printHtml, println, printWithTimestamp} from "./lib/main_panel";
+import {sha256} from "js-sha256";
 
 class WebConfig {
   public constructor(config) {
@@ -158,19 +156,21 @@ function on_enter(evt) {
     printWithTimestamp('')
   }
 
-  // const mainPanel = document.getElementById("mainPanel");
-  // mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
+  const mainPanel = document.getElementById("mainPanel");
+  if (mainPanel!= null) {
+    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight; // 其实在shell中只要有输入就会滚屏
+  }
 }
 
 function login(username, password) {
-  // const key = "hey pet!";
-  // const digest = sha256.hmac(key, password);
-  //
-  // const bean = {
-  //   command: "auth " + username + " " + digest,
-  // };
-  //
-  // sendBean("console.command", bean, onCommand);
+  const key = "hey pet!";
+  const digest = sha256.hmac(key, password);
+
+  const bean = {
+    command: "auth " + username + " " + digest,
+  };
+
+  sendBean("console.command", bean, onCommand);
 }
 
 function addHistory(command) {
