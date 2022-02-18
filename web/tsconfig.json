@@ -9,7 +9,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "noImplicitAny": false, // 这一句防止引用js时出错
+    "noImplicitAny": false, // 这一句可以让一些偏js写法的代码编译通过, 并防止引用js时出错
     "lib": ["esnext", "dom"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
