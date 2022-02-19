@@ -4,24 +4,7 @@ import StartX from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {sha256} from "js-sha256";
 import {History} from "./code/history";
-
-class WebConfig {
-  public constructor(config) {
-    // console.log(config)
-    this.autoLoginLimit = config.autoLoginLimit
-    this.websocketPath = config.websocketPath
-  }
-
-  public getWebsocketUrl(): string {
-    const isHttps = "https:" === document.location.protocol
-    const protocol = isHttps ? "wss://" : "ws://"
-    const url = `${protocol}${myHost}/${this.websocketPath}`
-    return url
-  }
-
-  public readonly autoLoginLimit: number
-  private readonly websocketPath: string
-}
+import {WebConfig} from "./code/web_config";
 
 let myHost = "localhost:8888/ws"
 let url = `${document.location.protocol}//${myHost}/web_config`
@@ -34,7 +17,7 @@ let starx = new StartX()
 
 axios.get(url).then((response) => {
   const config = new WebConfig(response.data)
-  let url = config.getWebsocketUrl()
+  let url = config.getWebsocketUrl(myHost)
   starx.connect({url: url}, () => {
     console.log("websocket connected")
   })
