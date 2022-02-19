@@ -20,6 +20,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func main() {
+	var logger = logo.GetLogger().(*logo.Logger)
+	logger.SetFilterLevel(logo.LevelDebug)
+
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux,

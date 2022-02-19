@@ -139,7 +139,7 @@ export default class StartX {
 
     private send(packet: Uint8Array) {
         if (this.socket != null) {
-            console.log("send:", packet)
+            console.trace("send:", packet)
             this.socket.send(packet.buffer)
         } else {
             console.log("socket = null")
