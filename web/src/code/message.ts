@@ -5,7 +5,7 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {strdecode, strencode} from "./protocol";
-import {BufferTools} from "./buffer_tools";
+import {Buffers} from "./core/buffers";
 import {MessageType} from "./message_type";
 
 export class Message {
@@ -117,7 +117,7 @@ export class Message {
                 const routeLen = bytes[offset++];
                 if (routeLen) {
                     let buf = new Uint8Array(routeLen)
-                    BufferTools.blockCopy(bytes, offset, buf, 0, routeLen)
+                    Buffers.blockCopy(bytes, offset, buf, 0, routeLen)
                     route = strdecode(route);
                 } else {
                     route = '';
@@ -129,7 +129,7 @@ export class Message {
         // parse body
         const bodyLen = bytesLen - offset;
         const body = new Uint8Array(bodyLen)
-        BufferTools.blockCopy(bytes, offset, body, 0, bodyLen)
+        Buffers.blockCopy(bytes, offset, body, 0, bodyLen)
 
         let result = new Message(id, type, compressRoute, route, body)
         return result
@@ -181,7 +181,7 @@ export class Message {
         } else {
             if (route) {
                 buffer[offset++] = route.length & 0xff
-                BufferTools.blockCopy(route, 0, buffer, offset, route.length)
+                Buffers.blockCopy(route, 0, buffer, offset, route.length)
                 offset += route.length;
             } else {
                 buffer[offset++] = 0;
@@ -192,7 +192,7 @@ export class Message {
     }
 
     private static encodeMsgBody(msg: Uint8Array, buffer: Uint8Array, offset: number): number {
-        BufferTools.blockCopy(msg, 0, buffer, offset, msg.length)
+        Buffers.blockCopy(msg, 0, buffer, offset, msg.length)
         return offset + msg.length;
     }
 

@@ -8,7 +8,7 @@ import {Packet} from "./packet";
 import {PacketType} from "./packet_type";
 import {strdecode, strencode} from "./protocol";
 import {Message} from "./message";
-import {OctetsStream} from "./octets_stream";
+import {OctetsStream} from "./core/octets_stream";
 import {MessageType} from "./message_type";
 
 type PushHandlerFunc = (data: any) => void

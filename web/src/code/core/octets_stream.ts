@@ -4,7 +4,7 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {BufferTools} from "./buffer_tools";
+import {Buffers} from "./buffers";
 
 export enum SeekOrigin {
     Begin,
@@ -131,7 +131,7 @@ export class OctetsStream {
             count = this.length - this.position
         }
 
-        BufferTools.blockCopy(this.buffer, this.position, buffer, offset, count)
+        Buffers.blockCopy(this.buffer, this.position, buffer, offset, count)
         this.position += count
         return count
     }
@@ -149,7 +149,7 @@ export class OctetsStream {
             this.expand(this.position + count)
         }
 
-        BufferTools.blockCopy(buffer, offset, this.buffer, this.position, count)
+        Buffers.blockCopy(buffer, offset, this.buffer, this.position, count)
         this.position += count
 
         if (this.position >= this.length) {
@@ -191,7 +191,7 @@ export class OctetsStream {
 
     public tidy() {
         const count = this.length - this.position
-        BufferTools.blockCopy(this.buffer, this.position, this.buffer, 0, count)
+        Buffers.blockCopy(this.buffer, this.position, this.buffer, 0, count)
 
         this.setPosition(0)
         this.setLength(count)

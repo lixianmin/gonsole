@@ -4,8 +4,8 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {OctetsStream, SeekOrigin} from "./octets_stream";
-import {BufferTools} from "./buffer_tools";
+import {OctetsStream, SeekOrigin} from "./core/octets_stream";
+import {Buffers} from "./core/buffers";
 
 export class Packet {
     /**
@@ -42,7 +42,7 @@ export class Packet {
         buffer[index++] = length & 0xff
 
         if (body) {
-            BufferTools.blockCopy(body, 0, buffer, index, length)
+            Buffers.blockCopy(body, 0, buffer, index, length)
         }
 
         return buffer

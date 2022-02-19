@@ -4,7 +4,7 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {BufferTools} from "./buffer_tools";
+import {Buffers} from "./core/buffers";
 
 /**
  * pomele client encode
@@ -37,7 +37,7 @@ export function strencode(str: string): Uint8Array {
     }
 
     const result = new Uint8Array(offset)
-    BufferTools.blockCopy(byteArray, 0, result, 0, offset)
+    Buffers.blockCopy(byteArray, 0, result, 0, offset)
     return result;
 }
 
