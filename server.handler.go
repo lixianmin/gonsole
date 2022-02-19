@@ -24,7 +24,8 @@ Copyright (C) - All Rights Reserved
 func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleConsolePage(mux, options.WebSocketPath)
 	server.handleWebConfig(mux, options.WebSocketPath)
-	server.handleResources(mux, "res/js")
+	//server.handleResources(mux, "res/js")
+	server.handleAssets(mux)
 	server.handleLogFiles(mux)
 }
 
@@ -115,6 +116,57 @@ func (server *Server) handleResources(mux IServeMux, directory string) {
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 				RequestFileByRange(filename, writer, request)
+			})
+		}
+		return err
+	}); err != nil {
+		panic(err)
+	}
+}
+
+func (server *Server) handleAssets(mux IServeMux) {
+	var isValidResource = func(name string) bool {
+		var extensions = []string{".css", ".html", ".ico", ".js", ".png"}
+		name = strings.ToLower(name)
+
+		for _, item := range extensions {
+			if strings.HasSuffix(name, item) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	var getContentType = func(filename string) string {
+		var index = strings.LastIndex(filename, ".")
+		if index > 0 {
+			var extension = filename[index:]
+			switch extension {
+			case ".css":
+				return "text/css"
+			case ".js":
+				return "text/javascript"
+			}
+		}
+
+		return "text/plain"
+	}
+
+	var pageRoot = filepath.Dir(server.options.PageTemplate)
+	var walkRoot = filepath.Join(pageRoot, "assets")
+
+	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
+		if err == nil && !info.IsDir() && isValidResource(info.Name()) {
+			var pattern = relativePath[len("web/dist"):]
+			var contentType = getContentType(relativePath)
+
+			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+				if contentType != "text/plaint" {
+					writer.Header().Set("Content-Type", contentType)
+				}
+
+				RequestFileByRange(relativePath, writer, request)
 			})
 		}
 		return err

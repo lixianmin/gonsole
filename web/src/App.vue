@@ -6,7 +6,7 @@ import {sha256} from "js-sha256";
 import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 
-let myHost = "localhost:8888/ws"
+let myHost = `${document.location.host}${document.title}`
 let rootUrl = `${document.location.protocol}//${myHost}`
 
 let text = ""
@@ -17,8 +17,12 @@ let config = new WebConfig()
 let history = new History()
 let star = new StartX()
 
+let urlRoot = ""
+
+
 axios.get(rootUrl + "/web_config").then((response) => {
   config.loadData(response.data)
+  console.log(urlRoot)
 
   let url = config.getWebsocketUrl(myHost)
   star.connect({url: url}, () => {

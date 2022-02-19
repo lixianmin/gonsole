@@ -27,7 +27,7 @@ func main() {
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux,
 		gonsole.WithPort(webPort),
-		gonsole.WithPageTemplate("console.html"),
+		gonsole.WithPageTemplate("web/dist/console.html"),
 		gonsole.WithPageBody("<H1>This is a very huge body</H1>"),
 		gonsole.WithUserPasswords(map[string]string{"xmli": "123456"}),
 		gonsole.WithEnablePProf(true),
@@ -69,11 +69,11 @@ func main() {
 		IsPublic: true,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
-				Text string
-				Name string
-				Age  int
-				Time string
-				Hit  float32
+				Text     string
+				Name     string
+				Age      int
+				Time     string
+				Hit      float32
 				EmptyNum string
 			}
 
