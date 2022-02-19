@@ -316,7 +316,7 @@ export default class StartX {
 
         if (this.heartbeatId) {
             // already in a heartbeat interval
-            return;
+            return
         }
 
         this.heartbeatId = setTimeout(() => {

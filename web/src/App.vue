@@ -19,6 +19,7 @@ let star = new StartX()
 
 axios.get(rootUrl + "/web_config").then((response) => {
   config.loadData(response.data)
+
   let url = config.getWebsocketUrl(myHost)
   star.connect({url: url}, () => {
     console.log("websocket connected")
@@ -28,21 +29,22 @@ axios.get(rootUrl + "/web_config").then((response) => {
     printWithTimestamp("<b> disconnected from server </b>")
   })
 
-  printHtml(response.data.body)
+  document.title = config.getTitle()
+  printHtml(config.getBody())
   println()
 
   star.on("console.html", onHtml)
   star.on("console.default", onDefault)
 })
 
-window.onload = ()=> {
+window.onload = () => {
   const inputBox = document.getElementById("inputBox")
   if (!inputBox) {
     return
   }
 
   inputBox.focus()
-  document.onkeydown = function (evt:KeyboardEvent) {
+  document.onkeydown = function (evt: KeyboardEvent) {
     if (evt.key === 'Enter') {
       let control = document.activeElement;
       if (control !== inputBox && inputBox) {
@@ -79,16 +81,16 @@ function onCommand(obj) {
     case "log.list":
       onLogList(obj.data)
       break;
-      case "history":
-        onHistory(obj.data)
-        break;
-      case "html":
-        onHtml(obj)
-        break;
-      case "empty":
-        break;
-      default:
-        onDefault(obj)
+    case "history":
+      onHistory(obj.data)
+      break;
+    case "html":
+      onHtml(obj)
+      break;
+    case "empty":
+      break;
+    default:
+      onDefault(obj)
   }
 }
 
@@ -200,7 +202,7 @@ function on_tab(evt) {
       head: text,
     };
 
-    star.request("console.hint", bean, (obj)=> {
+    star.request("console.hint", bean, (obj) => {
       const names = obj.names
       const notes = obj.notes
       const count = names.length
@@ -229,7 +231,7 @@ function on_up_down(evt) {
   if (nextText != '') {
     let target = evt.target
     target.value = nextText
-    setTimeout(()=> {
+    setTimeout(() => {
       let position = nextText.length
       target.setSelectionRange(position, position)
       target.focus()
@@ -237,7 +239,7 @@ function on_up_down(evt) {
   }
 }
 
-function longestCommonPrefix(list :string[]) :string {
+function longestCommonPrefix(list: string[]): string {
   if (list.length < 2) {
     return list.join()
   }

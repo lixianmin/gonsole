@@ -7,9 +7,17 @@
 
 export class WebConfig {
     public loadData(data) {
-        // console.log(data)
+        console.log(data)
         this.autoLoginLimit = data.autoLoginLimit
         this.websocketPath = data.websocketPath
+        this.urlRoot = data.urlRoot
+
+        this.title = data.title
+        this.body = data.body
+    }
+
+    public getAutoLoginLimit(): number {
+        return this.autoLoginLimit
     }
 
     public getWebsocketUrl(host): string {
@@ -19,10 +27,22 @@ export class WebConfig {
         return url
     }
 
-    public getAutoLoginLimit():number {
-        return this.autoLoginLimit
+    public getUrlRoot(): string {
+        return this.urlRoot
+    }
+
+    public getTitle(): string {
+        return this.title
+    }
+
+    public getBody(): string {
+        return this.body
     }
 
     private autoLoginLimit: number = 0
     private websocketPath: string = ""
+    private urlRoot: string = ""
+
+    private title: string = ""
+    private body: string = ""
 }
