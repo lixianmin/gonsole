@@ -3,6 +3,7 @@ import axios from 'axios'
 import StartX from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {sha256} from "js-sha256";
+import {History} from "./code/history";
 
 class WebConfig {
   public constructor(config) {
@@ -27,8 +28,8 @@ let url = `${document.location.protocol}//${myHost}/web_config`
 let text = ""
 let username = ""
 let isAuthorizing = false
-let historyIndex = -1
-let history :any[]= []
+
+let history = new History()
 let starx = new StartX()
 
 axios.get(url).then((response) => {
@@ -61,24 +62,6 @@ window.onload = function () {
         return false
       }
     }
-  }
-}
-
-if (localStorage) {
-  const key = "history"
-  const item = localStorage.getItem(key)
-  if (item){
-    const json = JSON.parse(item)
-    if (json) {
-      history = json
-      historyIndex = history.length; // 初始大小
-    }
-  }
-
-  // 在unload时将history存储到localStorage中
-  window.onunload = evt =>{
-    const key = "history"
-    localStorage.setItem(key, JSON.stringify(history.slice(-100)))
   }
 }
 
@@ -128,8 +111,8 @@ function on_enter(evt) {
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
       const index = parseInt(command.substr(1)) - 1;
-      if (!isNaN(index) && index >= 0 && index < history.length) {
-        command = history[index];
+      if (!isNaN(index)) {
+        command = history.getHistory(index)
       }
     }
 
@@ -144,7 +127,7 @@ function on_enter(evt) {
       };
 
       sendBean("console.command", bean, onCommand)
-      addHistory(command)
+      history.add(command)
     } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
       const bean = {
         topic: texts[1],
@@ -152,13 +135,13 @@ function on_enter(evt) {
 
       const route = "console." + name;
       sendBean(route, bean, onCommand);
-      addHistory(command);
+      history.add(command);
     } else if (textsLength >= 2 && name === "auth") {
       username = texts[1];
       isAuthorizing = true;
       // $el.type = "password";
       printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
-      addHistory(command);
+      history.add(command);
     } else if (isAuthorizing && textsLength >= 1) {
       // this.isAuthorizing = false;
       // this.$el.type = "text";
@@ -183,7 +166,7 @@ function on_enter(evt) {
       };
 
       sendBean("console.command", bean, onCommand)
-      addHistory(command)
+      history.add(command)
     }
   } else {
     printWithTimestamp('')
@@ -206,21 +189,12 @@ function login(username, password) {
   sendBean("console.command", bean, onCommand);
 }
 
-function addHistory(command) {
-  const size = history.length;
-  // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
-  if (size === 0 || history[size - 1] !== command) {
-    historyIndex = history.push(command)
-  } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
-    historyIndex = history.length;
-  }
-}
-
 function onHistory(obj) {
-  const count = history.length;
+  const histories = history.getHistories()
+  const count = histories.length;
   const items = new Array(count);
   for (let i = 0; i < count; i++) {
-    items[i] = "<li>" + history[i] + "</li>";
+    items[i] = "<li>" + histories[i] + "</li>";
   }
 
   let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
@@ -259,19 +233,10 @@ function on_tab(evt) {
 
 function on_up_down(evt) {
   const isArrowUp = evt.key === 'ArrowUp'
-  let isChanged = false
-  let index = historyIndex
-  if (isArrowUp && index > 0) {
-    index -= 1
-    isChanged = true
-  } else if (!isArrowUp && index+1 <history.length) {
-    index += 1
-    isChanged = true
-  }
-
-  if (isChanged) {
-    historyIndex = index
-    text = index < history.length ? history[index] : ''
+  const step = evt.key == 'ArrowUp' ? -1 : 1
+  const nextText = history.move(step)
+  if (nextText != '') {
+    text = nextText
     setTimeout(function () {
       let position = text.length
       // that.$el.setSelectionRange(position, position)
