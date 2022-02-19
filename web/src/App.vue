@@ -126,14 +126,16 @@ function on_enter(evt) {
       history.add(command);
     } else if (textsLength >= 2 && name === "auth") {
       username = texts[1];
-      isAuthorizing = true;
-      // $el.type = "password";
+      isAuthorizing = true
+      // $el.type = "password"
+      evt.target.type = "password"
       printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
       history.add(command);
     } else if (isAuthorizing && textsLength >= 1) {
-      // this.isAuthorizing = false;
-      // this.$el.type = "text";
-      //
+      isAuthorizing = false
+      // this.$el.type = "text"
+      evt.target.type = "text"
+
       const password = name;
       login(username, password);
 
@@ -145,8 +147,8 @@ function on_enter(evt) {
           expireTime: new Date().getTime() //+ {{.AutoLoginLimit}},
       }
 
-        const data = JSON.stringify(item);
-        localStorage.setItem(key, data);
+        const data = JSON.stringify(item)
+        localStorage.setItem(key, data)
       }
     } else {
       const bean = {
@@ -167,22 +169,23 @@ function on_enter(evt) {
 }
 
 function login(username, password) {
-  const key = "hey pet!";
-  const digest = sha256.hmac(key, password);
+  const key = "hey pet!"
+  const digest = sha256.hmac(key, password)
 
   const bean = {
     command: "auth " + username + " " + digest,
   };
 
-  sendBean("console.command", bean, onCommand);
+  sendBean("console.command", bean, onCommand)
 }
 
 function onHistory(obj) {
-  const histories = history.getHistories()
-  const count = histories.length;
-  const items = new Array(count);
+  const list = history.getHistories()
+  const count = list.length
+  const items = new Array(count)
+
   for (let i = 0; i < count; i++) {
-    items[i] = "<li>" + histories[i] + "</li>";
+    items[i] = "<li>" + list[i] + "</li>"
   }
 
   let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
@@ -198,13 +201,13 @@ function on_tab(evt) {
     };
 
     star.request("console.hint", bean, function (obj) {
-      const names = obj.names;
-      const notes = obj.notes;
-      const count = names.length;
+      const names = obj.names
+      const notes = obj.notes
+      const count = names.length
       if (count > 0) {
-        evt.target.value = longestCommonPrefix(names);
+        evt.target.value = longestCommonPrefix(names)
         if (count > 1) {
-          const items = new Array(count);
+          const items = new Array(count)
           for (let i = 0; i < count; i++) {
             items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
           }
@@ -226,7 +229,7 @@ function on_up_down(evt) {
   if (nextText != '') {
     let target = evt.target
     target.value = nextText
-    setTimeout(function () {
+    setTimeout(()=> {
       let position = nextText.length
       target.setSelectionRange(position, position)
       target.focus()
@@ -251,10 +254,10 @@ function longestCommonPrefix(list) {
 }
 
 function onLogList(data) {
-  const host = document.location.protocol + "//" + myHost;
-  const logFiles = data.logFiles;
-  const fileCount = logFiles.length;
-  const links = new Array(fileCount);
+  const host = document.location.protocol + "//" + myHost
+  const logFiles = data.logFiles
+  const fileCount = logFiles.length
+  const links = new Array(fileCount)
   let totalSize = 0;
   for (let i = 0; i < fileCount; i++) {
     const fi = logFiles[i];
@@ -273,14 +276,14 @@ function onLogList(data) {
 
 function getHumanReadableSize(size) {
   if (size < 1024) {
-    return size + "B";
+    return size + "B"
   }
 
   if (size < 1048576) {
-    return (size / 1024.0).toFixed(1) + "K";
+    return (size / 1024.0).toFixed(1) + "K"
   }
 
-  return (size / 1048576.0).toFixed(1) + "M";
+  return (size / 1048576.0).toFixed(1) + "M"
 }
 
 </script>
