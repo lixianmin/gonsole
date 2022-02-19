@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
-import StartX from "./code/starx";
+import axios from 'axios';
+import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {sha256} from "js-sha256";
 import {History} from "./code/history";

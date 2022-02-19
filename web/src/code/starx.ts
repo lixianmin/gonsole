@@ -14,7 +14,7 @@ import {MessageType} from "./message_type";
 type PushHandlerFunc = (data: any) => void
 type HandlerFunc = (data: string) => void
 
-export default class StartX {
+export class StartX {
     public on(key: string, handler: PushHandlerFunc) {
         this.pushHandlers[key] = handler;
     }
