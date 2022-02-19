@@ -7,16 +7,18 @@ import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 
 let myHost = "localhost:8888/ws"
-let url = `${document.location.protocol}//${myHost}/web_config`
+let rootUrl = `${document.location.protocol}//${myHost}`
+
 let text = ""
 let username = ""
 let isAuthorizing = false
 
+let config = new WebConfig()
 let history = new History()
 let star = new StartX()
 
-axios.get(url).then((response) => {
-  const config = new WebConfig(response.data)
+axios.get(rootUrl + "/web_config").then((response) => {
+  config.loadData(response.data)
   let url = config.getWebsocketUrl(myHost)
   star.connect({url: url}, () => {
     console.log("websocket connected")
@@ -61,7 +63,7 @@ function onHtml(obj) {
 function onDefault(obj) {
   const text = JSON.stringify(obj)
   printWithTimestamp("<b>server响应：</b>" + text)
-  println();
+  println()
 }
 
 function sendBean(route, msg, callback) {
@@ -73,16 +75,15 @@ function sendBean(route, msg, callback) {
 }
 
 function onCommand(obj) {
-  // console.log("onCommand -->", obj.op)
   switch (obj.op) {
     case "log.list":
       onLogList(obj.data)
       break;
       case "history":
-        onHistory(obj.data);
+        onHistory(obj.data)
         break;
       case "html":
-        onHtml(obj);
+        onHtml(obj)
         break;
       case "empty":
         break;
@@ -98,7 +99,7 @@ function on_enter(evt) {
 
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
-      const index = parseInt(command.substr(1)) - 1;
+      const index = parseInt(command.substring(1)) - 1;
       if (!isNaN(index)) {
         command = history.getHistory(index)
       }
@@ -108,10 +109,9 @@ function on_enter(evt) {
     let textsLength = texts.length;
     const name = texts[0];
 
-    if (name === 'help') {
-      const host = document.location.protocol + "//" + myHost
+    if (name === "help") {
       const bean = {
-        command: name + " " + host,
+        command: name + " " + rootUrl,
       };
 
       sendBean("console.command", bean, onCommand)
@@ -144,8 +144,8 @@ function on_enter(evt) {
         const item = {
           username: username,
           password: password,
-          expireTime: new Date().getTime() //+ {{.AutoLoginLimit}},
-      }
+          expireTime: new Date().getTime() + config.getAutoLoginLimit(),
+        }
 
         const data = JSON.stringify(item)
         localStorage.setItem(key, data)
@@ -189,18 +189,18 @@ function onHistory(obj) {
   }
 
   let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
-  printWithTimestamp(result);
-  println();
+  printWithTimestamp(result)
+  println()
 }
 
 function on_tab(evt) {
-  const text = evt.target.value.trim();
+  const text = evt.target.value.trim()
   if (text.length > 0) {
     const bean = {
       head: text,
     };
 
-    star.request("console.hint", bean, function (obj) {
+    star.request("console.hint", bean, (obj)=> {
       const names = obj.names
       const notes = obj.notes
       const count = names.length
@@ -209,13 +209,13 @@ function on_tab(evt) {
         if (count > 1) {
           const items = new Array(count)
           for (let i = 0; i < count; i++) {
-            items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`;
+            items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`
           }
 
-          const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>";
-          const result = header + items.join("") + "</table>";
-          printWithTimestamp(result);
-          println();
+          const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>"
+          const result = header + items.join("") + "</table>"
+          printWithTimestamp(result)
+          println()
         }
       }
     })
@@ -237,7 +237,7 @@ function on_up_down(evt) {
   }
 }
 
-function longestCommonPrefix(list) {
+function longestCommonPrefix(list :string[]) :string {
   if (list.length < 2) {
     return list.join()
   }
@@ -245,7 +245,7 @@ function longestCommonPrefix(list) {
   let str = list[0];
   for (let i = 1; i < list.length; i++) {
     for (let j = str.length; j > 0; j--) {
-      if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1);
+      if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1)
       else break
     }
   }
@@ -254,7 +254,6 @@ function longestCommonPrefix(list) {
 }
 
 function onLogList(data) {
-  const host = document.location.protocol + "//" + myHost
   const logFiles = data.logFiles
   const fileCount = logFiles.length
   const links = new Array(fileCount)
@@ -263,7 +262,7 @@ function onLogList(data) {
     const fi = logFiles[i];
     totalSize += fi.size;
     let sizeText = getHumanReadableSize(fi.size);
-    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${host}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
+    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${rootUrl}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
                                 <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
                                 </div></td> <td>${fi.mod_time}</td> </tr>`;
   }

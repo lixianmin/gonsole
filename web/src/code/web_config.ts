@@ -6,19 +6,23 @@
  *********************************************************************/
 
 export class WebConfig {
-    public constructor(config) {
-        // console.log(config)
-        this.autoLoginLimit = config.autoLoginLimit
-        this.websocketPath = config.websocketPath
+    public loadData(data) {
+        // console.log(data)
+        this.autoLoginLimit = data.autoLoginLimit
+        this.websocketPath = data.websocketPath
     }
 
     public getWebsocketUrl(host): string {
         const isHttps = "https:" === document.location.protocol
-        const protocol = isHttps ? "wss://" : "ws://"
-        const url = `${protocol}${host}/${this.websocketPath}`
+        const protocol = isHttps ? "wss:" : "ws:"
+        const url = `${protocol}//${host}/${this.websocketPath}`
         return url
     }
 
-    public readonly autoLoginLimit: number
-    private readonly websocketPath: string
+    public getAutoLoginLimit():number {
+        return this.autoLoginLimit
+    }
+
+    private autoLoginLimit: number = 0
+    private websocketPath: string = ""
 }
