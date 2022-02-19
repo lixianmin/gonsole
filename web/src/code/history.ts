@@ -13,7 +13,7 @@ export class History {
             const json = JSON.parse(item)
             if (json) {
                 this.list = json
-                this.currentIndex = history.length; // 初始大小
+                this.currentIndex = this.list.length // 初始大小
             }
         }
 
@@ -24,14 +24,17 @@ export class History {
         }
     }
 
-    public add(command): void {
-        const history = this.list
-        const size = history.length;
-        // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
-        if (size === 0 || history[size - 1] !== command) {
-            this.currentIndex = history.push(command)
-        } else { // addHistory()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
-            this.currentIndex = history.length;
+    public add(command: string): void {
+        if (command != null && command != "") {
+            const list = this.list
+            const size = list.length
+
+            // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
+            if (size == 0 || list[size - 1] !== command) {
+                this.currentIndex = list.push(command)
+            } else { // add()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
+                this.currentIndex = list.length
+            }
         }
     }
 
@@ -50,15 +53,19 @@ export class History {
     public move(step: number): string {
         if (step != 0) {
             let nextIndex = this.currentIndex + step
-            if (step < 0 && nextIndex >= 0
-                || step > 0 && nextIndex < history.length) {
+            if ( nextIndex >= 0 && nextIndex < this.list.length) {
                 this.currentIndex = nextIndex
                 const text = this.list[nextIndex]
+                // console.log(this.toString())
                 return text
             }
         }
 
         return ""
+    }
+
+    public toString() :string{
+        return `currentIndex=${this.currentIndex}, list=[${this.list}]`
     }
 
     private currentIndex = -1

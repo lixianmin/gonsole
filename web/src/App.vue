@@ -13,29 +13,34 @@ let username = ""
 let isAuthorizing = false
 
 let history = new History()
-let starx = new StartX()
+let star = new StartX()
 
 axios.get(url).then((response) => {
   const config = new WebConfig(response.data)
   let url = config.getWebsocketUrl(myHost)
-  starx.connect({url: url}, () => {
+  star.connect({url: url}, () => {
     console.log("websocket connected")
   })
 
-  starx.on("disconnect", () => {
+  star.on("disconnect", () => {
     printWithTimestamp("<b> disconnected from server </b>")
   })
 
   printHtml(response.data.body)
   println()
 
-  starx.on("console.html", onHtml)
-  starx.on("console.default", onDefault)
+  star.on("console.html", onHtml)
+  star.on("console.default", onDefault)
 })
 
-window.onload = function () {
+window.onload = ()=> {
   const inputBox = document.getElementById("inputBox")
-  document.onkeydown = function (evt) {
+  if (!inputBox) {
+    return
+  }
+
+  inputBox.focus()
+  document.onkeydown = function (evt:KeyboardEvent) {
     if (evt.key === 'Enter') {
       let control = document.activeElement;
       if (control !== inputBox && inputBox) {
@@ -64,7 +69,7 @@ function sendBean(route, msg, callback) {
   printWithTimestamp("<b>client请求：</b>")
   printHtml(json)
   println()
-  starx.request(route, msg, callback)
+  star.request(route, msg, callback)
 }
 
 function onCommand(obj) {
@@ -146,7 +151,7 @@ function on_enter(evt) {
     } else {
       const bean = {
         command: texts.join(' '),
-      };
+      }
 
       sendBean("console.command", bean, onCommand)
       history.add(command)
@@ -192,7 +197,7 @@ function on_tab(evt) {
       head: text,
     };
 
-    starx.request("console.hint", bean, function (obj) {
+    star.request("console.hint", bean, function (obj) {
       const names = obj.names;
       const notes = obj.notes;
       const count = names.length;
@@ -219,11 +224,12 @@ function on_up_down(evt) {
   const step = evt.key == 'ArrowUp' ? -1 : 1
   const nextText = history.move(step)
   if (nextText != '') {
-    text = nextText
+    let target = evt.target
+    target.value = nextText
     setTimeout(function () {
-      let position = text.length
-      // that.$el.setSelectionRange(position, position)
-      // that.$el.focus()
+      let position = nextText.length
+      target.setSelectionRange(position, position)
+      target.focus()
     }, 0)
   }
 }
