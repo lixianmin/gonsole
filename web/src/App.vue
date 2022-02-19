@@ -102,7 +102,7 @@ function sendBean(route, msg, callback) {
 }
 
 function onCommand(obj) {
-  console.log("onCommand -->", obj.op)
+  // console.log("onCommand -->", obj.op)
   switch (obj.op) {
     case "log.list":
       onLogList(obj.data)

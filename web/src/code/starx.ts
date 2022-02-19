@@ -139,7 +139,7 @@ export default class StartX {
 
     private send(packet: Uint8Array) {
         if (this.socket != null) {
-            console.trace("send:", packet)
+            // console.trace("send:", packet)
             this.socket.send(packet.buffer)
         } else {
             console.log("socket = null")
@@ -288,7 +288,8 @@ export default class StartX {
     }
 
     public request(route: string, message, callback) {
-        let requestId = this.requestIdGenerator++
+        // requestId不能是0, 否则会被认为是notify类型, 而不是request
+        let requestId = ++this.requestIdGenerator
         this.sendMessage(requestId, route, message)
 
         this.callbacks[requestId] = callback
