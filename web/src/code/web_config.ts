@@ -7,7 +7,7 @@
 
 export class WebConfig {
     public loadData(data) {
-        console.log(data)
+        console.log("web_config: ", data)
         this.autoLoginLimit = data.autoLoginLimit
         this.websocketPath = data.websocketPath
         this.urlRoot = data.urlRoot

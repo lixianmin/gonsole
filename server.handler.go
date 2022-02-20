@@ -32,7 +32,7 @@ func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var options = server.options
 	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
-	var pattern = options.UrlRoot + "/console"
+	var pattern = "/" + options.UrlRoot + "/console"
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
@@ -55,7 +55,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 
 func (server *Server) handleWebConfig(mux IServeMux, websocketPath string) {
 	var options = server.options
-	var pattern = options.UrlRoot + "/web_config"
+	var pattern = "/" + options.UrlRoot + "/web_config"
 
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var header = writer.Header()
@@ -80,48 +80,6 @@ func (server *Server) handleWebConfig(mux IServeMux, websocketPath string) {
 		var json = convert.ToJson(data)
 		_, _ = writer.Write(json)
 	})
-}
-
-//func (server *Server) handleResourceFile(mux IServeMux, relativePath string) {
-//	var pattern = server.options.UrlRoot + "/" + relativePath
-//	var pageRoot = filepath.Dir(server.options.PageTemplate)
-//	var filename = filepath.Join(pageRoot, relativePath)
-//
-//	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-//		RequestFileByRange(filename, writer, request)
-//	})
-//}
-
-func (server *Server) handleResources(mux IServeMux, directory string) {
-	var isValidResource = func(name string) bool {
-		var extensions = []string{".css", ".html", ".ico", ".js", ".png"}
-		name = strings.ToLower(name)
-
-		for _, item := range extensions {
-			if strings.HasSuffix(name, item) {
-				return true
-			}
-		}
-
-		return false
-	}
-
-	var pageRoot = filepath.Dir(server.options.PageTemplate)
-	var walkRoot = filepath.Join(pageRoot, directory)
-
-	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
-		if err == nil && !info.IsDir() && isValidResource(info.Name()) {
-			var pattern = server.options.UrlRoot + "/" + relativePath
-			var filename = filepath.Join(pageRoot, relativePath)
-
-			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-				RequestFileByRange(filename, writer, request)
-			})
-		}
-		return err
-	}); err != nil {
-		panic(err)
-	}
 }
 
 func (server *Server) handleAssets(mux IServeMux) {
@@ -162,7 +120,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 			var contentType = getContentType(relativePath)
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-				if contentType != "text/plaint" {
+				if contentType != "text/plain" {
 					writer.Header().Set("Content-Type", contentType)
 				}
 
