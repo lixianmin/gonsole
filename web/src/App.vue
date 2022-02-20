@@ -6,6 +6,23 @@ import {sha256} from "js-sha256";
 import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 
+// todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
+// todo 修改从golang的template传参到js的逻辑, 不再使用title
+// todo dist目录每次npm run build都会被删除重新生成一遍, 怎么解决vendor目录中把dist中的资源包含进来的问题
+/**
+ * todo 修改传入urlRoot, 从 /ws改为ws, 这样更符合格式化时的习惯
+ *
+ * todo 列表:
+ * 1. 需要在readme中加入npm的开发和使用流程
+ * 2. 需要清理旧的代码: 包括各种旧的go与js代码
+ * 3. 能够通过npm run dev与真正跑代码
+ * 4. 实际应用到一个项目中: build.naked后面的cp逻辑需要把res改到dist
+ * 5. 把evt.target.value等逻辑修改为vue应该使用的逻辑
+ * 6. 各种js中的any需要调整一下
+ * 7. 确认在家里无法修改vendor目录下代码进行调试的原因
+ * 8. 打包后生成的assets的根目录是否需要修改
+ */
+
 let myHost = `${document.location.host}${document.title}`
 let rootUrl = `${document.location.protocol}//${myHost}`
 
@@ -17,12 +34,8 @@ let config = new WebConfig()
 let history = new History()
 let star = new StartX()
 
-let urlRoot = ""
-
-
 axios.get(rootUrl + "/web_config").then((response) => {
   config.loadData(response.data)
-  console.log(urlRoot)
 
   let url = config.getWebsocketUrl(myHost)
   star.connect({url: url}, () => {
