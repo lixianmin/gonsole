@@ -1,0 +1,3 @@
+package assets
+
+func ForceIncludeFiles() { }

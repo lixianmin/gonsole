@@ -9,6 +9,7 @@ import {WebConfig} from "./code/web_config";
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo dist目录每次npm run build都会被删除重新生成一遍, 怎么解决vendor目录中把dist中的资源包含进来的问题
+// todo index.html跳转的时候, 修改title值
 /**
  * todo 修改传入urlRoot, 从 /ws改为ws, 这样更符合格式化时的习惯
  *
