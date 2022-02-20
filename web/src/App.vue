@@ -12,7 +12,6 @@ import {WebConfig} from "./code/web_config";
  *
  * todo 列表:
  * 1. 需要在readme中加入npm的开发和使用流程
- * 2. 需要清理旧的代码: 包括各种旧的go与js代码
  * 3. 能够通过npm run dev与真正跑代码
  * 4. 实际应用到一个项目中: build.naked后面的cp逻辑需要把res改到dist
  * 5. 把evt.target.value等逻辑修改为vue应该使用的逻辑
@@ -33,14 +32,13 @@ let websocketUrl = config.getWebsocketUrl()
 
 star.connect({url: websocketUrl}, () => {
   console.log("websocket connected")
+  printHtml(config.body)
+  println()
 })
 
 star.on("disconnect", () => {
   printWithTimestamp("<b> disconnected from server </b>")
 })
-
-printHtml(config.body)
-println()
 
 star.on("console.html", onHtml)
 star.on("console.default", onDefault)

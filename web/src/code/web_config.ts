@@ -25,7 +25,6 @@ export class WebConfig {
             this.autoLoginLimit = 86400000
             this.websocketPath = ""
 
-            document.title = "npm test"
             this.body = "<h2>fake body</h2>"
         }
     }

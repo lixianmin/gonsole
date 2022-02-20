@@ -172,7 +172,7 @@ export class StartX {
         this.reconnectUrl = url
 
         const onopen = (event) => {
-            console.log("onopen", event)
+            // console.log("onopen", event)
             if (this.reconnect) {
                 this.emit('reconnect');
             }
