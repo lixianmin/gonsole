@@ -8,7 +8,6 @@ import {WebConfig} from "./code/web_config";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
-// todo index.html跳转的时候, 修改title值
 /**
  *
  * todo 列表:
@@ -22,6 +21,7 @@ import {WebConfig} from "./code/web_config";
  * 8. 打包后生成的assets的根目录是否需要修改
  */
 
+// 如果document.title没有变, 说明是在本地debug, 所以使用localhost:8888/ws
 let myHost = `${document.location.host}/${document.title}`
 if (document.title == "{{.UrlRoot}}") {
   myHost = "localhost:8888/ws"

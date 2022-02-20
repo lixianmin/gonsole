@@ -83,19 +83,6 @@ func (server *Server) handleWebConfig(mux IServeMux, websocketPath string) {
 }
 
 func (server *Server) handleAssets(mux IServeMux) {
-	var isValidResource = func(name string) bool {
-		var extensions = []string{".css", ".html", ".ico", ".js", ".png"}
-		name = strings.ToLower(name)
-
-		for _, item := range extensions {
-			if strings.HasSuffix(name, item) {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	var getContentType = func(filename string) string {
 		var index = strings.LastIndex(filename, ".")
 		if index > 0 {
@@ -115,7 +102,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 	var walkRoot = filepath.Join(pageRoot, "assets")
 
 	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
-		if err == nil && !info.IsDir() && isValidResource(info.Name()) {
+		if err == nil && !info.IsDir() {
 			var pattern = relativePath[len("web/dist"):]
 			var contentType = getContentType(relativePath)
 
