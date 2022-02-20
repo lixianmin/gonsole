@@ -6,43 +6,41 @@
  *********************************************************************/
 
 export class WebConfig {
-    public loadData(data) {
-        console.log("web_config: ", data)
-        this.autoLoginLimit = data.autoLoginLimit
-        this.websocketPath = data.websocketPath
-        this.urlRoot = data.urlRoot
+    public constructor() {
+        if (document.title != "{{.Data}}") {
+            let data = JSON.parse(document.title)
+            console.log("data:", data)
 
-        this.title = data.title
-        this.body = data.body
+            this.host = window.location.host
+            this.directory = data.directory
+            this.autoLoginLimit = data.autoLoginLimit
+            this.websocketPath = data.websocketPath
+
+            document.title = data.title
+            this.body = data.body
+        } else {
+            // 如果document.title没有变, 说明是在本地debug, 所以使用localhost:8888/ws
+            this.host = "localhost:8888"
+            this.directory = "ws"
+            this.autoLoginLimit = 86400000
+            this.websocketPath = ""
+
+            document.title = "npm test"
+            this.body = "<h2>fake body</h2>"
+        }
     }
 
-    public getAutoLoginLimit(): number {
-        return this.autoLoginLimit
-    }
-
-    public getWebsocketUrl(host): string {
+    public getWebsocketUrl(): string {
         const isHttps = "https:" === document.location.protocol
         const protocol = isHttps ? "wss:" : "ws:"
-        const url = `${protocol}//${host}/${this.websocketPath}`
+        const url = `${protocol}//${this.host}/${this.directory}/${this.websocketPath}`
         return url
     }
 
-    public getUrlRoot(): string {
-        return this.urlRoot
-    }
+    public readonly host: string
+    public readonly directory: string
+    public readonly websocketPath: string
+    public readonly autoLoginLimit
 
-    public getTitle(): string {
-        return this.title
-    }
-
-    public getBody(): string {
-        return this.body
-    }
-
-    private autoLoginLimit: number = 0
-    private websocketPath: string = ""
-    private urlRoot: string = ""
-
-    private title: string = ""
-    private body: string = ""
+    public readonly body: string
 }

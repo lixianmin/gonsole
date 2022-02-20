@@ -50,7 +50,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		EnablePProf:     false,
 		LogListRoot:     "logs",
 		Port:            8888,
-		UrlRoot:         "",
+		Directory:       "",
 		UserPasswords:   make(map[string]string),
 		DeadlockIgnores: nil,
 		WebSocketPath:   "",
@@ -62,11 +62,11 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	// 这个是为了consoleUrl格式化的时候使用
-	if options.UrlRoot != "" && options.UrlRoot[0] == '/' {
-		options.UrlRoot = options.UrlRoot[1:]
+	if options.Directory != "" && options.Directory[0] == '/' {
+		options.Directory = options.Directory[1:]
 	}
 
-	var servePath = "/" + options.UrlRoot + "/" + options.WebSocketPath
+	var servePath = "/" + options.Directory + "/" + options.WebSocketPath
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
@@ -77,7 +77,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		options:    options,
 		app:        app,
 		gpid:       tools.GetGPID(options.Port),
-		consoleUrl: fmt.Sprintf("http://%s:%d/%s/console", tools.GetLocalIP(), options.Port, options.UrlRoot),
+		consoleUrl: fmt.Sprintf("http://%s:%d/%s/console", tools.GetLocalIP(), options.Port, options.Directory),
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))

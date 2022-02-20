@@ -24,7 +24,7 @@ type serverOptions struct {
 	EnablePProf     bool              // 激活pprof
 	LogListRoot     string            // log.list命令显示的日志文件根目录
 	Port            int               // 服务器端口
-	UrlRoot         string            // 项目根目录，表现在url中
+	Directory       string            // 项目根目录，表现在url中
 	UserPasswords   map[string]string // 可以登陆的用户名与密码
 	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
 	WebSocketPath   string            // websocket监听的路径
@@ -104,7 +104,7 @@ func WithPageBody(body string) ServerOption {
 // WithUrlRoot 项目根目录，表现在url中
 func WithUrlRoot(path string) ServerOption {
 	return func(options *serverOptions) {
-		options.UrlRoot = path
+		options.Directory = path
 	}
 }
 

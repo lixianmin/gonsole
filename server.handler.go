@@ -23,8 +23,6 @@ Copyright (C) - All Rights Reserved
 
 func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleConsolePage(mux, options.WebSocketPath)
-	server.handleWebConfig(mux, options.WebSocketPath)
-	//server.handleResources(mux, "res/js")
 	server.handleAssets(mux)
 	server.handleLogFiles(mux)
 }
@@ -32,53 +30,32 @@ func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var options = server.options
 	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
-	var pattern = "/" + options.UrlRoot + "/console"
+	var pattern = "/" + options.Directory + "/console"
+
+	var config struct {
+		Directory      string `json:"directory"`
+		WebsocketPath  string `json:"websocketPath"`
+		AutoLoginLimit int64  `json:"autoLoginLimit"`
+		Title          string `json:"title"`
+		Body           string `json:"body"`
+	}
+
+	config.Directory = options.Directory
+	config.WebsocketPath = websocketPath
+	config.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
+	config.Title = options.PageTitle
+	config.Body = options.PageBody
+
+	var data struct {
+		Data string
+	}
+
+	// 真正传的是一个json序列化后的Data字段
+	data.Data = convert.String(convert.ToJson(config))
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		var data struct {
-			AutoLoginLimit int64
-			Title          string
-			Body           string
-			UrlRoot        string
-			WebsocketPath  string
-		}
-
-		data.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
-		data.Title = options.PageTitle
-		data.Body = options.PageBody
-		data.UrlRoot = options.UrlRoot
-		data.WebsocketPath = websocketPath
 		_ = tmpl.Execute(writer, data)
-	})
-}
-
-func (server *Server) handleWebConfig(mux IServeMux, websocketPath string) {
-	var options = server.options
-	var pattern = "/" + options.UrlRoot + "/web_config"
-
-	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		var header = writer.Header()
-		header.Set("Content-Type", "application/json")
-		header.Set("Access-Control-Allow-Origin", "*")
-		header.Set("Access-Control-Allow-Credentials", "true")
-
-		var data struct {
-			AutoLoginLimit int64  `json:"autoLoginLimit"`
-			Title          string `json:"title"`
-			Body           string `json:"body"`
-			UrlRoot        string `json:"urlRoot"`
-			WebsocketPath  string `json:"websocketPath"`
-		}
-
-		data.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
-		data.Title = options.PageTitle
-		data.Body = options.PageBody
-		data.UrlRoot = options.UrlRoot
-		data.WebsocketPath = websocketPath
-
-		var json = convert.ToJson(data)
-		_, _ = writer.Write(json)
 	})
 }
 
@@ -135,7 +112,7 @@ func (server *Server) handleLogFiles(mux IServeMux) {
 }
 
 //func (server *Server) handleHealth(mux IServeMux) {
-//	var pattern = server.options.UrlRoot + "/health"
+//	var pattern = server.options.Directory + "/health"
 //	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 //		var message = `{"status":"UP"}`
 //		_, _ = writer.Write([]byte(message))

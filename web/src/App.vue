@@ -20,15 +20,6 @@ import {WebConfig} from "./code/web_config";
  * 7. 确认在家里无法修改vendor目录下代码进行调试的原因
  * 8. 打包后生成的assets的根目录是否需要修改
  */
-
-// 如果document.title没有变, 说明是在本地debug, 所以使用localhost:8888/ws
-let myHost = `${document.location.host}/${document.title}`
-if (document.title == "{{.UrlRoot}}") {
-  myHost = "localhost:8888/ws"
-}
-
-let rootUrl = `${document.location.protocol}//${myHost}`
-
 let text = ""
 let username = ""
 let isAuthorizing = false
@@ -37,25 +28,22 @@ let config = new WebConfig()
 let history = new History()
 let star = new StartX()
 
-axios.get(rootUrl + "/web_config").then((response) => {
-  config.loadData(response.data)
+let rootUrl = `${document.location.protocol}//${config.host}/${config.directory}`
+let websocketUrl = config.getWebsocketUrl()
 
-  let url = config.getWebsocketUrl(myHost)
-  star.connect({url: url}, () => {
-    console.log("websocket connected")
-  })
-
-  star.on("disconnect", () => {
-    printWithTimestamp("<b> disconnected from server </b>")
-  })
-
-  document.title = config.getTitle()
-  printHtml(config.getBody())
-  println()
-
-  star.on("console.html", onHtml)
-  star.on("console.default", onDefault)
+star.connect({url: websocketUrl}, () => {
+  console.log("websocket connected")
 })
+
+star.on("disconnect", () => {
+  printWithTimestamp("<b> disconnected from server </b>")
+})
+
+printHtml(config.body)
+println()
+
+star.on("console.html", onHtml)
+star.on("console.default", onDefault)
 
 window.onload = () => {
   const inputBox = document.getElementById("inputBox")
@@ -166,7 +154,7 @@ function on_enter(evt) {
         const item = {
           username: username,
           password: password,
-          expireTime: new Date().getTime() + config.getAutoLoginLimit(),
+          expireTime: new Date().getTime() + config.autoLoginLimit,
         }
 
         const data = JSON.stringify(item)
