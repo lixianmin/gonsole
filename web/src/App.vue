@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import axios from 'axios';
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {sha256} from "js-sha256";
 import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
+import {Login} from "./code/login";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -30,10 +30,15 @@ let star = new StartX()
 let rootUrl = `${document.location.protocol}//${config.host}/${config.directory}`
 let websocketUrl = config.getWebsocketUrl()
 
+let login = new Login((bean) => {
+  sendBean("console.command", bean, onCommand)
+})
+
 star.connect({url: websocketUrl}, () => {
   console.log("websocket connected")
   printHtml(config.body)
   println()
+  login.tryAutoLogin()
 })
 
 star.on("disconnect", () => {
@@ -143,21 +148,7 @@ function on_enter(evt) {
       isAuthorizing = false
       // this.$el.type = "text"
       evt.target.type = "text"
-
-      const password = name;
-      login(username, password);
-
-      if (localStorage) {
-        const key = "autoLoginUser";
-        const item = {
-          username: username,
-          password: password,
-          expireTime: new Date().getTime() + config.autoLoginLimit,
-        }
-
-        const data = JSON.stringify(item)
-        localStorage.setItem(key, data)
-      }
+      login.login(username, name, config.autoLoginLimit)
     } else {
       const bean = {
         command: texts.join(' '),
@@ -174,17 +165,6 @@ function on_enter(evt) {
   if (mainPanel) {
     mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight // 其实在shell中只要有输入就会滚屏
   }
-}
-
-function login(username, password) {
-  const key = "hey pet!"
-  const digest = sha256.hmac(key, password)
-
-  const bean = {
-    command: "auth " + username + " " + digest,
-  };
-
-  sendBean("console.command", bean, onCommand)
 }
 
 function onHistory(obj) {
@@ -271,7 +251,7 @@ function onLogList(data) {
     totalSize += fi.size;
     let sizeText = getHumanReadableSize(fi.size);
     links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${rootUrl}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
-                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
+                                <input type="button" class="copy_button" onclick="navigator.clipboard.writeText('${fi.path}')" value="复制"/>
                                 </div></td> <td>${fi.mod_time}</td> </tr>`;
   }
 
