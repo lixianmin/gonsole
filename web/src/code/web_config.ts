@@ -9,7 +9,7 @@ export class WebConfig {
     public constructor() {
         if (document.title != "{{.Data}}") {
             let data = JSON.parse(document.title)
-            console.log("data:", data)
+            // console.log("data:", data)
 
             this.host = window.location.host
             this.directory = data.directory
@@ -26,7 +26,7 @@ export class WebConfig {
             this.websocketPath = ""
 
             this.body = "<h2>fake body</h2>"
-            console.log(`config=[${this}]`)
+            // console.log(`config=[${this}]`)
         }
     }
 

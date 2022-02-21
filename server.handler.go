@@ -60,6 +60,17 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 }
 
 func (server *Server) handleAssets(mux IServeMux) {
+	var isValidAsset = func(path string) bool {
+		var extensions = []string{".css", ".js"}
+		for _, extension := range extensions {
+			if strings.HasSuffix(path, extension) {
+				return true
+			}
+		}
+
+		return true
+	}
+
 	var getContentType = func(filename string) string {
 		var index = strings.LastIndex(filename, ".")
 		if index > 0 {
@@ -82,7 +93,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 	const dirLength = len(dirName)
 
 	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
-		if err == nil && !info.IsDir() {
+		if err == nil && !info.IsDir() && isValidAsset(relativePath) {
 			var index = strings.Index(relativePath, dirName)
 			var pattern = relativePath[index+dirLength:]
 			var contentType = getContentType(relativePath)
