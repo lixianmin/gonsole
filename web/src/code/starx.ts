@@ -108,7 +108,6 @@ export class StartX {
     }
 
     private processMessage(msg: Message) {
-        // todo 这些需要测试才行
         if (msg.id) {
             // if there is an id, then find the callback function with the request
             const callback = this.callbacks[msg.id]
@@ -121,6 +120,8 @@ export class StartX {
             const handler = this.pushHandlers[msg.route] as PushHandlerFunc
             if (typeof handler !== "undefined") {
                 handler(msg.body)
+            }else{
+                console.log(`cannot find handler for route=${msg.route}, msg=`, msg)
             }
         }
     }
