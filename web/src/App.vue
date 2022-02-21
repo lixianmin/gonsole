@@ -4,6 +4,7 @@ import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 import {Login} from "./code/login";
+import {ref} from "vue";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -19,7 +20,7 @@ import {Login} from "./code/login";
  * 7. 确认在家里无法修改vendor目录下代码进行调试的原因
  * 8. 打包后生成的assets的根目录是否需要修改
  */
-let text = ""
+let inputText = ref("")
 let username = ""
 let isAuthorizing = false
 
@@ -106,9 +107,9 @@ function onCommand(obj) {
 }
 
 function on_enter(evt) {
-  let command = evt.target.value.trim()
+  let command = inputText.value
   if (command !== "") {
-    evt.target.value = ""
+    inputText.value = ""
 
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
@@ -134,16 +135,16 @@ function on_enter(evt) {
         topic: texts[1],
       };
 
-      const route = "console." + name;
-      sendBean(route, bean, onCommand);
-      history.add(command);
+      const route = "console." + name
+      sendBean(route, bean, onCommand)
+      history.add(command)
     } else if (textsLength >= 2 && name === "auth") {
       username = texts[1];
       isAuthorizing = true
       // $el.type = "password"
       evt.target.type = "password"
-      printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>");
-      history.add(command);
+      printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
+      history.add(command)
     } else if (isAuthorizing && textsLength >= 1) {
       isAuthorizing = false
       // this.$el.type = "text"
@@ -182,18 +183,18 @@ function onHistory(obj) {
 }
 
 function on_tab(evt) {
-  const text = evt.target.value.trim()
+  const text = inputText.value
   if (text.length > 0) {
     const bean = {
       head: text,
-    };
+    }
 
     star.request("console.hint", bean, (obj) => {
       const names = obj.names
       const notes = obj.notes
       const count = names.length
       if (count > 0) {
-        evt.target.value = longestCommonPrefix(names)
+        inputText.value = longestCommonPrefix(names)
         if (count > 1) {
           const items = new Array(count)
           for (let i = 0; i < count; i++) {
@@ -211,16 +212,15 @@ function on_tab(evt) {
 }
 
 function on_up_down(evt) {
-  const isArrowUp = evt.key === 'ArrowUp'
   const step = evt.key == 'ArrowUp' ? -1 : 1
   const nextText = history.move(step)
   if (nextText != '') {
-    let target = evt.target
-    target.value = nextText
+    inputText.value = nextText
+
     setTimeout(() => {
       let position = nextText.length
-      target.setSelectionRange(position, position)
-      target.focus()
+      evt.target.setSelectionRange(position, position)
+      evt.target.focus()
     }, 0)
   }
 }
@@ -230,7 +230,7 @@ function longestCommonPrefix(list: string[]): string {
     return list.join()
   }
 
-  let str = list[0];
+  let str = list[0]
   for (let i = 1; i < list.length; i++) {
     for (let j = str.length; j > 0; j--) {
       if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1)
@@ -247,16 +247,16 @@ function onLogList(data) {
   const links = new Array(fileCount)
   let totalSize = 0;
   for (let i = 0; i < fileCount; i++) {
-    const fi = logFiles[i];
-    totalSize += fi.size;
-    let sizeText = getHumanReadableSize(fi.size);
+    const fi = logFiles[i]
+    totalSize += fi.size
+    let sizeText = getHumanReadableSize(fi.size)
     links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${rootUrl}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
                                 <input type="button" class="copy_button" onclick="navigator.clipboard.writeText('${fi.path}')" value="复制"/>
-                                </div></td> <td>${fi.mod_time}</td> </tr>`;
+                                </div></td> <td>${fi.mod_time}</td> </tr>`
   }
 
-  let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>";
-  result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>";
+  let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>"
+  result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>"
   printWithTimestamp(result)
   println()
 }
@@ -278,7 +278,7 @@ function getHumanReadableSize(size) {
 <template>
   <div id="mainPanel"></div>
   <div id="inputBoxDiv">
-    <input id="inputBox" ref="mainPanel" v-model="text" placeholder="Tab补全命令, Enter执行命令"
+    <input id="inputBox" v-model="inputText" placeholder="Tab补全命令, Enter执行命令"
            @keydown.enter.prevent="on_enter"
            @keydown.tab.prevent="on_tab"
            @keydown.up.down.prevent="on_up_down"
