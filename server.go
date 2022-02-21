@@ -66,7 +66,8 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		options.Directory = options.Directory[1:]
 	}
 
-	var acceptor = epoll.NewWsAcceptor(mux, options.getPathByDirectory(options.WebSocketPath))
+	var servePath = options.getPathByDirectory(options.WebSocketPath)
+	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
 		road.WithSenderCount(2), // 当前游戏里使用tcp链接，这个用不到，默认16个太多了

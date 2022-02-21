@@ -78,9 +78,13 @@ func (server *Server) handleAssets(mux IServeMux) {
 	var pageRoot = filepath.Dir(server.options.PageTemplate)
 	var walkRoot = filepath.Join(pageRoot, "assets")
 
+	const dirName = "web/dist"
+	const dirLength = len(dirName)
+
 	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
 		if err == nil && !info.IsDir() {
-			var pattern = relativePath[len("web/dist"):]
+			var index = strings.Index(relativePath, dirName)
+			var pattern = relativePath[index+dirLength:]
 			var contentType = getContentType(relativePath)
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
