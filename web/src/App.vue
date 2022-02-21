@@ -7,6 +7,7 @@ import {Login} from "./code/login";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
+// todo sub/unsub这个功能现在不能用
 /**
  *
  * todo 列表:

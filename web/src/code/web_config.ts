@@ -26,14 +26,22 @@ export class WebConfig {
             this.websocketPath = ""
 
             this.body = "<h2>fake body</h2>"
+            console.log(`config=[${this}]`)
         }
     }
 
     public getWebsocketUrl(): string {
         const isHttps = "https:" === document.location.protocol
         const protocol = isHttps ? "wss:" : "ws:"
-        const url = `${protocol}//${this.host}/${this.directory}/${this.websocketPath}`
-        return url
+        if (this.directory != "") {
+            return `${protocol}//${this.host}/${this.directory}/${this.websocketPath}`
+        } else {
+            return `${protocol}//${this.host}/${this.websocketPath}`
+        }
+    }
+
+    public toString(): string {
+        return `host=${this.host}, directory=${this.directory}, websocketPath=${this.websocketPath}, autoLoginLimit=${this.autoLoginLimit}, body=${this.body}`
     }
 
     public readonly host: string
