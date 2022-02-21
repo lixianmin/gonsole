@@ -42,7 +42,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 
-		PageTemplate: "vendor/github.com/lixianmin/gonsole/console.html",
+		PageTemplate: "vendor/github.com/lixianmin/gonsole/web/dist/console.html",
 		PageTitle:    "Console",
 		PageBody:     "Input 'help' and press 'Enter' to fetch builtin commands. <a href=\"https://github.com/lixianmin/gonsole\">learn more</a>",
 
