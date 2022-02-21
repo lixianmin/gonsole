@@ -66,7 +66,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		options.Directory = options.Directory[1:]
 	}
 
-	var servePath = options.getPathByDirectory(options.WebSocketPath)
+	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
