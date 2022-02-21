@@ -30,6 +30,14 @@ type serverOptions struct {
 	WebSocketPath   string            // websocket监听的路径
 }
 
+func (options serverOptions) getPathByDirectory(path string) string {
+	if options.Directory != "" {
+		path = "/" + options.Directory + path
+	}
+
+	return path
+}
+
 type ServerOption func(*serverOptions)
 
 func WithReadBufferSize(size int) ServerOption {
@@ -101,8 +109,8 @@ func WithPageBody(body string) ServerOption {
 	}
 }
 
-// WithUrlRoot 项目根目录，表现在url中
-func WithUrlRoot(path string) ServerOption {
+// WithDirectory 项目根目录，表现在url中
+func WithDirectory(path string) ServerOption {
 	return func(options *serverOptions) {
 		options.Directory = path
 	}

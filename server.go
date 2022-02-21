@@ -66,18 +66,18 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		options.Directory = options.Directory[1:]
 	}
 
-	var servePath = "/" + options.Directory + "/" + options.WebSocketPath
-	var acceptor = epoll.NewWsAcceptor(mux, servePath)
+	var acceptor = epoll.NewWsAcceptor(mux, options.getPathByDirectory(options.WebSocketPath))
 	var app = road.NewApp(acceptor,
 		road.WithSessionRateLimitBySecond(2),
 		road.WithSenderCount(2), // 当前游戏里使用tcp链接，这个用不到，默认16个太多了
 	)
 
 	var server = &Server{
-		options:    options,
-		app:        app,
-		gpid:       tools.GetGPID(options.Port),
-		consoleUrl: fmt.Sprintf("http://%s:%d/%s/console", tools.GetLocalIP(), options.Port, options.Directory),
+		options: options,
+		app:     app,
+		gpid:    tools.GetGPID(options.Port),
+		// todo 这个不一定是http的, 有可能是https, 这怎么办?
+		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.getPathByDirectory("")),
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))

@@ -31,7 +31,7 @@ func main() {
 		gonsole.WithPageBody("<H1>This is a very huge body</H1>"),
 		gonsole.WithUserPasswords(map[string]string{"xmli": "123456"}),
 		gonsole.WithEnablePProf(true),
-		gonsole.WithUrlRoot("ws"),
+		gonsole.WithDirectory("ws"),
 	)
 
 	var app = server.App()

@@ -30,7 +30,6 @@ func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var options = server.options
 	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
-	var pattern = "/" + options.Directory + "/console"
 
 	var config struct {
 		Directory      string `json:"directory"`
@@ -54,6 +53,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	data.Data = convert.String(convert.ToJson(config))
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
+	var pattern = options.getPathByDirectory("/console")
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		_ = tmpl.Execute(writer, data)
 	})
