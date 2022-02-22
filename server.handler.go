@@ -24,7 +24,7 @@ Copyright (C) - All Rights Reserved
 func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
 	server.handleConsolePage(mux, options.WebSocketPath)
 	server.handleAssets(mux)
-	server.handleLogFiles(mux)
+	server.handleLogFiles(mux, options)
 }
 
 func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
@@ -113,15 +113,16 @@ func (server *Server) handleAssets(mux IServeMux) {
 }
 
 // 这个方法在gin中由于pattern不一样，需要被重写
-func (server *Server) handleLogFiles(mux IServeMux) {
-	var pattern = "/" + server.options.LogListRoot + "/"
+func (server *Server) handleLogFiles(mux IServeMux, options serverOptions) {
+	var pattern = options.getPathByDirectory("/" + server.options.LogListRoot + "/")
+	var cutLength = len(pattern) - len(server.options.LogListRoot) - 1
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var logFilePath = request.URL.Path
 		if len(logFilePath) < 1 {
 			return
 		}
 
-		logFilePath = logFilePath[1:]
+		logFilePath = logFilePath[cutLength:]
 		RequestFileByRange(logFilePath, writer, request)
 	})
 }
