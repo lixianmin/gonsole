@@ -64,10 +64,12 @@ export function strdecode(buffer): string {
             charCode = ((bytes[offset] & 0x0f) << 12) + ((bytes[offset + 1] & 0x3f) << 6) + (bytes[offset + 2] & 0x3f);
             offset += 3;
         }
-        array.push(charCode);
+        array.push(charCode)
     }
 
-    return arrayToString(array);
+    let text = arrayToString(array)
+    // console.log("buffer=", buffer, "array=", array, ", text=", text)
+    return text
 }
 
 // 解决 String.fromCharCode.apply(null, ascii)) 报 Uncaught RangeError: Maximum call stack size exceeded 的问题

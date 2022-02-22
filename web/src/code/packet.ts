@@ -82,6 +82,7 @@ export class Packet {
         }
 
         stream.tidy()
+        // console.log("packages=", list)
         return list
     }
 

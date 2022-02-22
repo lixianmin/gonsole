@@ -111,14 +111,15 @@ export class Message {
 
         // parse route
         if (Message.hasRoute(type)) {
-            if (compressRoute) {
+            if (compressRoute != 0) {
                 route = ((bytes[offset++]) << 8 | bytes[offset++]).toString()
             } else {
                 const routeLen = bytes[offset++]
-                if (routeLen) {
+                if (routeLen > 0) {
                     let buf = new Uint8Array(routeLen)
                     Buffers.blockCopy(bytes, offset, buf, 0, routeLen)
-                    route = strdecode(route)
+                    route = strdecode(buf)
+                    // console.log("type=", type, ", compressRoute=", compressRoute, ", routeLen=", routeLen, ", route=", route)
                 } else {
                     route = ''
                 }
