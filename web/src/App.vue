@@ -12,11 +12,9 @@ import {ref} from "vue";
  *
  * todo 列表:
  * 1. 需要在readme中加入npm的开发和使用流程
- * 3. 能够通过npm run dev与真正跑代码
  * 4. 实际应用到一个项目中: build.naked后面的cp逻辑需要把res改到dist
  * 5. 把evt.target.value等逻辑修改为vue应该使用的逻辑
  * 6. 各种js中的any需要调整一下
- * 7. log.list后, 日志打不开
  * 8. 打包后生成的assets的根目录是否需要修改
  */
 let inputText = ref("")
