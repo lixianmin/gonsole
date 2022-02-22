@@ -89,6 +89,6 @@ func FetchPProfHelp(args []string) []CommandHelp {
 }
 
 func addCopyButton(text string) string {
-	var result = fmt.Sprintf("%s&nbsp;<input type=\"button\" class=\"copy_button\" onclick=\"navigator.clipboard.writeText('%s')\" value=\"复制\"/>", text, text)
+	var result = fmt.Sprintf("%s&nbsp;<input type=\"button\" class=\"copy_button\" onclick=\"copyToClipboard('%s')\" value=\"复制\"/>", text, text)
 	return result
 }

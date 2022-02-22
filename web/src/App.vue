@@ -248,7 +248,7 @@ function onLogList(data) {
     totalSize += fi.size
     let sizeText = getHumanReadableSize(fi.size)
     links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${rootUrl}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
-                                <input type="button" class="copy_button" onclick="navigator.clipboard.writeText('${fi.path}')" value="复制"/>
+                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
                                 </div></td> <td>${fi.mod_time}</td> </tr>`
   }
 

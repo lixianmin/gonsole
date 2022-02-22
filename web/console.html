@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{{.Data}}</title>
     <script>
+        // navigator.clipboard can only be used in localhost or https mode
+        function copyToClipboard(text) {
+            let box = document.getElementById("inputBox")
+            const lastValue = box.value
+            box.value = text
+            box.select()
+            document.execCommand("Copy")
+            box.value = lastValue
+        }
+
         function sortTableByHead(index) {
             let that = this
             if (typeof that.flag === 'undefined') {
