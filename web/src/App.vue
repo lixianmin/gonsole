@@ -89,15 +89,15 @@ function onCommand(obj) {
   switch (obj.op) {
     case "log.list":
       onLogList(obj.data)
-      break;
+      break
     case "history":
       onHistory(obj.data)
-      break;
+      break
     case "html":
       onHtml(obj)
-      break;
+      break
     case "empty":
-      break;
+      break
     default:
       onDefault(obj)
   }
@@ -110,20 +110,21 @@ function on_enter(evt) {
 
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
-      const index = parseInt(command.substring(1)) - 1;
+      const index = parseInt(command.substring(1)) - 1
+      console.log("index:", index)
       if (!isNaN(index)) {
         command = history.getHistory(index)
       }
     }
 
-    let texts = command.split(/\s+/);  // 支持连续多个空格
-    let textsLength = texts.length;
-    const name = texts[0];
+    let texts = command.split(/\s+/)  // 支持连续多个空格
+    let textsLength = texts.length
+    const name = texts[0]
 
     if (name === "help") {
       const bean = {
         command: name + " " + rootUrl,
-      };
+      }
 
       sendBean("console.command", bean, onCommand)
       history.add(command)
@@ -136,7 +137,7 @@ function on_enter(evt) {
       sendBean(route, bean, onCommand)
       history.add(command)
     } else if (textsLength >= 2 && name === "auth") {
-      username = texts[1];
+      username = texts[1]
       isAuthorizing = true
       // $el.type = "password"
       evt.target.type = "password"

@@ -16,7 +16,7 @@ type HandlerFunc = (data: string) => void
 
 export class StartX {
     public on(key: string, handler: PushHandlerFunc) {
-        this.pushHandlers[key] = handler;
+        this.pushHandlers[key] = handler
     }
 
     public emit(key: string, args: any = '') {
@@ -44,16 +44,16 @@ export class StartX {
             this.routeMap.delete(msg.id)
 
             if (!msg.route) {
-                return;
+                return
             }
         }
 
-        msg.body = this.decompose(msg);
-        return msg;
+        msg.body = this.decompose(msg)
+        return msg
     }
 
     private decompose(msg: Message) {
-        let route = msg.route;
+        let route = msg.route
 
         //Decompose route from dict
         if (msg.compressRoute) {
@@ -68,10 +68,10 @@ export class StartX {
     }
 
     private reset() {
-        this.reconnect = false;
-        this.reconnectionDelay = 1000 * 5;
-        this.reconnectAttempts = 0;
-        clearTimeout(this.reconnectTimer);
+        this.reconnect = false
+        this.reconnectionDelay = 1000 * 5
+        this.reconnectAttempts = 0
+        clearTimeout(this.reconnectTimer)
     }
 
     private initData(data) {
@@ -93,8 +93,8 @@ export class StartX {
 
     private handshakeInit(data) {
         if (data.sys && data.sys.heartbeat) {
-            this.heartbeatInterval = data.sys.heartbeat * 1000;     // heartbeat interval
-            this.heartbeatTimeout = this.heartbeatInterval * 2;     // max heartbeat timeout
+            this.heartbeatInterval = data.sys.heartbeat * 1000     // heartbeat interval
+            this.heartbeatTimeout = this.heartbeatInterval * 2     // max heartbeat timeout
         } else {
             this.heartbeatInterval = 0
             this.heartbeatTimeout = 0
@@ -120,21 +120,21 @@ export class StartX {
             const handler = this.pushHandlers[msg.route] as PushHandlerFunc
             if (typeof handler !== "undefined") {
                 handler(msg.body)
-            }else{
+            } else {
                 console.log(`cannot find handler for route=${msg.route}, msg=`, msg)
             }
         }
     }
 
-    private heartbeatTimeoutCb() {
-        const gap = this.nextHeartbeatTimeout - Date.now();
-        const gapThreshold = 100;   // heartbeat gap threshold
+    private heartbeatTimeoutCallback() {
+        const gap = this.nextHeartbeatTimeout - Date.now()
+        const gapThreshold = 100   // heartbeat gap threshold
         if (gap > gapThreshold) {
-            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCb, gap);
+            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCallback, gap)
         } else {
-            console.error('server heartbeat timeout');
-            this.emit('heartbeat timeout');
-            this.disconnect();
+            console.error('server heartbeat timeout')
+            this.emit('heartbeat timeout')
+            this.disconnect()
         }
     }
 
@@ -179,7 +179,7 @@ export class StartX {
             }
 
             this.reset()
-            const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeBuffer)));
+            const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeBuffer)))
             this.send(packet)
 
             if (onConnected != null) {
@@ -326,7 +326,7 @@ export class StartX {
             this.send(packet)
 
             this.nextHeartbeatTimeout = Date.now() + this.heartbeatTimeout
-            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCb, this.heartbeatTimeout)
+            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCallback, this.heartbeatTimeout)
         }, this.heartbeatInterval)
     }
 
@@ -389,7 +389,7 @@ export class StartX {
 
     private pushHandlers = new Map<string, PushHandlerFunc>()
     private handlers = new Map<number, HandlerFunc>()
-    private routeMap = new Map<number, any>()
+    private routeMap = new Map<number, string>()
     private callbacks = new Map<number, any>()
 
     private abbrs = {}
