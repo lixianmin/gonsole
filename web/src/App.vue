@@ -8,7 +8,6 @@ import {ref} from "vue";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
-// todo sub/unsub这个功能现在不能用
 /**
  *
  * todo 列表:
@@ -17,7 +16,7 @@ import {ref} from "vue";
  * 4. 实际应用到一个项目中: build.naked后面的cp逻辑需要把res改到dist
  * 5. 把evt.target.value等逻辑修改为vue应该使用的逻辑
  * 6. 各种js中的any需要调整一下
- * 7. 确认在家里无法修改vendor目录下代码进行调试的原因
+ * 7. log.list后, 日志打不开
  * 8. 打包后生成的assets的根目录是否需要修改
  */
 let inputText = ref("")
