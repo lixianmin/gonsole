@@ -5,6 +5,7 @@ import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 import {Login} from "./code/login";
 import {ref} from "vue";
+import {Operation} from "./code/operation";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -66,18 +67,18 @@ window.onload = () => {
   }
 }
 
-function onHtml(obj) {
-  printWithTimestamp("<b>server响应：</b>" + obj.data)
+function onHtml(data) {
+  printWithTimestamp("<b>server响应：</b>" + data)
   println()
 }
 
-function onDefault(obj) {
-  const text = JSON.stringify(obj)
+function onDefault(operation: Operation) {
+  const text = JSON.stringify(operation)
   printWithTimestamp("<b>server响应：</b>" + text)
   println()
 }
 
-function sendBean(route, msg, callback) {
+function sendBean(route: string, msg, callback) {
   const json = JSON.stringify(msg);
   printWithTimestamp("<b>client请求：</b>")
   printHtml(json)
@@ -85,7 +86,7 @@ function sendBean(route, msg, callback) {
   star.request(route, msg, callback)
 }
 
-function onCommand(obj) {
+function onCommand(obj: Operation) {
   switch (obj.op) {
     case "log.list":
       onLogList(obj.data)
@@ -94,7 +95,7 @@ function onCommand(obj) {
       onHistory(obj.data)
       break
     case "html":
-      onHtml(obj)
+      onHtml(obj.data)
       break
     case "empty":
       break
