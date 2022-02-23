@@ -6,8 +6,8 @@ import (
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
 	"html/template"
-	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -92,7 +92,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 	const dirName = "web/dist"
 	const dirLength = len(dirName)
 
-	if err := filepath.Walk(walkRoot, func(relativePath string, info fs.FileInfo, err error) error {
+	if err := filepath.Walk(walkRoot, func(relativePath string, info os.FileInfo, err error) error {
 		if err == nil && !info.IsDir() && isValidAsset(relativePath) {
 			var index = strings.Index(relativePath, dirName)
 			var pattern = relativePath[index+dirLength:]
