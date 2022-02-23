@@ -30,6 +30,15 @@ export class WebConfig {
         }
     }
 
+    public getRootUrl(): string {
+        let url = `${document.location.protocol}//${this.host}/${this.directory}`
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length - 1)
+        }
+
+        return url
+    }
+
     public getWebsocketUrl(): string {
         const isHttps = "https:" === document.location.protocol
         const protocol = isHttps ? "wss:" : "ws:"

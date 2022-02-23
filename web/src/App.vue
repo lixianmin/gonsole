@@ -25,15 +25,13 @@ let isAuthorizing = false
 let config = new WebConfig()
 let history = new History()
 let star = new StartX()
-
-let rootUrl = `${document.location.protocol}//${config.host}/${config.directory}`
-let websocketUrl = config.getWebsocketUrl()
+let rootUrl = config.getRootUrl()
 
 let login = new Login((bean) => {
   sendBean("console.command", bean, onCommand)
 })
 
-star.connect({url: websocketUrl}, () => {
+star.connect({url: config.getWebsocketUrl()}, () => {
   console.log("websocket connected")
   printHtml(config.body)
   println()
