@@ -6,9 +6,11 @@ import {WebConfig} from "./code/web_config";
 import {Login} from "./code/login";
 import {ref} from "vue";
 import {Operation} from "./code/operation";
+import moment from "moment";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
+// todo disconnected from server的时候, 写一个online time
 /**
  *
  * todo 列表:
@@ -38,8 +40,10 @@ star.connect({url: config.getWebsocketUrl()}, () => {
   login.tryAutoLogin()
 })
 
+const uptime = new Date()
 star.on("disconnect", () => {
-  printWithTimestamp("<b> disconnected from server </b>")
+  const onlineTime = moment.duration(new Date().getTime() - uptime.getTime(), "milliseconds").humanize()
+  printWithTimestamp(`<b> disconnected from server after ${onlineTime} </b>`)
 })
 
 star.on("console.html", onHtml)
