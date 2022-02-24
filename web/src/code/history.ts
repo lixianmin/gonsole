@@ -50,10 +50,14 @@ export class History {
         return ""
     }
 
+    public getCount(): number {
+        return this.list.length
+    }
+
     public move(step: number): string {
         if (step != 0) {
             let nextIndex = this.currentIndex + step
-            if ( nextIndex >= 0 && nextIndex < this.list.length) {
+            if (nextIndex >= 0 && nextIndex < this.list.length) {
                 this.currentIndex = nextIndex
                 const text = this.list[nextIndex]
                 // console.log(this.toString())
@@ -64,7 +68,7 @@ export class History {
         return ""
     }
 
-    public toString() :string{
+    public toString(): string {
         return `currentIndex=${this.currentIndex}, list=[${this.list}]`
     }
 
