@@ -1,7 +1,7 @@
 <template>
-  <b>历史命令列表：</b> <br/> count: &nbsp; {{ historyStore.count() }}
+  <b>历史命令列表：</b> <br/> count: &nbsp; {{ historyStore.count }}
   <ol id="history-with-index">
-    <li v-for="history in historyStore.histories()" :key="history">
+    <li v-for="history in historyStore.histories" :key="history">
       {{ history }}
     </li>
   </ol>

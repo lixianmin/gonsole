@@ -19,20 +19,10 @@ export const useHistoryStore = defineStore({
         list: [],
     } as HistoryStore)),
     getters: {
-        // histories(): string[] {
-        //     return this.list
-        // }
-        // , count(): number {
-        //     return this.list.length
-        // }
+        histories: state => state.list
+        , count: state => state.list.length
     },
     actions: {
-        histories(): string[] {
-            return this.list
-        }
-        , count(): number {
-            return this.list.length
-        },
         add(command: string): void {
             if (command != null && command != "") {
                 const list = this.list
