@@ -1,7 +1,7 @@
 <template>
-  <b>历史命令列表：</b> <br/> count: &nbsp; {{ history.count }}
+  <b>历史命令列表：</b> <br/> count: &nbsp; {{ historyStore.count() }}
   <ol id="history-with-index">
-    <li v-for="history in history.histories" :key="history">
+    <li v-for="history in historyStore.histories()" :key="history">
       {{ history }}
     </li>
   </ol>
@@ -9,16 +9,14 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
+import {onMounted} from "vue";
 import {useHistoryStore} from "../code/use_history_store";
+import {scrollMainPanelToBottom} from "../code/main_panel";
 
-let history = useHistoryStore()
+const historyStore = useHistoryStore()
 
 onMounted(() => {
-  const mainPanel = document.getElementById("mainPanel")
-  if (mainPanel) {
-    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight
-  }
+  scrollMainPanelToBottom()
 })
 
 </script>

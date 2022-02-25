@@ -27,7 +27,6 @@ let isAuthorizing = false
 
 let config = new WebConfig()
 const historyStore = useHistoryStore()
-historyStore.init()
 
 let star = new StartX()
 let rootUrl = config.getRootUrl()

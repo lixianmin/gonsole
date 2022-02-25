@@ -7,14 +7,30 @@
 
 import moment from 'moment'
 
-function appendLog(item: Node) {
-    const mainPanel = document.getElementById("mainPanel")
-    if (mainPanel) {
-        let needScroll = mainPanel.scrollTop < mainPanel.scrollHeight - mainPanel.clientHeight - 1
-        mainPanel.appendChild(item)
+let _mainPanel: HTMLElement | null = null
 
-        if (needScroll) {
-            mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight - 1
+function getMainPanel(): HTMLElement | null {
+    if (_mainPanel == null) {
+        _mainPanel = document.getElementById("mainPanel")
+    }
+
+    return _mainPanel
+}
+
+function appendLog(item: Node) {
+    const mainPanel = getMainPanel()
+    if (mainPanel) {
+        mainPanel.appendChild(item)
+        scrollMainPanelToBottom()
+    }
+}
+
+export function scrollMainPanelToBottom() {
+    const mainPanel = getMainPanel()
+    if (mainPanel) {
+        const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
+        if (mainPanel.scrollTop < targetPosition) {
+            mainPanel.scrollTop = targetPosition
         }
     }
 }

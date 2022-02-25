@@ -5,6 +5,7 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {defineStore} from "pinia";
+import {useLocalStorage} from "@vueuse/core";
 
 interface HistoryStore {
     currentIndex: number,
@@ -13,37 +14,26 @@ interface HistoryStore {
 
 export const useHistoryStore = defineStore({
     id: "historyStore", // id is required so pinia can connect to the devtools
-    state: () => ({
+    state: () => (useLocalStorage("this.is.history.store", {
         currentIndex: 0,
         list: [],
-    } as HistoryStore),
+    } as HistoryStore)),
     getters: {
+        // histories(): string[] {
+        //     return this.list
+        // }
+        // , count(): number {
+        //     return this.list.length
+        // }
+    },
+    actions: {
         histories(): string[] {
             return this.list
         }
         , count(): number {
             return this.list.length
-        }
-    },
-    actions: {
-        init() {
-            const key = "this.is.the.history"
-            const item = localStorage.getItem(key)
-            if (item) {
-                const json = JSON.parse(item)
-                if (json) {
-                    this.list = json
-                    this.currentIndex = this.list.length // 初始大小
-                }
-            }
-
-            // 在unload时将history存储到localStorage中
-            window.onunload = evt => {
-                const data = this.list.slice(-100)
-                localStorage.setItem(key, JSON.stringify(data))
-            }
-        }
-        , add(command: string): void {
+        },
+        add(command: string): void {
             if (command != null && command != "") {
                 const list = this.list
                 const size = list.length
