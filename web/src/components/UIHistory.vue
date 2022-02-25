@@ -9,10 +9,10 @@
 </template>
 
 <script setup lang="ts">
-import {History} from "../code/history";
 import {onMounted, ref} from "vue";
+import {useHistoryStore} from "../code/use_history_store";
 
-let history = ref(new History())
+let history = useHistoryStore()
 
 onMounted(() => {
   const mainPanel = document.getElementById("mainPanel")

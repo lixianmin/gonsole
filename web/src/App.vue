@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
-import {History} from "./code/history";
 import {WebConfig} from "./code/web_config";
 import {Login} from "./code/login";
-import {ref} from "vue";
+import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
 import moment from "moment";
+import {useHistoryStore} from "./code/use_history_store";
+import UIHistory from "./components/UIHistory.vue"
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -25,7 +26,9 @@ let username = ""
 let isAuthorizing = false
 
 let config = new WebConfig()
-let history = new History()
+const historyStore = useHistoryStore()
+historyStore.init()
+
 let star = new StartX()
 let rootUrl = config.getRootUrl()
 
@@ -116,7 +119,8 @@ function on_enter(evt) {
       const index = parseInt(command.substring(1)) - 1
       console.log("index:", index)
       if (!isNaN(index)) {
-        command = history.getHistory(index)
+        command = historyStore.getHistory(index)
+        command = historyStore.getHistory(index)
       }
     }
 
@@ -130,7 +134,7 @@ function on_enter(evt) {
       }
 
       sendBean("console.command", bean, onCommand)
-      history.add(command)
+      historyStore.add(command)
     } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
       const bean = {
         topic: texts[1],
@@ -138,14 +142,14 @@ function on_enter(evt) {
 
       const route = "console." + name
       sendBean(route, bean, onCommand)
-      history.add(command)
+      historyStore.add(command)
     } else if (textsLength >= 2 && name === "auth") {
       username = texts[1]
       isAuthorizing = true
       // $el.type = "password"
       evt.target.type = "password"
       printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
-      history.add(command)
+      historyStore.add(command)
     } else if (isAuthorizing && textsLength >= 1) {
       isAuthorizing = false
       // this.$el.type = "text"
@@ -157,7 +161,7 @@ function on_enter(evt) {
       }
 
       sendBean("console.command", bean, onCommand)
-      history.add(command)
+      historyStore.add(command)
     }
   } else {
     printWithTimestamp('')
@@ -170,17 +174,18 @@ function on_enter(evt) {
 }
 
 function onHistory(obj) {
-  const list = history.histories
-  const count = list.length
-  const items = new Array(count)
-
-  for (let i = 0; i < count; i++) {
-    items[i] = "<li>" + list[i] + "</li>"
-  }
-
-  let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
-  printWithTimestamp(result)
-  println()
+  createApp(UIHistory).mount(printHtml(""))
+  // const list = historyStore.histories
+  // const count = list.length
+  // const items = new Array(count)
+  //
+  // for (let i = 0; i < count; i++) {
+  //   items[i] = "<li>" + list[i] + "</li>"
+  // }
+  //
+  // let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
+  // printWithTimestamp(result)
+  // println()
 }
 
 function on_tab(evt) {
@@ -214,7 +219,7 @@ function on_tab(evt) {
 
 function on_up_down(evt) {
   const step = evt.key == 'ArrowUp' ? -1 : 1
-  const nextText = history.move(step)
+  const nextText = historyStore.move(step)
   if (nextText != '') {
     inputText.value = nextText
 

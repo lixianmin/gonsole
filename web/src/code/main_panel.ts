@@ -10,11 +10,11 @@ import moment from 'moment'
 function appendLog(item: Node) {
     const mainPanel = document.getElementById("mainPanel")
     if (mainPanel) {
-        let needScroll = mainPanel.scrollTop > mainPanel.scrollHeight - mainPanel.clientHeight - 1
+        let needScroll = mainPanel.scrollTop < mainPanel.scrollHeight - mainPanel.clientHeight - 1
         mainPanel.appendChild(item)
 
         if (needScroll) {
-            mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight
+            mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight - 1
         }
     }
 }
