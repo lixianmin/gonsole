@@ -166,25 +166,11 @@ function on_enter(evt) {
     printWithTimestamp('')
   }
 
-  const mainPanel = document.getElementById("mainPanel")
-  if (mainPanel) {
-    mainPanel.scrollTop = mainPanel.scrollHeight - mainPanel.clientHeight // 其实在shell中只要有输入就会滚屏
-  }
+  // scrollMainPanelToBottom()
 }
 
 function onHistory(obj) {
   createApp(UIHistory).mount(printHtml(""))
-  // const list = historyStore.histories
-  // const count = list.length
-  // const items = new Array(count)
-  //
-  // for (let i = 0; i < count; i++) {
-  //   items[i] = "<li>" + list[i] + "</li>"
-  // }
-  //
-  // let result = "<b>历史命令列表：</b> <br/> count:&nbsp;" + count + "<br/><ol>" + items.join("") + "</ol>"
-  // printWithTimestamp(result)
-  // println()
 }
 
 function on_tab(evt) {
