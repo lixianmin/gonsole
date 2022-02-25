@@ -1,7 +1,7 @@
 <template>
-  <b>历史命令列表：</b> <br/> count: &nbsp; {{ histories.count }}
+  <b>历史命令列表：</b> <br/> count: &nbsp; {{ history.count }}
   <ol id="history-with-index">
-    <li v-for="history in histories.getHistories()" :key="history">
+    <li v-for="history in history.histories" :key="history">
       {{ history }}
     </li>
   </ol>
@@ -12,7 +12,7 @@
 import {History} from "../code/history";
 import {onMounted, ref} from "vue";
 
-let histories = ref(new History())
+let history = ref(new History())
 
 onMounted(() => {
   const mainPanel = document.getElementById("mainPanel")
