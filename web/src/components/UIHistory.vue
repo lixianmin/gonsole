@@ -1,5 +1,5 @@
 <template>
-  <b>历史命令列表：</b> <br/> count: &nbsp; {{ histories.getCount() }}
+  <b>历史命令列表：</b> <br/> count: &nbsp; {{ histories.count }}
   <ol id="history-with-index">
     <li v-for="history in histories.getHistories()" :key="history">
       {{ history }}

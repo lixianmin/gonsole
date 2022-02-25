@@ -170,7 +170,7 @@ function on_enter(evt) {
 }
 
 function onHistory(obj) {
-  const list = history.getHistories()
+  const list = history.histories
   const count = list.length
   const items = new Array(count)
 
