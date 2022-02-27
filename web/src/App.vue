@@ -204,7 +204,9 @@ function on_tab(evt) {
 function on_up_down(evt) {
   const step = evt.key == 'ArrowUp' ? -1 : 1
   const nextText = historyStore.move(step)
-  if (nextText != '') {
+
+  // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
+  if (nextText != '' || step == 1) {
     inputText.value = nextText
 
     setTimeout(() => {
