@@ -6,6 +6,7 @@
  *********************************************************************/
 import {defineStore} from "pinia";
 import {useLocalStorage} from "@vueuse/core";
+
 // todo 这个如果超过100个, 就不应该全部分存储到localstorage中了
 interface HistoryStore {
     currentIndex: number,
@@ -17,7 +18,19 @@ export const useHistoryStore = defineStore({
     state: () => (useLocalStorage("this.is.history.store", {
         currentIndex: 0,
         list: [],
-    } as HistoryStore)),
+    } as HistoryStore, {
+        serializer: {
+            read: (v: string) => {
+                if (v) {
+                    let json = JSON.parse(v)
+                    if (json) {
+                        return {list: json, currentIndex: json.length} as HistoryStore
+                    }
+                }
+            },
+            write: (v: any) => JSON.stringify(v.list.slice(-100)),
+        }
+    })),
     getters: {
         histories: state => state.list
         , count: state => state.list.length

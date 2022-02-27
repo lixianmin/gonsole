@@ -14,12 +14,11 @@ import UIHistory from "./components/UIHistory.vue"
 // todo disconnected from server的时候, 写一个online time
 /**
  *
- * todo 列表:
- * 1. 需要在readme中加入npm的开发和使用流程
- * 4. 实际应用到一个项目中: build.naked后面的cp逻辑需要把res改到dist
- * 5. 把evt.target.value等逻辑修改为vue应该使用的逻辑
- * 6. 各种js中的any需要调整一下
- * 8. 打包后生成的assets的根目录是否需要修改
+ *
+ * todo 需要在readme中加入npm的开发和使用流程
+ * todo  把evt.target.value等逻辑修改为vue应该使用的逻辑
+ * todo 各种js中的any需要调整一下
+ * todo 打包后生成的assets的根目录是否需要修改
  */
 let inputText = ref("")
 let username = ""
