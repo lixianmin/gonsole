@@ -1,5 +1,7 @@
 package gonsole
 
+import "github.com/lixianmin/got/convert"
+
 /********************************************************************
 created:    2020-09-02
 author:     lixianmin
@@ -24,5 +26,11 @@ func NewDefaultResponse(data interface{}) *Response {
 
 func NewHtmlResponse(data string) *Response {
 	var ret = &Response{Operation: "html", Data: data}
+	return ret
+}
+
+func NewTableResponse(table interface{}) *Response {
+	var data = convert.String(convert.ToJson(table))
+	var ret = &Response{Operation: "table", Data: data}
 	return ret
 }

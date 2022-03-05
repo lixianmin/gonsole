@@ -8,6 +8,7 @@ import {Operation} from "./code/operation";
 import moment from "moment";
 import {useHistoryStore} from "./code/use_history_store";
 import UIHistory from "./components/UIHistory.vue"
+import JsonTable from './components/JsonTable.jsx'
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -75,6 +76,11 @@ function onHtml(data) {
   println()
 }
 
+function onTable(data) {
+  createApp(JsonTable, {"tableData": data}).mount(printHtml(""))
+  console.log(data)
+}
+
 function onDefault(operation: Operation) {
   const text = JSON.stringify(operation)
   printWithTimestamp("<b>server响应：</b>" + text)
@@ -100,6 +106,8 @@ function onCommand(obj: Operation) {
     case "html":
       onHtml(obj.data)
       break
+    case "table":
+      onTable(obj.data)
     case "empty":
       break
     default:

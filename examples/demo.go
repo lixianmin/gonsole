@@ -92,6 +92,33 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
+		Name:     "test_element_table",
+		Note:     "测试element_table",
+		IsPublic: true,
+		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+			type Bean struct {
+				Text     string
+				Name     string
+				Age      int
+				Time     string
+				Hit      float32
+				EmptyNum string
+			}
+
+			var now = time.Now()
+			var layout = "2006-01-02"
+			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1, ""},
+				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2, ""},
+				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3, "10"},
+				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
+				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "2"},
+			}
+
+			return gonsole.NewTableResponse(beans), nil
+		},
+	})
+
+	server.RegisterCommand(&gonsole.Command{
 		Name:     "test_struct_sort_table_by_head",
 		Note:     "测试结构体排序",
 		IsPublic: true,
