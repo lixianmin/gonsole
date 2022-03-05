@@ -11,10 +11,10 @@ export default defineComponent(
             const tableData = JSON.parse(props.tableData)
             return () =>
                 <div>
-                    <ElTable data={tableData} style={{width: '80%'}}>
+                    <ElTable data={tableData} tableLayout="auto">
                         {
                             Object.keys({tableData}.tableData[0]).map(item => {
-                                return <ElTableColumn prop={item} label={item} sortable/>
+                                return <ElTableColumn prop={item} label={item} sortable fixed={"right"} />
                             })
                         }
                     </ElTable>

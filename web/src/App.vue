@@ -78,7 +78,6 @@ function onHtml(data) {
 
 function onTable(data) {
   createApp(JsonTable, {"tableData": data}).mount(printHtml(""))
-  console.log(data)
 }
 
 function onDefault(operation: Operation) {
