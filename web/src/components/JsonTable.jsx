@@ -8,17 +8,22 @@ export default defineComponent(
             tableData: {type: String}
         }
         , setup(props) {
-            const tableData = JSON.parse(props.tableData)
+            let tableData = JSON.parse(props.tableData)
+            // 如果是struct, 则转为array
+            if ( tableData[0] === undefined) {
+                tableData = [tableData]
+            }
+
             return () =>
                 <div>
                     <ElTable data={tableData} tableLayout="auto">
                         {
                             Object.keys({tableData}.tableData[0]).map(item => {
-                                return <ElTableColumn prop={item} label={item} sortable fixed={"right"} />
+                                return <ElTableColumn prop={item} label={item} sortable/>
                             })
                         }
                     </ElTable>
-                    <p/>
+                    <br/>
                 </div>
         }
         , mounted() {

@@ -140,6 +140,27 @@ func main() {
 		},
 	})
 
+	server.RegisterCommand(&gonsole.Command{
+		Name:     "test_element_struct",
+		Note:     "测试element_plus结构体",
+		IsPublic: true,
+		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+			type Bean struct {
+				Text string
+				Name string
+				Age  int
+				Time string
+				Hit  float32
+			}
+
+			var now = time.Now()
+			var layout = "2006-01-02"
+			var bean = Bean{"hello", "world", 20, now.Format(layout), 1.1}
+
+			return gonsole.NewTableResponse(bean), nil
+		},
+	})
+
 	server.RegisterTopic(&gonsole.Topic{
 		Name:     "hi",
 		Note:     "广播hi console（每5s）",
