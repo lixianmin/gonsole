@@ -9,9 +9,19 @@ export default defineComponent(
         }
         , setup(props) {
             let tableData = JSON.parse(props.tableData)
+            const isStruct = tableData[0] === undefined
             // 如果是struct, 则转为array
-            if ( tableData[0] === undefined) {
+            if (isStruct) {
                 tableData = [tableData]
+            } else {
+                // 如果list, 则在首列加入行号
+                for (let i = 0; i < tableData.length; i++) {
+                    let results = {" ": i + 1}
+                    for (const [key, value] of Object.entries(tableData[i])) {
+                        results[key] = value
+                    }
+                    tableData[i] = results
+                }
             }
 
             return () =>
