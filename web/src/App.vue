@@ -107,6 +107,7 @@ function onCommand(obj: Operation) {
       break
     case "table":
       onTable(obj.data)
+      break
     case "empty":
       break
     default:

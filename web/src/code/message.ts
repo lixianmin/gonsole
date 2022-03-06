@@ -137,22 +137,22 @@ export class Message {
     }
 
     private static calculateMsgIdBytes(id: number) {
-        let len = 0;
+        let len = 0
         do {
-            len += 1;
-            id >>= 7;
-        } while (id > 0);
+            len += 1
+            id >>= 7
+        } while (id > 0)
 
-        return len;
+        return len
     }
 
     private static encodeMsgFlag(type: MessageType, compressRoute: boolean, buffer, offset) {
         if (!Message.isValid(type)) {
-            throw new Error('unknown message type: ' + type);
+            throw new Error('unknown message type: ' + type)
         }
 
-        buffer[offset] = (type << 1) | (compressRoute ? 1 : 0);
-        return offset + Message.MSG_FLAG_BYTES;
+        buffer[offset] = (type << 1) | (compressRoute ? 1 : 0)
+        return offset + Message.MSG_FLAG_BYTES
     }
 
     private static encodeMsgId(id: number, buffer: Uint8Array, offset: number): number {
