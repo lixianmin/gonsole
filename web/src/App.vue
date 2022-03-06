@@ -193,15 +193,8 @@ function on_tab(evt) {
         const names = list.map(v=>v.Name)
         inputText.value = longestCommonPrefix(names)
         if (count > 1) {
-          const items = new Array(count)
-          for (let i = 0; i < count; i++) {
-            items[i] = `<tr> <td>${i + 1}</td> <td>${list[i].Name}</td> <td>${list[i].Note}</td> </tr>`
-          }
-
-          const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>"
-          const result = header + items.join("") + "</table>"
-          printWithTimestamp(result)
-          println()
+          // todo 这个可以化简
+          onTable(JSON.stringify(list))
         }
       }
     })
