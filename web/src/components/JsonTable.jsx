@@ -40,7 +40,7 @@ export default defineComponent(
 
             return () =>
                 <div>
-                    <ElTable data={tableData} tableLayout="fixed">
+                    <ElTable data={tableData} tableLayout="auto">
                         {
                             Object.keys({tableData}.tableData[0]).map(item => {
                                 return <ElTableColumn prop={item} label={item} sortable

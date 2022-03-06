@@ -110,7 +110,7 @@ func main() {
 			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1, ""},
 				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2, ""},
 				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3, "10"},
-				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
+				{"oh", "this is an extremely long sentence, and this will be used for testing column with", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
 				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "2"},
 			}
 

@@ -243,7 +243,7 @@ function longestCommonPrefix(list: string[]): string {
 
 function onLogList(data) {
   const logFiles = data.logFiles
-  const fileCount = logFiles.length
+  const fileCount: number = logFiles.length
   const links = new Array(fileCount)
   let totalSize = 0;
   for (let i = 0; i < fileCount; i++) {
