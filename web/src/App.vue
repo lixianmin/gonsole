@@ -115,7 +115,7 @@ function onCommand(obj: Operation) {
   }
 }
 
-function on_enter(evt) {
+function onEnter(evt) {
   let command = inputText.value
   if (command !== "") {
     inputText.value = ""
@@ -172,15 +172,13 @@ function on_enter(evt) {
   } else {
     printWithTimestamp('')
   }
-
-  // scrollMainPanelToBottom()
 }
 
 function onHistory(obj) {
   createApp(UIHistory).mount(printHtml(""))
 }
 
-function on_tab(evt) {
+function onTab(evt) {
   const text = inputText.value
   if (text.length > 0) {
     const bean = {
@@ -188,11 +186,11 @@ function on_tab(evt) {
     }
 
     star.request("console.hint", bean, (list) => {
-      const count = list.length
-      if (count > 0) {
+      const size = list.length
+      if (size > 0) {
         const names = list.map(v=>v.Name)
         inputText.value = longestCommonPrefix(names)
-        if (count > 1) {
+        if (size > 1) {
           // todo 这个可以化简
           onTable(JSON.stringify(list))
         }
@@ -201,7 +199,7 @@ function on_tab(evt) {
   }
 }
 
-function on_up_down(evt) {
+function onUpDown(evt) {
   const step = evt.key == 'ArrowUp' ? -1 : 1
   const nextText = historyStore.move(step)
 
@@ -213,7 +211,7 @@ function on_up_down(evt) {
       let position = nextText.length
       evt.target.setSelectionRange(position, position)
       evt.target.focus()
-    }, 0)
+    })
   }
 }
 
@@ -271,9 +269,9 @@ function getHumanReadableSize(size) {
   <div id="mainPanel"></div>
   <div id="inputBoxDiv">
     <input id="inputBox" v-model="inputText" placeholder="Tab补全命令, Enter执行命令"
-           @keydown.enter.prevent="on_enter"
-           @keydown.tab.prevent="on_tab"
-           @keydown.up.down.prevent="on_up_down"
+           @keydown.enter.prevent="onEnter"
+           @keydown.tab.prevent="onTab"
+           @keydown.up.down.prevent="onUpDown"
     />
   </div>
 </template>
