@@ -24,12 +24,27 @@ export default defineComponent(
                 }
             }
 
+            function onRenderHeader({column, $index}) {
+                let after = " "
+                switch (column.order) {
+                    case "ascending":
+                        after = "↑"
+                        break
+                    case "descending":
+                        after = "↓"
+                        break
+                }
+
+                return <div>{column.label}{after}</div>
+            }
+
             return () =>
                 <div>
-                    <ElTable data={tableData} tableLayout="auto">
+                    <ElTable data={tableData} tableLayout="fixed">
                         {
                             Object.keys({tableData}.tableData[0]).map(item => {
-                                return <ElTableColumn prop={item} label={item} sortable/>
+                                return <ElTableColumn prop={item} label={item} sortable
+                                                      renderHeader={onRenderHeader}/>
                             })
                         }
                     </ElTable>
