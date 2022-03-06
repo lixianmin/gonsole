@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/got/sortx"
+	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
 	"github.com/lixianmin/road"
 	"regexp"
 	"runtime/debug"
+	"sort"
 	"strings"
 )
 
@@ -29,8 +30,8 @@ type (
 	}
 
 	hintRe struct {
-		Names []string `json:"names"`
-		Notes []string `json:"notes"`
+		Name string
+		Note string
 	}
 
 	commandRqt struct {
@@ -135,36 +136,32 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response
 	return NewDefaultResponse(message), nil
 }
 
-func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) (*hintRe, error) {
+func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, error) {
 	var session = road.GetSessionFromCtx(ctx)
 	var isAuthorized = isAuthorized(session)
 
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.server.getCommands()
 
-	var names = make([]string, 0, len(commands)+len(subUnsubNames))
-	var notes = make([]string, 0, len(names))
+	var results = make([]hintRe, 0, len(commands)+len(subUnsubNames))
 
 	for i := range subUnsubNames {
 		if strings.HasPrefix(subUnsubNames[i], head) {
-			names = append(names, subUnsubNames[i])
-			notes = append(notes, subUnsubNotes[i])
+			results = append(results, hintRe{subUnsubNames[i], subUnsubNotes[i]})
 		}
 	}
 
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
-			names = append(names, cmd.GetName())
-			notes = append(notes, cmd.GetNote())
+			results = append(results, hintRe{cmd.GetName(), cmd.GetNote()})
 		}
 	}
 
-	sortx.SliceBy(names, notes, func(i, j int) bool {
-		return names[i] < names[j]
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Name < results[j].Name
 	})
 
-	var result = &hintRe{Names: names, Notes: notes}
-	return result, nil
+	return convert.ToJson(results), nil
 }
 
 func isAuthorized(session *road.Session) bool {

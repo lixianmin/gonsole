@@ -187,16 +187,15 @@ function on_tab(evt) {
       head: text,
     }
 
-    star.request("console.hint", bean, (obj) => {
-      const names = obj.names
-      const notes = obj.notes
-      const count = names.length
+    star.request("console.hint", bean, (list) => {
+      const count = list.length
       if (count > 0) {
+        const names = list.map(v=>v.Name)
         inputText.value = longestCommonPrefix(names)
         if (count > 1) {
           const items = new Array(count)
           for (let i = 0; i < count; i++) {
-            items[i] = `<tr> <td>${i + 1}</td> <td>${names[i]}</td> <td>${notes[i]}</td> </tr>`
+            items[i] = `<tr> <td>${i + 1}</td> <td>${list[i].Name}</td> <td>${list[i].Note}</td> </tr>`
           }
 
           const header = "<table> <tr> <th></th> <th>Name</th> <th>Note</th> </tr>"
