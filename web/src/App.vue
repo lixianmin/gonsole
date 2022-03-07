@@ -7,7 +7,7 @@ import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
 import moment from "moment";
 import {useHistoryStore} from "./code/use_history_store";
-import UIHistory from "./components/UIHistory.vue"
+import History from "./components/History.vue"
 import JsonTable from './components/JsonTable.jsx'
 import {getHumanReadableSize, longestCommonPrefix} from "./code/tools";
 
@@ -176,7 +176,7 @@ function onEnter(evt) {
 }
 
 function onHistory(obj) {
-  createApp(UIHistory).mount(printHtml(""))
+  createApp(History).mount(printHtml(""))
 }
 
 function onTab(evt) {
