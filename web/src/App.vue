@@ -9,6 +9,7 @@ import moment from "moment";
 import {useHistoryStore} from "./code/use_history_store";
 import UIHistory from "./components/UIHistory.vue"
 import JsonTable from './components/JsonTable.jsx'
+import {getHumanReadableSize, longestCommonPrefix} from "./code/tools";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -123,7 +124,7 @@ function onEnter(evt) {
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
       const index = parseInt(command.substring(1)) - 1
-      console.log("index:", index)
+      // console.log("index:", index)
       if (!isNaN(index)) {
         command = historyStore.getHistory(index)
         command = historyStore.getHistory(index)
@@ -215,22 +216,6 @@ function onUpDown(evt) {
   }
 }
 
-function longestCommonPrefix(list: string[]): string {
-  if (list.length < 2) {
-    return list.join()
-  }
-
-  let str = list[0]
-  for (let i = 1; i < list.length; i++) {
-    for (let j = str.length; j > 0; j--) {
-      if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1)
-      else break
-    }
-  }
-
-  return str
-}
-
 function onLogList(data) {
   const logFiles = data.logFiles
   const fileCount: number = logFiles.length
@@ -249,18 +234,6 @@ function onLogList(data) {
   result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>"
   printWithTimestamp(result)
   println()
-}
-
-function getHumanReadableSize(size) {
-  if (size < 1024) {
-    return size + "B"
-  }
-
-  if (size < 1048576) {
-    return (size / 1024.0).toFixed(1) + "K"
-  }
-
-  return (size / 1048576.0).toFixed(1) + "M"
 }
 
 </script>
