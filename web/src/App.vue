@@ -9,6 +9,7 @@ import moment from "moment";
 import {useHistoryStore} from "./code/use_history_store";
 import History from "./components/History.vue"
 import JsonTable from './components/JsonTable.jsx'
+import LogList from './components/LogList.vue'
 import {getHumanReadableSize, longestCommonPrefix} from "./code/tools";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
@@ -189,7 +190,7 @@ function onTab(evt) {
     star.request("console.hint", bean, (list) => {
       const size = list.length
       if (size > 0) {
-        const names = list.map(v=>v.Name)
+        const names = list.map(v => v.Name)
         inputText.value = longestCommonPrefix(names)
         if (size > 1) {
           // todo 这个可以化简
@@ -234,6 +235,8 @@ function onLogList(data) {
   result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>"
   printWithTimestamp(result)
   println()
+
+  // createApp(LogList, data).mount(printHtml(""))
 }
 
 </script>

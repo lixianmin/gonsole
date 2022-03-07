@@ -17,14 +17,6 @@ function getMainPanel(): HTMLElement | null {
     return _mainPanel
 }
 
-function appendLog(item: Node) {
-    const mainPanel = getMainPanel()
-    if (mainPanel) {
-        mainPanel.appendChild(item)
-        scrollMainPanelToBottom()
-    }
-}
-
 export function scrollMainPanelToBottom() {
     const mainPanel = getMainPanel()
     if (mainPanel) {
@@ -38,7 +30,12 @@ export function scrollMainPanelToBottom() {
 export function printHtml(html: string): HTMLDivElement {
     const item = document.createElement("div")
     item.innerHTML = html
-    appendLog(item)
+
+    const mainPanel = getMainPanel()
+    if (mainPanel) {
+        mainPanel.appendChild(item)
+        scrollMainPanelToBottom()
+    }
 
     return item
 }
