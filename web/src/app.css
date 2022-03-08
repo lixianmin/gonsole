@@ -1,6 +1,8 @@
 /*http://thomasf.github.io/solarized-css/*/
 html {background-color: #002b36;color: #839496;margin: 1em;font-size: 1.2em;}
 .copy_button { background-color: #008CBA; border: none; color: white; }
+.copy_button:hover { background-color: #884b16; }
+.copy_button:active { background-color: #dd4b16; }
 
 a {color: #b58900;}
 a:visited {color: #cb4b16;}

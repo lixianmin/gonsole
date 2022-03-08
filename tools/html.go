@@ -65,7 +65,7 @@ func toHtmlTableSlice(listValue reflect.Value) string {
 	var b = make([]byte, 0, 512)
 
 	// 表头：第一列用于显示序号
-	b = append(b, "<table><thead><th class='th' onclick='sortTableByHead.call(this,0)'>"...)
+	b = append(b, "<table><thead><th onclick='sortTableByHead.call(this,0)'>"...)
 	b, numField, kind := writeTableHead(b, listValue.Index(0), 1) // 因为前面会单加一列『序号』，因此deltaIndex=1
 	b = append(b, "</thead><tbody>"...)
 
