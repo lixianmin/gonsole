@@ -10,7 +10,7 @@ import {useHistoryStore} from "./code/use_history_store";
 import History from "./components/History.vue"
 import JsonTable from './components/JsonTable.jsx'
 import LogList from './components/LogList.vue'
-import {getHumanReadableSize, longestCommonPrefix} from "./code/tools";
+import {longestCommonPrefix} from "./code/tools";
 
 // todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -99,10 +99,10 @@ function sendBean(route: string, msg, callback) {
 function onCommand(obj: Operation) {
   switch (obj.op) {
     case "log.list":
-      onLogList(obj.data)
+      createApp(LogList, {logFiles: obj.data.logFiles, rootUrl: rootUrl}).mount(printHtml(""))
       break
     case "history":
-      onHistory(obj.data)
+      createApp(History).mount(printHtml(""))
       break
     case "html":
       onHtml(obj.data)
@@ -176,10 +176,6 @@ function onEnter(evt) {
   }
 }
 
-function onHistory(obj) {
-  createApp(History).mount(printHtml(""))
-}
-
 function onTab(evt) {
   const text = inputText.value
   if (text.length > 0) {
@@ -215,28 +211,6 @@ function onUpDown(evt) {
       evt.target.focus()
     })
   }
-}
-
-function onLogList(data) {
-  const logFiles = data.logFiles
-  const fileCount: number = logFiles.length
-  const links = new Array(fileCount)
-  let totalSize = 0;
-  for (let i = 0; i < fileCount; i++) {
-    const fi = logFiles[i]
-    totalSize += fi.size
-    let sizeText = getHumanReadableSize(fi.size)
-    links[i] = `<tr> <td>${i + 1}</td> <td>${sizeText}</td> <td> <div class="tips"><a href="${rootUrl}/${fi.path}">${fi.path}</a> <span class="tips_text">${fi.sample}</span>
-                                <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>
-                                </div></td> <td>${fi.mod_time}</td> </tr>`
-  }
-
-  let result = "<b>日志文件列表：</b> <br> count:&nbsp;" + fileCount + "<br>total:&nbsp;&nbsp;" + getHumanReadableSize(totalSize) + "<br>"
-  result += "<table> <tr> <th></th> <th>Size</th> <th>Name</th> <th>Modified Time</th> </tr>" + links.join("") + "</table>"
-  printWithTimestamp(result)
-  println()
-
-  // createApp(LogList, data).mount(printHtml(""))
 }
 
 </script>
