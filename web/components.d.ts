@@ -4,10 +4,6 @@
 
 declare module 'vue' {
   export interface GlobalComponents {
-    ElButton: typeof import('element-plus/es')['ElButton']
-    ElCollapseTransition: typeof import('element-plus/es')['ElCollapseTransition']
-    ElTable: typeof import('element-plus/es')['ElTable']
-    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     History: typeof import('./src/components/History.vue')['default']
     LogList: typeof import('./src/components/LogList.vue')['default']
   }
