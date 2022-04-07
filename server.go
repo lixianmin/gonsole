@@ -91,7 +91,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		server.enablePProf(mux)
 	}
 
-	app.OnHandShaken(func(session *road.Session) {
+	app.OnHandShaken(func(session road.Session) {
 		var client = newClient(session)
 		session.Attachment().Put(ifs.KeyClient, client)
 

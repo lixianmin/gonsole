@@ -164,11 +164,11 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	return convert.ToJson(results), nil
 }
 
-func isAuthorized(session *road.Session) bool {
+func isAuthorized(session road.Session) bool {
 	return session.Attachment().Bool(ifs.KeyIsAuthorized)
 }
 
-func getClient(session *road.Session) *Client {
+func getClient(session road.Session) *Client {
 	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
 	return client
 }

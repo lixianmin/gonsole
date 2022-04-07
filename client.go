@@ -13,12 +13,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	session *road.Session
+	session road.Session
 	topics  map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
-func newClient(session *road.Session) *Client {
+func newClient(session road.Session) *Client {
 	var client = &Client{
 		session: session,
 		topics:  make(map[string]struct{}),
@@ -51,7 +51,7 @@ func (client *Client) OnClosed(callback func()) {
 	client.session.OnClosed(callback)
 }
 
-func (client *Client) Session() *road.Session {
+func (client *Client) Session() road.Session {
 	return client.session
 }
 

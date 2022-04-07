@@ -19,7 +19,7 @@ type CommandAuth struct {
 	Text          string `json:"text"`
 }
 
-func NewCommandAuth(session *road.Session, args []string, userPasswords map[string]string, port int) *CommandAuth {
+func NewCommandAuth(session road.Session, args []string, userPasswords map[string]string, port int) *CommandAuth {
 	var bean = &CommandAuth{}
 
 	if len(args) < 3 {
