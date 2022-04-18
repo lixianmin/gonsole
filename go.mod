@@ -3,7 +3,7 @@ module github.com/lixianmin/gonsole
 go 1.13
 
 require (
-	github.com/lixianmin/got v0.0.0-20220401071242-5f44168350a6
+	github.com/lixianmin/got v0.0.0-20220413073119-7e7146fc54c1
 	github.com/lixianmin/logo v0.0.0-20220312101552-e8698998a047
 	github.com/lixianmin/road v0.0.0-20220407122628-60d5b53a8267
 	github.com/shirou/gopsutil v3.21.11+incompatible
