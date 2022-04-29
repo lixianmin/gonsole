@@ -3,9 +3,9 @@ module github.com/lixianmin/gonsole
 go 1.15
 
 require (
-	github.com/lixianmin/got v0.0.0-20220429100006-8d69366ba6cc
-	github.com/lixianmin/logo v0.0.0-20220429100243-55653e88f346
-	github.com/lixianmin/road v0.0.0-20220429100945-6e077a811d38
+	github.com/lixianmin/got v0.0.0-20220429101601-4b82ad931869
+	github.com/lixianmin/logo v0.0.0-20220429115123-e65bdedfb522
+	github.com/lixianmin/road v0.0.0-20220429120028-f25245afc9c1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
