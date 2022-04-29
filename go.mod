@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/lixianmin/got v0.0.0-20220429101601-4b82ad931869
 	github.com/lixianmin/logo v0.0.0-20220429115123-e65bdedfb522
-	github.com/lixianmin/road v0.0.0-20220429120028-f25245afc9c1
+	github.com/lixianmin/road v0.0.0-20220429122213-5294379106e3
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
