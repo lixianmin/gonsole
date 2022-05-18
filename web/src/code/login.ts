@@ -31,12 +31,7 @@ export class Login {
     private doLogin(username: string, password: string) {
         const key = "hey pet!"
         const digest = sha256.hmac(key, password)
-
-        const bean = {
-            command: "auth " + username + " " + digest,
-        };
-
-        this.sendLogin(bean)
+        this.sendLogin("auth", username + " " + digest)
     }
 
     private save(username: string, password: string, autoLoginLimit: number) {
@@ -50,6 +45,6 @@ export class Login {
         localStorage.setItem(this.key, data)
     }
 
-    private sendLogin: any
+    private readonly sendLogin: any
     private readonly key = "autoLoginUser"
 }

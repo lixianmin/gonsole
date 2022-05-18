@@ -36,8 +36,8 @@ let rootUrl = config.getRootUrl()
 // 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
 window.sendCommand = sendCommand
 
-let login = new Login((bean) => {
-  sendCommand(bean)
+let login = new Login((cmd :string, args :string) => {
+  sendCommand(cmd, args)
 })
 
 star.connect({url: config.getWebsocketUrl()}, () => {
@@ -99,7 +99,8 @@ function sendBean(route: string, bean, callback) {
   star.request(route, bean, callback)
 }
 
-function sendCommand(bean) {
+function sendCommand(cmd :string, args :string) {
+  let bean = { command: (cmd + " " + args).trim() }
   sendBean("console.command", bean, onCommand)
 }
 
@@ -144,11 +145,7 @@ function onEnter(evt) {
     const name = texts[0]
 
     if (name === "help") {
-      const bean = {
-        command: name + " " + rootUrl,
-      }
-
-      sendCommand(bean)
+      sendCommand(name, rootUrl)
       historyStore.add(command)
     } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
       const bean = {
@@ -171,11 +168,7 @@ function onEnter(evt) {
       evt.target.type = "text"
       login.login(username, name, config.autoLoginLimit)
     } else {
-      const bean = {
-        command: texts.join(' '),
-      }
-
-      sendCommand(bean)
+      sendCommand(texts.join(' '), '')
       historyStore.add(command)
     }
   } else {
