@@ -33,6 +33,9 @@ const historyStore = useHistoryStore()
 let star = new StartX()
 let rootUrl = config.getRootUrl()
 
+// 将star变量开出来, 方便client端写js代码的时候用跟server交互
+window.star = star
+
 let login = new Login((bean) => {
   sendBean("console.command", bean, onCommand)
 })
