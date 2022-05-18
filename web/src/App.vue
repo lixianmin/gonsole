@@ -33,11 +33,11 @@ const historyStore = useHistoryStore()
 let star = new StartX()
 let rootUrl = config.getRootUrl()
 
-// 将star变量开出来, 方便client端写js代码的时候用跟server交互
-window.star = star
+// 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
+window.sendCommand = sendCommand
 
 let login = new Login((bean) => {
-  sendBean("console.command", bean, onCommand)
+  sendCommand(bean)
 })
 
 star.connect({url: config.getWebsocketUrl()}, () => {
@@ -91,12 +91,16 @@ function onDefault(operation: Operation) {
   println()
 }
 
-function sendBean(route: string, msg, callback) {
-  const json = JSON.stringify(msg);
+function sendBean(route: string, bean, callback) {
+  const json = JSON.stringify(bean);
   printWithTimestamp("<b>client请求：</b>")
   printHtml(json)
   println()
-  star.request(route, msg, callback)
+  star.request(route, bean, callback)
+}
+
+function sendCommand(bean) {
+  sendBean("console.command", bean, onCommand)
 }
 
 function onCommand(obj: Operation) {
@@ -144,7 +148,7 @@ function onEnter(evt) {
         command: name + " " + rootUrl,
       }
 
-      sendBean("console.command", bean, onCommand)
+      sendCommand(bean)
       historyStore.add(command)
     } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
       const bean = {
@@ -171,7 +175,7 @@ function onEnter(evt) {
         command: texts.join(' '),
       }
 
-      sendBean("console.command", bean, onCommand)
+      sendCommand(bean)
       historyStore.add(command)
     }
   } else {
