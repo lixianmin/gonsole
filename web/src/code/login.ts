@@ -31,7 +31,7 @@ export class Login {
     private doLogin(username: string, password: string) {
         const key = "hey pet!"
         const digest = sha256.hmac(key, password)
-        this.sendLogin("auth", username + " " + digest)
+        this.sendLogin("auth", username, digest)
     }
 
     private save(username: string, password: string, autoLoginLimit: number) {
