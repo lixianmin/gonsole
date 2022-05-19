@@ -152,7 +152,7 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	}
 
 	for _, cmd := range commands {
-		if (isAuthorized || cmd.IsPublic()) && strings.HasPrefix(cmd.GetName(), head) {
+		if (isAuthorized || cmd.IsPublic()) && !cmd.IsInvisible() && strings.HasPrefix(cmd.GetName(), head) {
 			results = append(results, hintRe{cmd.GetName(), cmd.GetNote()})
 		}
 	}

@@ -32,26 +32,13 @@ func FetchTopicHelp(topics []ifs.Command, isAuthorized bool) []CommandHelp {
 }
 
 func fetchCommandHelpImpl(list []CommandHelp, commands []ifs.Command, isAuthorized bool) []CommandHelp {
-	// 排序
-	//sort.Slice(commands, func(i, j int) bool {
-	//	var a, b = commands[i], commands[j]
-	//	// 内置command排序在三方command前面
-	//	if a.IsBuiltin() && !b.IsBuiltin() {
-	//		return true
-	//	} else if !a.IsBuiltin() && b.IsBuiltin() {
-	//		return false
-	//	}
-	//
-	//	return a.GetName() < b.GetName()
-	//})
-
 	for _, cmd := range commands {
-		if isAuthorized || cmd.IsPublic() {
+		if (isAuthorized || cmd.IsPublic()) && !cmd.IsInvisible() {
 			list = append(list, CommandHelp{Name: cmd.GetName(), Note: cmd.GetNote()})
 		}
 	}
 
-	// 排序 （内置command与三方command一视同仁）
+	// 排序
 	sort.Slice(list, func(i, j int) bool {
 		return list[i].Name < list[j].Name
 	})

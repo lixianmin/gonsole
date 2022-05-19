@@ -143,7 +143,7 @@ func main() {
 	server.RegisterCommand(&gonsole.Command{
 		Name: "test_element_struct",
 		Note: "测试element_plus结构体",
-		Flag: gonsole.FlagPublic,
+		Flag: gonsole.FlagPublic | gonsole.FlagInvisible,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string
