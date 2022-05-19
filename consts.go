@@ -8,7 +8,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 const (
-	FlagBuiltin   = 0x0001 // 内置命令
+	flagBuiltin   = 0x0001 // 内置命令, 并不希望三方代码能看到
 	FlagPublic    = 0x0002 // 不需要登录就可以使用的命令
 	FlagInvisible = 0x0004 // 在inputBox中无法看到和使用的命令
 )

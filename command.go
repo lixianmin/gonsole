@@ -27,7 +27,7 @@ func (cmd *Command) GetNote() string {
 }
 
 func (cmd *Command) IsBuiltin() bool {
-	return cmd.HasFlag(FlagBuiltin)
+	return cmd.HasFlag(flagBuiltin)
 }
 
 func (cmd *Command) IsPublic() bool {

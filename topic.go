@@ -80,7 +80,7 @@ func (topic *Topic) GetNote() string {
 }
 
 func (topic *Topic) IsBuiltin() bool {
-	return topic.HasFlag(FlagBuiltin)
+	return topic.HasFlag(flagBuiltin)
 }
 
 func (topic *Topic) IsPublic() bool {
