@@ -10,5 +10,6 @@ Copyright (C) - All Rights Reserved
 type Command interface {
 	GetName() string
 	GetNote() string
-	CheckPublic() bool
+	IsPublic() bool
+	IsInvisible() bool
 }

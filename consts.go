@@ -8,9 +8,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 const (
-	FlagBuiltinCommand   = 0x0001 // 内置命令
-	FlagPublicCommand    = 0x0002 // 不需要登录就可以使用的命令
-	FlagInvisibleCommand = 0x0004 // 在inputBox中无法看到和使用的命令
+	FlagBuiltin   = 0x0001 // 内置命令
+	FlagPublic    = 0x0002 // 不需要登录就可以使用的命令
+	FlagInvisible = 0x0004 // 在inputBox中无法看到和使用的命令
 )
 
 // GitBranchName 参考：《编译时向 go 程序写入 git 版本信息》

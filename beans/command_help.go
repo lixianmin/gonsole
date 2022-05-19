@@ -36,9 +36,9 @@ func fetchCommandHelpImpl(list []CommandHelp, commands []ifs.Command, isAuthoriz
 	//sort.Slice(commands, func(i, j int) bool {
 	//	var a, b = commands[i], commands[j]
 	//	// 内置command排序在三方command前面
-	//	if a.CheckBuiltin() && !b.CheckBuiltin() {
+	//	if a.IsBuiltin() && !b.IsBuiltin() {
 	//		return true
-	//	} else if !a.CheckBuiltin() && b.CheckBuiltin() {
+	//	} else if !a.IsBuiltin() && b.IsBuiltin() {
 	//		return false
 	//	}
 	//
@@ -46,7 +46,7 @@ func fetchCommandHelpImpl(list []CommandHelp, commands []ifs.Command, isAuthoriz
 	//})
 
 	for _, cmd := range commands {
-		if isAuthorized || cmd.CheckPublic() {
+		if isAuthorized || cmd.IsPublic() {
 			list = append(list, CommandHelp{Name: cmd.GetName(), Note: cmd.GetNote()})
 		}
 	}

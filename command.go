@@ -24,12 +24,16 @@ func (cmd *Command) GetNote() string {
 	return cmd.Note
 }
 
-func (cmd *Command) CheckPublic() bool {
-	return cmd.HasFlag(FlagPublicCommand)
+func (cmd *Command) IsBuiltin() bool {
+	return cmd.HasFlag(FlagBuiltin)
 }
 
-func (cmd *Command) CheckBuiltin() bool {
-	return cmd.HasFlag(FlagBuiltinCommand)
+func (cmd *Command) IsPublic() bool {
+	return cmd.HasFlag(FlagPublic)
+}
+
+func (cmd *Command) IsInvisible() bool {
+	return cmd.HasFlag(FlagInvisible)
 }
 
 func (cmd *Command) Run(client *Client, args []string) (*Response, error) {

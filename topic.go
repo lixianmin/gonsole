@@ -15,11 +15,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Topic struct {
+	logo.Flag
 	Name          string           // 名称
 	Note          string           // 描述
 	Interval      time.Duration    // 推送周期
-	IsPublic      bool             // 非public方法需要登陆
-	isBuiltin     bool             // 是否为内置主题，排序时内置主题排在前面
 	BuildResponse func() *Response // 创建数据
 
 	clients struct {
@@ -79,10 +78,14 @@ func (topic *Topic) GetNote() string {
 	return topic.Note
 }
 
-func (topic *Topic) CheckPublic() bool {
-	return topic.IsPublic
+func (topic *Topic) IsBuiltin() bool {
+	return topic.HasFlag(FlagBuiltin)
 }
 
-func (topic *Topic) CheckBuiltin() bool {
-	return topic.isBuiltin
+func (topic *Topic) IsPublic() bool {
+	return topic.HasFlag(FlagPublic)
+}
+
+func (topic *Topic) IsInvisible() bool {
+	return topic.HasFlag(FlagInvisible)
 }

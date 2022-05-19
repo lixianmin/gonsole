@@ -67,7 +67,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 
 	// 要么是public方法，要么是authorized了
 	var isAuthorized = isAuthorized(session)
-	if !cmd.CheckPublic() && !isAuthorized {
+	if !cmd.IsPublic() && !isAuthorized {
 		return nil, fmt.Errorf("need auth")
 	}
 
@@ -97,7 +97,7 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 	var name = request.Topic
 	var topic = my.server.getTopic(name)
 
-	if topic == nil || !(topic.IsPublic || isAuthorized(session)) {
+	if topic == nil || !(topic.IsPublic() || isAuthorized(session)) {
 		return nil, road.NewError("InvalidTopic", "尝试订阅非法topic")
 	}
 
@@ -152,7 +152,7 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	}
 
 	for _, cmd := range commands {
-		if (isAuthorized || cmd.CheckPublic()) && strings.HasPrefix(cmd.GetName(), head) {
+		if (isAuthorized || cmd.IsPublic()) && strings.HasPrefix(cmd.GetName(), head) {
 			results = append(results, hintRe{cmd.GetName(), cmd.GetNote()})
 		}
 	}
