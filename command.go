@@ -1,6 +1,8 @@
 package gonsole
 
-import "github.com/lixianmin/logo"
+import (
+	"github.com/lixianmin/got/loom"
+)
 
 /********************************************************************
 created:    2020-06-04
@@ -10,7 +12,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Command struct {
-	logo.Flag                                                        // command的flag
+	loom.Flag                                                        // command的flag
 	Name      string                                                 // 名称
 	Note      string                                                 // 描述
 	Handler   func(client *Client, args []string) (*Response, error) // 处理方法

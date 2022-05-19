@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/randx"
 	"github.com/lixianmin/logo"
 	"sync"
@@ -15,7 +16,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Topic struct {
-	logo.Flag
+	loom.Flag
 	Name          string           // 名称
 	Note          string           // 描述
 	Interval      time.Duration    // 推送周期
