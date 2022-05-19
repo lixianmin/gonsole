@@ -137,10 +137,9 @@ func (server *Server) handleLogFiles(mux IServeMux, options serverOptions) {
 
 func (server *Server) registerBuiltinCommands(port int) {
 	server.RegisterCommand(&Command{
-		Name:      "help",
-		Note:      "帮助中心",
-		IsPublic:  true,
-		isBuiltin: true,
+		Name: "help",
+		Note: "帮助中心",
+		Flag: FlagBuiltinCommand | FlagPublicCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var isAuthorized = isAuthorized(client.Session())
 			var commandHelp = beans.FetchCommandHelp(server.getCommands(), isAuthorized)
@@ -159,10 +158,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 		}})
 
 	server.RegisterCommand(&Command{
-		Name:      "auth",
-		Note:      "认证后开启更多命令：auth username，然后根据提示输入password",
-		IsPublic:  true,
-		isBuiltin: true,
+		Name: "auth",
+		Note: "认证后开启更多命令：auth username，然后根据提示输入password",
+		Flag: FlagBuiltinCommand | FlagPublicCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			server.lastAuthTime.Store(time.Now())
 			var data = beans.NewCommandAuth(client.Session(), args, server.options.UserPasswords, port)
@@ -170,10 +168,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 		}})
 
 	server.RegisterCommand(&Command{
-		Name:      "log.list",
-		Note:      "日志文件列表",
-		IsPublic:  false,
-		isBuiltin: true,
+		Name: "log.list",
+		Note: "日志文件列表",
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.NewCommandLogList(server.options.LogListRoot)
 			var ret = &Response{Operation: "log.list", Data: data}
@@ -184,10 +181,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	const maxHeadNum = 1000
 	var headNote = fmt.Sprintf("打印文件头：head [-n num (<=%d)] [-f fitler] [-s startLine] filename", maxHeadNum)
 	server.RegisterCommand(&Command{
-		Name:      "head",
-		Note:      headNote,
-		IsPublic:  false,
-		isBuiltin: true,
+		Name: "head",
+		Note: headNote,
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
 			return NewHtmlResponse(data), nil
@@ -197,10 +193,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	const maxTailNum = maxHeadNum
 	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] [-f filter] filename", maxTailNum)
 	server.RegisterCommand(&Command{
-		Name:      "tail",
-		Note:      tailNote,
-		IsPublic:  false,
-		isBuiltin: true,
+		Name: "tail",
+		Note: tailNote,
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
 			return NewHtmlResponse(data), nil
@@ -208,20 +203,18 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	server.RegisterCommand(&Command{
-		Name:      "history",
-		Note:      "历史命令列表",
-		IsPublic:  true,
-		isBuiltin: true,
+		Name: "history",
+		Note: "历史命令列表",
+		Flag: FlagBuiltinCommand | FlagPublicCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			return &Response{Operation: "history"}, nil
 		},
 	})
 
 	server.RegisterCommand(&Command{
-		Name:      "top",
-		Note:      "打印进程统计信息",
-		IsPublic:  false,
-		isBuiltin: true,
+		Name: "top",
+		Note: "打印进程统计信息",
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var html = tools.ToHtmlTable(beans.NewTopicTop())
 			return NewHtmlResponse(html), nil
@@ -229,10 +222,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	server.RegisterCommand(&Command{
-		Name:      "app.info",
-		Note:      "打印app信息",
-		IsPublic:  false,
-		isBuiltin: true,
+		Name: "app.info",
+		Note: "打印app信息",
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
 				GoVersion:        runtime.Version(),
@@ -249,10 +241,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	server.RegisterCommand(&Command{
-		Name:      "date",
-		Note:      "打印当前日期",
-		IsPublic:  true,
-		isBuiltin: true,
+		Name: "date",
+		Note: "打印当前日期",
+		Flag: FlagBuiltinCommand | FlagPublicCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
@@ -261,9 +252,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	server.RegisterCommand(&Command{
-		Name:      "deadlock.detect",
-		Note:      "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
-		isBuiltin: true,
+		Name: "deadlock.detect",
+		Note: "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
+		Flag: FlagBuiltinCommand,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			var html = beans.DeadlockDetect(args, server.options.DeadlockIgnores)
 			if html != "" {

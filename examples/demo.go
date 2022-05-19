@@ -50,9 +50,9 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "hi",
-		Note:     "打印 hi console",
-		IsPublic: false,
+		Name: "hi",
+		Note: "打印 hi console",
+		Flag: 0,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			var bean struct {
 				Text string
@@ -64,9 +64,9 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "test_slice_sort_table_by_head",
-		Note:     "测试slice排序",
-		IsPublic: true,
+		Name: "test_slice_sort_table_by_head",
+		Note: "测试slice排序",
+		Flag: gonsole.FlagPublicCommand,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text     string
@@ -92,9 +92,9 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "test_element_table",
-		Note:     "测试element_table",
-		IsPublic: true,
+		Name: "test_element_table",
+		Note: "测试element_table",
+		Flag: gonsole.FlagPublicCommand,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text     string
@@ -119,9 +119,9 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "test_struct_sort_table_by_head",
-		Note:     "测试结构体排序",
-		IsPublic: true,
+		Name: "test_struct_sort_table_by_head",
+		Note: "测试结构体排序",
+		Flag: gonsole.FlagPublicCommand,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string
@@ -141,9 +141,9 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "test_element_struct",
-		Note:     "测试element_plus结构体",
-		IsPublic: true,
+		Name: "test_element_struct",
+		Note: "测试element_plus结构体",
+		Flag: gonsole.FlagPublicCommand,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string

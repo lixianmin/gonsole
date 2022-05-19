@@ -8,8 +8,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 const (
-//OK            = 0   // 正确返回
-//InternalError = 500 // 内部错误
+	FlagBuiltinCommand   = 0x0001 // 内置命令
+	FlagPublicCommand    = 0x0002 // 不需要登录就可以使用的命令
+	FlagInvisibleCommand = 0x0004 // 在inputBox中无法看到和使用的命令
 )
 
 // GitBranchName 参考：《编译时向 go 程序写入 git 版本信息》
