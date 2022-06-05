@@ -73,8 +73,8 @@ func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *ht
 		end = fileSize + end
 	}
 
-	start = mathx.ClampInt64(start, 0, fileSize-1)
-	end = mathx.ClampInt64(end, start, fileSize-1)
+	start = mathx.ClampI64(start, 0, fileSize-1)
+	end = mathx.ClampI64(end, start, fileSize-1)
 
 	// 下载整个文件时，不会传入[start, end]，此时需要自己设置为fileSize-1
 	if end == 0 {
