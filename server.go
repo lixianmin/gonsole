@@ -97,6 +97,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 		var remoteAddress = session.RemoteAddr().String()
 		// console.challenge协议不能随便发，因为默认情况下pitaya client不认识这个协议，会导致pitaya.connect失败
+		// 但是, 我们仍然需要给client登录验证的机会, 所以下面会开放OnHandShaken()事件
 		//_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
@@ -110,6 +111,11 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	logo.Info("Gonsole: console       		= %s", server.consoleUrl)
 	logo.Info("Starting server")
 	return server
+}
+
+// OnHandShaken 开放OnHandShaken()事件(可以反复注册多个). 原因是在用户认证流程中需要在这个时机向client发送challenge协议
+func (server *Server) OnHandShaken(handler func(session road.Session)) {
+	server.app.OnHandShaken(handler)
 }
 
 func (server *Server) RegisterService(name string, service component.Component) {
