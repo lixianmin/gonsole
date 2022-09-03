@@ -1,15 +1,15 @@
+package codec
+
+import (
+	"bytes"
+)
+
 /********************************************************************
 created:    2022-09-03
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-package codec
-
-import (
-	"bytes"
-)
 
 // PomeloPacketDecoder reads and decodes data slice following pomelo's protocol
 type PomeloPacketDecoder struct{}
@@ -19,13 +19,13 @@ func NewPomeloPacketDecoder() *PomeloPacketDecoder {
 	return &PomeloPacketDecoder{}
 }
 
-func (c *PomeloPacketDecoder) forward(buf *bytes.Buffer) (int, PacketType, error) {
+func (my *PomeloPacketDecoder) forward(buf *bytes.Buffer) (int, PacketKind, error) {
 	header := buf.Next(HeadLength)
 	return ParseHeader(header)
 }
 
 // Decode decode the bytes slice to packet.Packet(s)
-func (c *PomeloPacketDecoder) Decode(data []byte) ([]*Packet, error) {
+func (my *PomeloPacketDecoder) Decode(data []byte) ([]*Packet, error) {
 	buf := bytes.NewBuffer(nil)
 	buf.Write(data)
 
@@ -41,7 +41,7 @@ func (c *PomeloPacketDecoder) Decode(data []byte) ([]*Packet, error) {
 	}
 
 	// first time
-	size, typ, err := c.forward(buf)
+	size, typ, err := my.forward(buf)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (c *PomeloPacketDecoder) Decode(data []byte) ([]*Packet, error) {
 			break
 		}
 
-		size, typ, err = c.forward(buf)
+		size, typ, err = my.forward(buf)
 		if err != nil {
 			return nil, err
 		}

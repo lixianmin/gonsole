@@ -1,15 +1,11 @@
+package codec
+
 /********************************************************************
 created:    2022-09-03
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-package codec
-
-import (
-	"github.com/lixianmin/gonsole/ifs"
-)
 
 // PomeloPacketEncoder struct
 type PomeloPacketEncoder struct {
@@ -26,16 +22,16 @@ func NewPomeloPacketEncoder() *PomeloPacketEncoder {
 // -<type>-|--------<length>--------|-<data>-
 // --------|------------------------|--------
 // 1 byte packet type, 3 bytes packet data length(big end), and data segment
-func (e *PomeloPacketEncoder) Encode(typ PacketType, data []byte) ([]byte, error) {
-	if typ < Handshake || typ > Kick {
-		return nil, ifs.ErrWrongPomeloPacketType
+func (my *PomeloPacketEncoder) Encode(kind PacketKind, data []byte) ([]byte, error) {
+	if kind < Handshake || kind > Kick {
+		return nil, ErrWrongPomeloPacketType
 	}
 
 	if len(data) > MaxPacketSize {
-		return nil, ifs.ErrPacketSizeExceed
+		return nil, ErrPacketSizeExceed
 	}
 
-	p := &Packet{Type: typ, Length: len(data)}
+	p := &Packet{Type: kind, Length: len(data)}
 	buf := make([]byte, p.Length+HeadLength)
 	buf[0] = p.Type
 

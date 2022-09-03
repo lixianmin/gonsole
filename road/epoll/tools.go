@@ -14,7 +14,7 @@ Copyright (C) - All Rights Reserved
 
 func checkReceivedMsgBytes(msgBytes []byte) error {
 	if len(msgBytes) < codec.HeadLength {
-		return ifs.ErrInvalidPomeloHeader
+		return codec.ErrInvalidPomeloHeader
 	}
 
 	header := msgBytes[:codec.HeadLength]

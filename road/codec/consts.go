@@ -1,11 +1,11 @@
+package codec
+
 /********************************************************************
 created:    2022-09-03
 author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-package codec
 
 // Codec constants.
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 const (
-	_ PacketType = iota
+	_ PacketKind = iota
 	// Handshake represents a handshake: request(client) <====> handshake response(server)
 	Handshake = 0x01
 

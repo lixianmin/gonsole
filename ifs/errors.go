@@ -28,13 +28,4 @@ var (
 	ErrReceivedMsgSmallerThanExpected = errors.New("received less data than expected, EOF")
 	ErrReceivedMsgBiggerThanExpected  = errors.New("received more data than expected")
 	//ErrUnexpectedEOF                  = errors.New("there is no enough data")
-
-	// ErrWrongPomeloPacketType represents a wrong packet type.
-	ErrWrongPomeloPacketType = errors.New("wrong packet type")
-
-	// ErrInvalidPomeloHeader represents an invalid header
-	ErrInvalidPomeloHeader = errors.New("invalid header")
-
-	// ErrPacketSizeExceed is the error used for encode/decode.
-	ErrPacketSizeExceed = errors.New("codec: packet size exceed")
 )

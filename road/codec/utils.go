@@ -1,3 +1,5 @@
+package codec
+
 /********************************************************************
 created:    2022-09-03
 author:     lixianmin
@@ -5,27 +7,21 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-package codec
-
-import (
-	"github.com/lixianmin/gonsole/ifs"
-)
-
 // ParseHeader parses a packet header and returns its dataLen and packetType or an error
-func ParseHeader(header []byte) (int, PacketType, error) {
+func ParseHeader(header []byte) (int, PacketKind, error) {
 	if len(header) != HeadLength {
-		return 0, 0x00, ifs.ErrInvalidPomeloHeader
+		return 0, 0x00, ErrInvalidPomeloHeader
 	}
 
 	typ := header[0]
 	if typ < Handshake || typ > Kick {
-		return 0, 0x00, ifs.ErrWrongPomeloPacketType
+		return 0, 0x00, ErrWrongPomeloPacketType
 	}
 
 	size := BytesToInt(header[1:])
 
 	if size > MaxPacketSize {
-		return 0, 0x00, ifs.ErrPacketSizeExceed
+		return 0, 0x00, ErrPacketSizeExceed
 	}
 
 	return size, typ, nil
