@@ -14,13 +14,13 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type clientConn struct {
+type WsClientConn struct {
 	conn   net.Conn
 	reader *wsutil.Reader
 }
 
-func newClientConn(conn net.Conn) *clientConn {
-	var item = &clientConn{
+func newWsClientConn(conn net.Conn) *WsClientConn {
+	var item = &WsClientConn{
 		conn:   conn,
 		reader: wsutil.NewReader(conn, ws.StateClientSide),
 	}
@@ -28,42 +28,17 @@ func newClientConn(conn net.Conn) *clientConn {
 	return item
 }
 
-func (my *clientConn) Read(b []byte) (int, error) {
+func (my *WsClientConn) Read(b []byte) (int, error) {
 	var reader = my.reader
 	var _, err = reader.NextFrame()
 	if err != nil {
 		return 0, err
 	}
 
-	n, err := reader.Read(b)
-	return n, nil
+	return reader.Read(b)
 }
 
-// 下面这个操作流程是copy自原pitaya的client，现在已经改写成上面的代码，不知道是否会有问题
-//func (my *clientConn) Read(b []byte) (int, error) {
-//	if my.reader == nil {
-//		_, r, err := wsutil.NextReader(my.conn, ws.StateClientSide)
-//		if err != nil {
-//			return 0, err
-//		}
-//		my.reader = r
-//	}
-//
-//	n, err := my.reader.Read(b)
-//	if err != nil && err != io.EOF {
-//		return n, err
-//	} else if err == io.EOF {
-//		_, r, err := wsutil.NextReader(my.conn, ws.StateClientSide)
-//		if err != nil {
-//			return 0, err
-//		}
-//		my.reader = r
-//	}
-//
-//	return n, nil
-//}
-
-func (my *clientConn) Write(b []byte) (int, error) {
+func (my *WsClientConn) Write(b []byte) (int, error) {
 	var err = wsutil.WriteClientBinary(my.conn, b)
 	if err != nil {
 		return 0, err
@@ -72,17 +47,17 @@ func (my *clientConn) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func (my *clientConn) Close() error {
+func (my *WsClientConn) Close() error {
 	return my.conn.Close()
 }
 
 // LocalAddr returns the local address.
-func (my *clientConn) LocalAddr() net.Addr {
+func (my *WsClientConn) LocalAddr() net.Addr {
 	return my.conn.LocalAddr()
 }
 
 // RemoteAddr returns the remote address.
-func (my *clientConn) RemoteAddr() net.Addr {
+func (my *WsClientConn) RemoteAddr() net.Addr {
 	return my.conn.RemoteAddr()
 }
 
@@ -101,7 +76,7 @@ func (my *clientConn) RemoteAddr() net.Addr {
 // the deadline after successful Read or Write calls.
 //
 // A zero value for t means I/O operations will not time out.
-func (my *clientConn) SetDeadline(t time.Time) error {
+func (my *WsClientConn) SetDeadline(t time.Time) error {
 	if err := my.SetReadDeadline(t); err != nil {
 		return err
 	}
@@ -112,15 +87,15 @@ func (my *clientConn) SetDeadline(t time.Time) error {
 // SetReadDeadline sets the deadline for future Read calls
 // and any currently-blocked Read call.
 // A zero value for t means Read will not time out.
-func (my *clientConn) SetReadDeadline(t time.Time) error {
+func (my *WsClientConn) SetReadDeadline(t time.Time) error {
 	return my.conn.SetReadDeadline(t)
 }
 
 // SetWriteDeadline sets the deadline for future Write calls
 // and any currently-blocked Write call.
 // Even if write times out, it may return n > 0, indicating that
-// some of the data was successfully written.
+// some data was successfully written.
 // A zero value for t means Write will not time out.
-func (my *clientConn) SetWriteDeadline(t time.Time) error {
+func (my *WsClientConn) SetWriteDeadline(t time.Time) error {
 	return my.conn.SetWriteDeadline(t)
 }

@@ -47,6 +47,8 @@ func (c *PomeloPacketDecoder) Decode(data []byte) ([]*packet.Packet, error) {
 		packets []*packet.Packet
 		err     error
 	)
+
+	// todo 这种玩法会丢失数据的
 	// check length
 	if buf.Len() < HeadLength {
 		return nil, nil

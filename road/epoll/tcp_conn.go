@@ -1,7 +1,7 @@
 package epoll
 
 import (
-	codec2 "github.com/lixianmin/gonsole/road/codec"
+	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/loom"
 	"github.com/xtaci/gaio"
 	"net"
@@ -49,12 +49,12 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 		return err
 	}
 
-	var headLength = codec2.HeadLength
+	var headLength = codec.HeadLength
 	var data = input.Bytes()
 
 	for len(data) > headLength {
 		var header = data[:headLength]
-		msgSize, _, err := codec2.ParseHeader(header)
+		msgSize, _, err := codec.ParseHeader(header)
 		if err != nil {
 			return err
 		}

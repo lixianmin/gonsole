@@ -1,22 +1,9 @@
-// Copyright (c) TFG Co. All Rights Reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+/********************************************************************
+created:    2022-09-03
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
 
 package client
 
@@ -39,46 +26,33 @@ import (
 	"time"
 )
 
-// HandshakeSys struct
-type HandshakeSys struct {
-	Dict       map[string]uint16 `json:"dict"`
-	Heartbeat  int               `json:"heartbeat"`
-	Serializer string            `json:"serializer"`
-}
-
-// HandshakeResponse struct
-type HandshakeResponse struct {
-	Code int          `json:"code"`
-	Sys  HandshakeSys `json:"sys"`
-}
-
 type PitayaClient struct {
-	conn             net.Conn
-	isConnected      int32
-	packetEncoder    codec.PacketEncoder
-	packetDecoder    codec.PacketDecoder
-	packetChan       chan *packet.Packet
-	IncomingMsgChan  chan *message.Message
-	requestTimeout   time.Duration
-	nextId           uint32
-	messageEncoder   message.Encoder
-	handshakeRequest *HandshakeRequest
-	wc               loom.WaitClose
+	conn                net.Conn
+	isConnected         int32
+	packetEncoder       codec.PacketEncoder
+	packetDecoder       codec.PacketDecoder
+	receivedPacketChan  chan *packet.Packet
+	receivedMessageChan chan *message.Message
+	requestTimeout      time.Duration
+	nextId              uint32
+	messageEncoder      message.Encoder
+	handshakeRequest    *HandshakeRequest
+	wc                  loom.WaitClose
 }
 
-// New returns a new client
-func New(requestTimeout ...time.Duration) *PitayaClient {
-
-	reqTimeout := 5 * time.Second
+func NewPitayaClient(requestTimeout ...time.Duration) *PitayaClient {
+	var reqTimeout = 5 * time.Second
 	if len(requestTimeout) > 0 {
 		reqTimeout = requestTimeout[0]
 	}
 
-	return &PitayaClient{
-		isConnected:    0,
-		packetEncoder:  codec.NewPomeloPacketEncoder(),
-		packetDecoder:  codec.NewPomeloPacketDecoder(),
-		packetChan:     make(chan *packet.Packet, 10),
+	var client = &PitayaClient{
+		isConnected:         0,
+		packetEncoder:       codec.NewPomeloPacketEncoder(),
+		packetDecoder:       codec.NewPomeloPacketDecoder(),
+		receivedPacketChan:  make(chan *packet.Packet, 10),
+		receivedMessageChan: make(chan *message.Message, 10),
+
 		requestTimeout: reqTimeout,
 		messageEncoder: message.NewMessagesEncoder(false),
 		handshakeRequest: &HandshakeRequest{
@@ -93,16 +67,56 @@ func New(requestTimeout ...time.Duration) *PitayaClient {
 			},
 		},
 	}
+
+	return client
 }
 
-// MsgChannel return the incoming message channel
-func (client *PitayaClient) MsgChannel() chan *message.Message {
-	return client.IncomingMsgChan
+func (client *PitayaClient) goLoop(later loom.Later) {
+	var closeChan = client.wc.C()
+	defer client.Close()
+
+	var heartbeatTicker = later.NewTicker(10 * time.Second)
+
+	for {
+		select {
+		case p := <-client.receivedPacketChan:
+			switch p.Type {
+			case packet.Data:
+				msg, err := message.Decode(p.Data)
+				if err != nil {
+					logo.Info("error decoding msg from sv: %s", string(msg.Data))
+				}
+				client.receivedMessageChan <- msg
+			case packet.Kick:
+				logo.Info("got kick packet from the server! disconnecting...")
+			}
+		case <-heartbeatTicker.C:
+			p, _ := client.packetEncoder.Encode(packet.Heartbeat, []byte{})
+			if _, err := client.conn.Write(p); err != nil {
+				logo.Info("error sending heartbeat to server: %s", err.Error())
+				return
+			}
+		case <-closeChan:
+			return
+		}
+	}
 }
 
-// IsConnected return the connection status
-func (client *PitayaClient) IsConnected() bool {
-	return atomic.LoadInt32(&client.isConnected) == 1
+func (client *PitayaClient) goReadPackets(later loom.Later) {
+	defer client.Close()
+	var buf = bytes.NewBuffer(nil)
+
+	for client.IsConnected() {
+		packets, err := client.readPackets(buf)
+		if err != nil && client.IsConnected() {
+			logo.JsonI("err", err)
+			break
+		}
+
+		for _, p := range packets {
+			client.receivedPacketChan <- p
+		}
+	}
 }
 
 // SetClientHandshakeData sets the data to send inside handshake
@@ -132,13 +146,13 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 		return err
 	}
 
-	// 这里, 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
+	// 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
 	handshakePacket := packets[0]
 	if handshakePacket.Type != packet.Handshake {
 		return fmt.Errorf("got first packet from server that is not a handshake, aborting")
 	}
 
-	handshake := &HandshakeResponse{}
+	var handshake = &HandshakeResponse{}
 	if compression.IsCompressed(handshakePacket.Data) {
 		handshakePacket.Data, err = compression.InflateData(handshakePacket.Data)
 		if err != nil {
@@ -151,7 +165,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 		return err
 	}
 
-	logo.Debug("got handshake from sv, data: %v", handshake)
+	logo.Debug("got handshake from server, data: %v", handshake)
 
 	if handshake.Sys.Dict != nil {
 		_ = message.SetDictionary(handshake.Sys.Dict)
@@ -167,33 +181,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 	}
 
 	atomic.StoreInt32(&client.isConnected, 1)
-
-	go client.sendHeartbeats(handshake.Sys.Heartbeat)
-	go client.handleServerMessages()
-	go client.handlePackets()
-
 	return nil
-}
-
-func (client *PitayaClient) handlePackets() {
-	for {
-		select {
-		case p := <-client.packetChan:
-			switch p.Type {
-			case packet.Data:
-				m, err := message.Decode(p.Data)
-				if err != nil {
-					logo.Info("error decoding msg from sv: %s", string(m.Data))
-				}
-				client.IncomingMsgChan <- m
-			case packet.Kick:
-				logo.Info("got kick packet from the server! disconnecting...")
-				client.Close()
-			}
-		case <-client.wc.C():
-			return
-		}
-	}
 }
 
 func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
@@ -217,52 +205,13 @@ func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*packet.Packet, er
 		return nil, err
 	}
 
-	totalProcessed := 0
+	var totalProcessed = 0
 	for _, p := range packets {
 		totalProcessed += codec.HeadLength + p.Length
 	}
 	buf.Next(totalProcessed)
 
 	return packets, nil
-}
-
-func (client *PitayaClient) handleServerMessages() {
-	buf := bytes.NewBuffer(nil)
-	defer client.Close()
-
-	for client.IsConnected() {
-		packets, err := client.readPackets(buf)
-		if err != nil && client.IsConnected() {
-			logo.JsonI("err", err)
-			break
-		}
-
-		for _, p := range packets {
-			client.packetChan <- p
-		}
-	}
-}
-
-func (client *PitayaClient) sendHeartbeats(interval int) {
-	t := time.NewTicker(time.Duration(interval) * time.Second)
-	defer func() {
-		t.Stop()
-		_ = client.Close()
-	}()
-
-	for {
-		select {
-		case <-t.C:
-			p, _ := client.packetEncoder.Encode(packet.Heartbeat, []byte{})
-			_, err := client.conn.Write(p)
-			if err != nil {
-				logo.Info("error sending heartbeat to server: %s", err.Error())
-				return
-			}
-		case <-client.wc.C():
-			return
-		}
-	}
 }
 
 // Close disconnects the client
@@ -290,10 +239,9 @@ func (client *PitayaClient) ConnectTo(addr string, tlsConfig ...*tls.Config) err
 	if err != nil {
 		return err
 	}
-	client.conn = conn
-	client.IncomingMsgChan = make(chan *message.Message, 10)
 
-	if err = client.handleHandshake(); err != nil {
+	client.conn = conn
+	if err = client.startHandshake(); err != nil {
 		return err
 	}
 
@@ -315,17 +263,15 @@ func (client *PitayaClient) ConnectToWS(addr string, path string, tlsConfig ...*
 		return err
 	}
 
-	client.conn = newClientConn(conn)
-	client.IncomingMsgChan = make(chan *message.Message, 10)
-
-	if err = client.handleHandshake(); err != nil {
+	client.conn = newWsClientConn(conn)
+	if err = client.startHandshake(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (client *PitayaClient) handleHandshake() error {
+func (client *PitayaClient) startHandshake() error {
 	if err := client.sendHandshakeRequest(); err != nil {
 		return err
 	}
@@ -334,6 +280,8 @@ func (client *PitayaClient) handleHandshake() error {
 		return err
 	}
 
+	loom.Go(client.goLoop)
+	loom.Go(client.goReadPackets)
 	return nil
 }
 
@@ -349,7 +297,7 @@ func (client *PitayaClient) SendNotify(route string, data []byte) error {
 }
 
 func (client *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
-	encMsg, err := client.messageEncoder.Encode(&msg)
+	var encMsg, err = client.messageEncoder.Encode(&msg)
 	if err != nil {
 		return nil, err
 	}
@@ -372,6 +320,7 @@ func (client *PitayaClient) sendMsg(msgType message.Type, route string, data []b
 		Data:  data,
 		Err:   false,
 	}
+
 	p, err := client.buildPacket(m)
 	if msgType == message.Request {
 
@@ -383,4 +332,14 @@ func (client *PitayaClient) sendMsg(msgType message.Type, route string, data []b
 
 	_, err = client.conn.Write(p)
 	return m.Id, err
+}
+
+// GetReceivedChan return the incoming message channel
+func (client *PitayaClient) GetReceivedChan() chan *message.Message {
+	return client.receivedMessageChan
+}
+
+// IsConnected return the connection status
+func (client *PitayaClient) IsConnected() bool {
+	return atomic.LoadInt32(&client.isConnected) == 1
 }

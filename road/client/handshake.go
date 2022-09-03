@@ -7,7 +7,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-// HandshakeClientData represents information about the client sent on the handshake.
+// HandshakeClientData represents information about the client sent on the startHandshake.
 type HandshakeClientData struct {
 	Platform    string `json:"platform"`
 	LibVersion  string `json:"libVersion"`
@@ -15,10 +15,20 @@ type HandshakeClientData struct {
 	Version     string `json:"clientVersion"`
 }
 
-// HandshakeRequest represents information about the handshake sent by the client.
-// `sys` corresponds to information independent from the app and `user` information
+// HandshakeRequest represents information about the startHandshake sent by the client.
+// `sys` corresponds to information independent of the app and `user` information
 // that depends on the app and is customized by the user.
 type HandshakeRequest struct {
 	Sys  HandshakeClientData    `json:"sys"`
 	User map[string]interface{} `json:"user,omitempty"`
+}
+
+type HandshakeSys struct {
+	Dict       map[string]uint16 `json:"dict"`
+	Serializer string            `json:"serializer"`
+}
+
+type HandshakeResponse struct {
+	Code int          `json:"code"`
+	Sys  HandshakeSys `json:"sys"`
 }
