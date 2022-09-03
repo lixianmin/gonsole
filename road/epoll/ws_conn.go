@@ -3,7 +3,7 @@ package epoll
 import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"github.com/lixianmin/gonsole/road/conn/codec"
+	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/loom"
 	"github.com/xtaci/gaio"
 	"io"

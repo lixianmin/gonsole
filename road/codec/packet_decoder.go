@@ -20,7 +20,7 @@
 
 package codec
 
-import "github.com/lixianmin/gonsole/road/conn/packet"
+import "github.com/lixianmin/gonsole/road/packet"
 
 // PacketDecoder interface
 type PacketDecoder interface {

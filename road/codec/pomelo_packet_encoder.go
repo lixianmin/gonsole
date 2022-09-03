@@ -18,24 +18,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package packet
+package codec
 
 import (
-	"fmt"
+	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/packet"
 )
 
-type Packet struct {
-	Type   Type
-	Length int
-	Data   []byte
+// PomeloPacketEncoder struct
+type PomeloPacketEncoder struct {
 }
 
-//New create a Packet instance.
-func New() *Packet {
-	return &Packet{}
+// NewPomeloPacketEncoder ctor
+func NewPomeloPacketEncoder() *PomeloPacketEncoder {
+	return &PomeloPacketEncoder{}
 }
 
-//String represents the Packet's in text mode.
-func (p *Packet) String() string {
-	return fmt.Sprintf("Type: %d, Length: %d, Data: %s", p.Type, p.Length, string(p.Data))
+// Encode create a packet.Packet from  the raw bytes slice and then encode to bytes slice
+// Protocol refs: https://github.com/NetEase/pomelo/wiki/Communication-Protocol
+//
+// -<type>-|--------<length>--------|-<data>-
+// --------|------------------------|--------
+// 1 byte packet type, 3 bytes packet data length(big end), and data segment
+func (e *PomeloPacketEncoder) Encode(typ packet.Type, data []byte) ([]byte, error) {
+	if typ < packet.Handshake || typ > packet.Kick {
+		return nil, ifs.ErrWrongPomeloPacketType
+	}
+
+	if len(data) > MaxPacketSize {
+		return nil, ifs.ErrPacketSizeExceed
+	}
+
+	p := &packet.Packet{Type: typ, Length: len(data)}
+	buf := make([]byte, p.Length+HeadLength)
+	buf[0] = byte(p.Type)
+
+	copy(buf[1:HeadLength], IntToBytes(p.Length))
+	copy(buf[HeadLength:], data)
+
+	return buf, nil
 }

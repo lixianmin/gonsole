@@ -18,42 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package codec
+package ifs
 
-import (
-	"github.com/lixianmin/gonsole/road/conn/packet"
+import "errors"
+
+// Errors that can occur during message handling.
+var (
+	ErrReplyShouldBeNotNull           = errors.New("reply must not be null")
+	ErrReceivedMsgSmallerThanExpected = errors.New("received less data than expected, EOF")
+	ErrReceivedMsgBiggerThanExpected  = errors.New("received more data than expected")
+	//ErrUnexpectedEOF                  = errors.New("there is no enough data")
+
+	// ErrWrongPomeloPacketType represents a wrong packet type.
+	ErrWrongPomeloPacketType = errors.New("wrong packet type")
+
+	// ErrInvalidPomeloHeader represents an invalid header
+	ErrInvalidPomeloHeader = errors.New("invalid header")
+
+	// ErrPacketSizeExceed is the error used for encode/decode.
+	ErrPacketSizeExceed = errors.New("codec: packet size exceed")
 )
-
-// PomeloPacketEncoder struct
-type PomeloPacketEncoder struct {
-}
-
-// NewPomeloPacketEncoder ctor
-func NewPomeloPacketEncoder() *PomeloPacketEncoder {
-	return &PomeloPacketEncoder{}
-}
-
-// Encode create a packet.Packet from  the raw bytes slice and then encode to bytes slice
-// Protocol refs: https://github.com/NetEase/pomelo/wiki/Communication-Protocol
-//
-// -<type>-|--------<length>--------|-<data>-
-// --------|------------------------|--------
-// 1 byte packet type, 3 bytes packet data length(big end), and data segment
-func (e *PomeloPacketEncoder) Encode(typ packet.Type, data []byte) ([]byte, error) {
-	if typ < packet.Handshake || typ > packet.Kick {
-		return nil, packet.ErrWrongPomeloPacketType
-	}
-
-	if len(data) > MaxPacketSize {
-		return nil, ErrPacketSizeExcced
-	}
-
-	p := &packet.Packet{Type: typ, Length: len(data)}
-	buf := make([]byte, p.Length+HeadLength)
-	buf[0] = byte(p.Type)
-
-	copy(buf[1:HeadLength], IntToBytes(p.Length))
-	copy(buf[HeadLength:], data)
-
-	return buf, nil
-}

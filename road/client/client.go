@@ -27,7 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gobwas/ws"
-	"github.com/lixianmin/gonsole/road/conn/codec"
+	codec2 "github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/conn/message"
 	"github.com/lixianmin/gonsole/road/conn/packet"
 	"github.com/lixianmin/gonsole/road/util/compression"
@@ -61,8 +61,8 @@ type pendingRequest struct {
 type Client struct {
 	conn             net.Conn
 	isConnected      int32
-	packetEncoder    codec.PacketEncoder
-	packetDecoder    codec.PacketDecoder
+	packetEncoder    codec2.PacketEncoder
+	packetDecoder    codec2.PacketDecoder
 	packetChan       chan *packet.Packet
 	IncomingMsgChan  chan *message.Message
 	requestTimeout   time.Duration
@@ -92,8 +92,8 @@ func New(requestTimeout ...time.Duration) *Client {
 
 	return &Client{
 		isConnected:    0,
-		packetEncoder:  codec.NewPomeloPacketEncoder(),
-		packetDecoder:  codec.NewPomeloPacketDecoder(),
+		packetEncoder:  codec2.NewPomeloPacketEncoder(),
+		packetDecoder:  codec2.NewPomeloPacketDecoder(),
 		packetChan:     make(chan *packet.Packet, 10),
 		requestTimeout: reqTimeout,
 		messageEncoder: message.NewMessagesEncoder(false),
@@ -219,7 +219,7 @@ func (c *Client) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
 	}
 	totalProcessed := 0
 	for _, p := range packets {
-		totalProcessed += codec.HeadLength + p.Length
+		totalProcessed += codec2.HeadLength + p.Length
 	}
 	buf.Next(totalProcessed)
 

@@ -2,7 +2,7 @@ package component
 
 import (
 	"context"
-	"github.com/lixianmin/gonsole/road/conn/message"
+	"github.com/lixianmin/gonsole/road/message"
 	"reflect"
 	"unicode"
 	"unicode/utf8"

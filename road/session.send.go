@@ -1,8 +1,8 @@
 package road
 
 import (
-	"github.com/lixianmin/gonsole/road/conn/message"
-	"github.com/lixianmin/gonsole/road/conn/packet"
+	"github.com/lixianmin/gonsole/road/message"
+	"github.com/lixianmin/gonsole/road/packet"
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/logo"
 )

@@ -1,4 +1,4 @@
-// Copyright (c) TFG Co. All Rights Reserved.
+// Copyright (c) nano Author and TFG Co. All Rights Reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,8 @@
 
 package codec
 
-import "github.com/lixianmin/gonsole/road/conn/packet"
-
-// PacketEncoder interface
-type PacketEncoder interface {
-	Encode(typ packet.Type, data []byte) ([]byte, error)
-}
+// Codec constants.
+const (
+	HeadLength    = 4
+	MaxPacketSize = 1 << 24 //16MB
+)

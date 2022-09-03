@@ -1,4 +1,4 @@
-// Copyright (c) nano Author and TFG Co. All Rights Reserved.
+// Copyright (c) TFG Co. All Rights Reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,33 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package packet
+package codec
 
-import "errors"
+import "github.com/lixianmin/gonsole/road/packet"
 
-// Type represents the packet's type such as: handshake and so on.
-type Type byte
-
-const (
-	_ Type = iota
-	// Handshake represents a handshake: request(client) <====> handshake response(server)
-	Handshake = 0x01
-
-	// HandshakeAck represents a handshake ack from client to server
-	HandshakeAck = 0x02
-
-	// Heartbeat represents a heartbeat
-	Heartbeat = 0x03
-
-	// Data represents a common data packet
-	Data = 0x04
-
-	// Kick represents a kick off packet
-	Kick = 0x05 // disconnect message from server
-)
-
-// ErrWrongPomeloPacketType represents a wrong packet type.
-var ErrWrongPomeloPacketType = errors.New("wrong packet type")
-
-// ErrInvalidPomeloHeader represents an invalid header
-var ErrInvalidPomeloHeader = errors.New("invalid header")
+// PacketEncoder interface
+type PacketEncoder interface {
+	Encode(typ packet.Type, data []byte) ([]byte, error)
+}

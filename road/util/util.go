@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/lixianmin/gonsole/road/ifs"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/logo"
 	"reflect"

@@ -18,15 +18,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package codec
+package packet
 
-import "errors"
-
-// Codec constants.
-const (
-	HeadLength    = 4
-	MaxPacketSize = 1 << 24 //16MB
+import (
+	"fmt"
 )
 
-// ErrPacketSizeExcced is the error used for encode/decode.
-var ErrPacketSizeExcced = errors.New("codec: packet size exceed")
+type Packet struct {
+	Type   Type
+	Length int
+	Data   []byte
+}
+
+//String represents the Packet's in text mode.
+func (p *Packet) String() string {
+	return fmt.Sprintf("Type: %d, Length: %d, Data: %s", p.Type, p.Length, string(p.Data))
+}

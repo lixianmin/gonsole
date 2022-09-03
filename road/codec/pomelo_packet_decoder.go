@@ -22,7 +22,7 @@ package codec
 
 import (
 	"bytes"
-	"github.com/lixianmin/gonsole/road/conn/packet"
+	"github.com/lixianmin/gonsole/road/packet"
 )
 
 // PomeloPacketDecoder reads and decodes data slice following pomelo's protocol

@@ -2,7 +2,7 @@ package road
 
 import (
 	"context"
-	"github.com/lixianmin/gonsole/road/ifs"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/logo"
 )
 

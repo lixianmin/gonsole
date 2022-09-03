@@ -1,9 +1,8 @@
 package epoll
 
 import (
-	"github.com/lixianmin/gonsole/road/conn/codec"
-	"github.com/lixianmin/gonsole/road/conn/packet"
-	"github.com/lixianmin/gonsole/road/ifs"
+	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/codec"
 )
 
 /********************************************************************
@@ -15,7 +14,7 @@ Copyright (C) - All Rights Reserved
 
 func checkReceivedMsgBytes(msgBytes []byte) error {
 	if len(msgBytes) < codec.HeadLength {
-		return packet.ErrInvalidPomeloHeader
+		return ifs.ErrInvalidPomeloHeader
 	}
 
 	header := msgBytes[:codec.HeadLength]
