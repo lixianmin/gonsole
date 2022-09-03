@@ -52,13 +52,7 @@ type HandshakeResponse struct {
 	Sys  HandshakeSys `json:"sys"`
 }
 
-type pendingRequest struct {
-	msg    *message.Message
-	sentAt time.Time
-}
-
-// Client struct
-type Client struct {
+type PitayaClient struct {
 	conn             net.Conn
 	isConnected      int32
 	packetEncoder    codec.PacketEncoder
@@ -72,25 +66,15 @@ type Client struct {
 	wc               loom.WaitClose
 }
 
-// MsgChannel return the incoming message channel
-func (c *Client) MsgChannel() chan *message.Message {
-	return c.IncomingMsgChan
-}
-
-// IsConnected return the connection status
-func (c *Client) IsConnected() bool {
-	return atomic.LoadInt32(&c.isConnected) == 1
-}
-
 // New returns a new client
-func New(requestTimeout ...time.Duration) *Client {
+func New(requestTimeout ...time.Duration) *PitayaClient {
 
 	reqTimeout := 5 * time.Second
 	if len(requestTimeout) > 0 {
 		reqTimeout = requestTimeout[0]
 	}
 
-	return &Client{
+	return &PitayaClient{
 		isConnected:    0,
 		packetEncoder:  codec.NewPomeloPacketEncoder(),
 		packetDecoder:  codec.NewPomeloPacketDecoder(),
@@ -111,12 +95,22 @@ func New(requestTimeout ...time.Duration) *Client {
 	}
 }
 
+// MsgChannel return the incoming message channel
+func (c *PitayaClient) MsgChannel() chan *message.Message {
+	return c.IncomingMsgChan
+}
+
+// IsConnected return the connection status
+func (c *PitayaClient) IsConnected() bool {
+	return atomic.LoadInt32(&c.isConnected) == 1
+}
+
 // SetClientHandshakeData sets the data to send inside handshake
-func (c *Client) SetHandshakeRequest(data *HandshakeRequest) {
+func (c *PitayaClient) SetHandshakeRequest(data *HandshakeRequest) {
 	c.handshakeRequest = data
 }
 
-func (c *Client) sendHandshakeRequest() error {
+func (c *PitayaClient) sendHandshakeRequest() error {
 	enc, err := json.Marshal(c.handshakeRequest)
 	if err != nil {
 		return err
@@ -131,13 +125,14 @@ func (c *Client) sendHandshakeRequest() error {
 	return err
 }
 
-func (c *Client) handleHandshakeResponse() error {
+func (c *PitayaClient) handleHandshakeResponse() error {
 	buf := bytes.NewBuffer(nil)
 	packets, err := c.readPackets(buf)
 	if err != nil || len(packets) == 0 {
 		return err
 	}
 
+	// 这里, 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
 	handshakePacket := packets[0]
 	if handshakePacket.Type != packet.Handshake {
 		return fmt.Errorf("got first packet from server that is not a handshake, aborting")
@@ -180,7 +175,7 @@ func (c *Client) handleHandshakeResponse() error {
 	return nil
 }
 
-func (c *Client) handlePackets() {
+func (c *PitayaClient) handlePackets() {
 	for {
 		select {
 		case p := <-c.packetChan:
@@ -201,7 +196,7 @@ func (c *Client) handlePackets() {
 	}
 }
 
-func (c *Client) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
+func (c *PitayaClient) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
 	// listen for sv messages
 	data := make([]byte, 1024)
 	n := len(data)
@@ -220,7 +215,7 @@ func (c *Client) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
 	if err != nil {
 		logo.Info("error decoding packet from server: %s", err.Error())
 	}
-	
+
 	totalProcessed := 0
 	for _, p := range packets {
 		totalProcessed += codec.HeadLength + p.Length
@@ -230,7 +225,7 @@ func (c *Client) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
 	return packets, nil
 }
 
-func (c *Client) handleServerMessages() {
+func (c *PitayaClient) handleServerMessages() {
 	buf := bytes.NewBuffer(nil)
 	defer c.Disconnect()
 	for c.IsConnected() {
@@ -246,7 +241,7 @@ func (c *Client) handleServerMessages() {
 	}
 }
 
-func (c *Client) sendHeartbeats(interval int) {
+func (c *PitayaClient) sendHeartbeats(interval int) {
 	t := time.NewTicker(time.Duration(interval) * time.Second)
 	defer func() {
 		t.Stop()
@@ -268,7 +263,7 @@ func (c *Client) sendHeartbeats(interval int) {
 }
 
 // Disconnect disconnects the client
-func (c *Client) Disconnect() {
+func (c *PitayaClient) Disconnect() {
 	_ = c.wc.Close(func() error {
 		if c.IsConnected() {
 			atomic.StoreInt32(&c.isConnected, 0)
@@ -280,7 +275,7 @@ func (c *Client) Disconnect() {
 
 // ConnectTo connects to the server at addr, for now the only supported protocol is tcp
 // if tlsConfig is sent, it connects using TLS
-func (c *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
+func (c *PitayaClient) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 	var conn net.Conn
 	var err error
 	if len(tlsConfig) > 0 {
@@ -304,7 +299,7 @@ func (c *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 }
 
 // ConnectToWS connects using webshocket protocol
-func (c *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config) error {
+func (c *PitayaClient) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config) error {
 	u := url.URL{Scheme: "ws", Host: addr, Path: path}
 	dialer := ws.DefaultDialer
 
@@ -328,7 +323,7 @@ func (c *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config)
 	return nil
 }
 
-func (c *Client) handleHandshake() error {
+func (c *PitayaClient) handleHandshake() error {
 	if err := c.sendHandshakeRequest(); err != nil {
 		return err
 	}
@@ -340,21 +335,22 @@ func (c *Client) handleHandshake() error {
 }
 
 // SendRequest sends a request to the server
-func (c *Client) SendRequest(route string, data []byte) (uint, error) {
+func (c *PitayaClient) SendRequest(route string, data []byte) (uint, error) {
 	return c.sendMsg(message.Request, route, data)
 }
 
 // SendNotify sends a notification to the server
-func (c *Client) SendNotify(route string, data []byte) error {
+func (c *PitayaClient) SendNotify(route string, data []byte) error {
 	_, err := c.sendMsg(message.Notify, route, data)
 	return err
 }
 
-func (c *Client) buildPacket(msg message.Message) ([]byte, error) {
+func (c *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
 	encMsg, err := c.messageEncoder.Encode(&msg)
 	if err != nil {
 		return nil, err
 	}
+	
 	p, err := c.packetEncoder.Encode(packet.Data, encMsg)
 	if err != nil {
 		return nil, err
@@ -364,7 +360,7 @@ func (c *Client) buildPacket(msg message.Message) ([]byte, error) {
 }
 
 // sendMsg sends the request to the server
-func (c *Client) sendMsg(msgType message.Type, route string, data []byte) (uint, error) {
+func (c *PitayaClient) sendMsg(msgType message.Type, route string, data []byte) (uint, error) {
 	// TODO mount msg and encode
 	m := message.Message{
 		Type:  msgType,
@@ -381,6 +377,7 @@ func (c *Client) sendMsg(msgType message.Type, route string, data []byte) (uint,
 	if err != nil {
 		return m.Id, err
 	}
+
 	_, err = c.conn.Write(p)
 	return m.Id, err
 }
