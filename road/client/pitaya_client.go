@@ -206,7 +206,7 @@ func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*codec.Packet, err
 
 	var totalProcessed = 0
 	for _, p := range packets {
-		totalProcessed += codec.HeaderLength + p.Length
+		totalProcessed += codec.HeaderLength + p.Size
 	}
 	buf.Next(totalProcessed)
 

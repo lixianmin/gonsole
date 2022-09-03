@@ -13,26 +13,27 @@ func ParseHeader(header []byte) (int, PacketKind, error) {
 		return 0, 0x00, ErrInvalidPomeloHeader
 	}
 
-	typ := header[0]
-	if typ < Handshake || typ > Kick {
-		return 0, 0x00, ErrWrongPomeloPacketType
+	kind := header[0]
+	if kind < Handshake || kind > Kick {
+		return 0, 0x00, ErrWrongPomeloPacketKind
 	}
 
-	size := BytesToInt(header[1:])
+	var size = BytesToInt(header[1:])
 
 	if size > MaxPacketSize {
 		return 0, 0x00, ErrPacketSizeExceed
 	}
 
-	return size, typ, nil
+	return size, kind, nil
 }
 
-// BytesToInt decode packet data length byte to int(Big end)
+// BytesToInt32 decode packet data length byte to int(Big end)
 func BytesToInt(b []byte) int {
-	result := 0
+	var result = 0
 	for _, v := range b {
 		result = result<<8 + int(v)
 	}
+
 	return result
 }
 
