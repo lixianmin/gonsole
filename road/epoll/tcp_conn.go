@@ -65,6 +65,7 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 			return nil
 		}
 
+		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
 		var frameData = make([]byte, totalSize)
 		copy(frameData, data[:totalSize])
 
