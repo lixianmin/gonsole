@@ -18,19 +18,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package packet
+package internal
 
 import (
 	"fmt"
 )
 
 type Packet struct {
-	Type   Type
+	Type   PacketType
 	Length int
 	Data   []byte
 }
 
-//String represents the Packet's in text mode.
 func (p *Packet) String() string {
 	return fmt.Sprintf("Type: %d, Length: %d, Data: %s", p.Type, p.Length, string(p.Data))
 }

@@ -1,8 +1,8 @@
 package road
 
 import (
+	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/packet"
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/logo"
 )
@@ -40,7 +40,7 @@ func (my *sessionImpl) Kick() error {
 		return nil
 	}
 
-	p, err := my.app.packetEncoder.Encode(packet.Kick, nil)
+	p, err := my.app.packetEncoder.Encode(internal.Kick, nil)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (my *sessionImpl) packetEncodeMessage(msg *message.Message) ([]byte, error)
 	}
 
 	// packet encode
-	p, err := my.app.packetEncoder.Encode(packet.Data, data)
+	p, err := my.app.packetEncoder.Encode(internal.Data, data)
 	if err != nil {
 		return nil, err
 	}

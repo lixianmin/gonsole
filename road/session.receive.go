@@ -7,8 +7,8 @@ import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/packet"
 	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/gonsole/road/util"
@@ -111,18 +111,18 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, msg epoll.Message)
 	for i := range packets {
 		var p = packets[i]
 		switch p.Type {
-		case packet.Handshake:
+		case internal.Handshake:
 			if err := my.onReceivedHandshake(fetus, p); err != nil {
 				return err
 			}
-		case packet.HandshakeAck:
+		case internal.HandshakeAck:
 			// handshake的流程是 client (request) --> server (response) --> client (ack) --> server (received ack)
 			logo.Debug("session(%d) received handshake ACK", my.id)
-		case packet.Data:
+		case internal.Data:
 			if err := my.onReceivedData(fetus, p); err != nil {
 				return err
 			}
-		case packet.Heartbeat:
+		case internal.Heartbeat:
 			//logo.Debug("session(%d) received heartbeat", my.id)
 		}
 	}
@@ -131,7 +131,7 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, msg epoll.Message)
 }
 
 // 如果长时间收不到握手消息，服务器会主动断开链接
-func (my *sessionImpl) onReceivedHandshake(fetus *sessionFetus, p *packet.Packet) error {
+func (my *sessionImpl) onReceivedHandshake(fetus *sessionFetus, p *internal.Packet) error {
 	fetus.isHandshakeReceived = true
 	var err = my.writeBytes(my.app.handshakeResponseData)
 	if err == nil {
@@ -141,7 +141,7 @@ func (my *sessionImpl) onReceivedHandshake(fetus *sessionFetus, p *packet.Packet
 	return err
 }
 
-func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *packet.Packet) error {
+func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *internal.Packet) error {
 	item, err := my.decodeReceivedData(p)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to process packet: %s", err.Error())
@@ -194,7 +194,7 @@ func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *packet.Packet) err
 	return nil
 }
 
-func (my *sessionImpl) decodeReceivedData(p *packet.Packet) (receivedItem, error) {
+func (my *sessionImpl) decodeReceivedData(p *internal.Packet) (receivedItem, error) {
 	msg, err := message.Decode(p.Data)
 	if err != nil {
 		return receivedItem{}, err

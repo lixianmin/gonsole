@@ -20,9 +20,11 @@
 
 package codec
 
-import "github.com/lixianmin/gonsole/road/packet"
+import (
+	"github.com/lixianmin/gonsole/road/internal"
+)
 
 // PacketEncoder interface
 type PacketEncoder interface {
-	Encode(typ packet.Type, data []byte) ([]byte, error)
+	Encode(typ internal.PacketType, data []byte) ([]byte, error)
 }

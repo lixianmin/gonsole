@@ -22,7 +22,7 @@ package codec
 
 import (
 	"bytes"
-	"github.com/lixianmin/gonsole/road/packet"
+	"github.com/lixianmin/gonsole/road/internal"
 )
 
 // PomeloPacketDecoder reads and decodes data slice following pomelo's protocol
@@ -33,18 +33,18 @@ func NewPomeloPacketDecoder() *PomeloPacketDecoder {
 	return &PomeloPacketDecoder{}
 }
 
-func (c *PomeloPacketDecoder) forward(buf *bytes.Buffer) (int, packet.Type, error) {
+func (c *PomeloPacketDecoder) forward(buf *bytes.Buffer) (int, internal.PacketType, error) {
 	header := buf.Next(HeadLength)
 	return ParseHeader(header)
 }
 
 // Decode decode the bytes slice to packet.Packet(s)
-func (c *PomeloPacketDecoder) Decode(data []byte) ([]*packet.Packet, error) {
+func (c *PomeloPacketDecoder) Decode(data []byte) ([]*internal.Packet, error) {
 	buf := bytes.NewBuffer(nil)
 	buf.Write(data)
 
 	var (
-		packets []*packet.Packet
+		packets []*internal.Packet
 		err     error
 	)
 
@@ -61,7 +61,7 @@ func (c *PomeloPacketDecoder) Decode(data []byte) ([]*packet.Packet, error) {
 	}
 
 	for size <= buf.Len() {
-		p := &packet.Packet{Type: typ, Length: size, Data: buf.Next(size)}
+		p := &internal.Packet{Type: typ, Length: size, Data: buf.Next(size)}
 		packets = append(packets, p)
 
 		// if no more packets, break

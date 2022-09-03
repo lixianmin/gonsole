@@ -2,17 +2,17 @@ package codec
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road/packet"
+	"github.com/lixianmin/gonsole/road/internal"
 )
 
 // ParseHeader parses a packet header and returns its dataLen and packetType or an error
-func ParseHeader(header []byte) (int, packet.Type, error) {
+func ParseHeader(header []byte) (int, internal.PacketType, error) {
 	if len(header) != HeadLength {
 		return 0, 0x00, ifs.ErrInvalidPomeloHeader
 	}
 
 	typ := header[0]
-	if typ < packet.Handshake || typ > packet.Kick {
+	if typ < internal.Handshake || typ > internal.Kick {
 		return 0, 0x00, ifs.ErrWrongPomeloPacketType
 	}
 
@@ -22,7 +22,7 @@ func ParseHeader(header []byte) (int, packet.Type, error) {
 		return 0, 0x00, ifs.ErrPacketSizeExceed
 	}
 
-	return size, packet.Type(typ), nil
+	return size, internal.PacketType(typ), nil
 }
 
 // BytesToInt decode packet data length byte to int(Big end)

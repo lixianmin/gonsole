@@ -18,13 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package packet
+package internal
 
-// Type represents the packet's type such as: handshake and so on.
-type Type byte
+// PacketType represents the packet's type such as: handshake and so on.
+type PacketType = byte
 
 const (
-	_ Type = iota
+	_ PacketType = iota
 	// Handshake represents a handshake: request(client) <====> handshake response(server)
 	Handshake = 0x01
 

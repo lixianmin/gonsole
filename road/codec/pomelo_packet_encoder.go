@@ -22,7 +22,7 @@ package codec
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road/packet"
+	"github.com/lixianmin/gonsole/road/internal"
 )
 
 // PomeloPacketEncoder struct
@@ -40,8 +40,8 @@ func NewPomeloPacketEncoder() *PomeloPacketEncoder {
 // -<type>-|--------<length>--------|-<data>-
 // --------|------------------------|--------
 // 1 byte packet type, 3 bytes packet data length(big end), and data segment
-func (e *PomeloPacketEncoder) Encode(typ packet.Type, data []byte) ([]byte, error) {
-	if typ < packet.Handshake || typ > packet.Kick {
+func (e *PomeloPacketEncoder) Encode(typ internal.PacketType, data []byte) ([]byte, error) {
+	if typ < internal.Handshake || typ > internal.Kick {
 		return nil, ifs.ErrWrongPomeloPacketType
 	}
 
@@ -49,9 +49,9 @@ func (e *PomeloPacketEncoder) Encode(typ packet.Type, data []byte) ([]byte, erro
 		return nil, ifs.ErrPacketSizeExceed
 	}
 
-	p := &packet.Packet{Type: typ, Length: len(data)}
+	p := &internal.Packet{Type: typ, Length: len(data)}
 	buf := make([]byte, p.Length+HeadLength)
-	buf[0] = byte(p.Type)
+	buf[0] = p.Type
 
 	copy(buf[1:HeadLength], IntToBytes(p.Length))
 	copy(buf[HeadLength:], data)

@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/docgenerator"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/packet"
 	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/gonsole/road/util/compression"
@@ -196,7 +195,7 @@ func (my *App) getHandler(rt *route.Route) (*component.Handler, error) {
 
 // Documentation returns handler and remotes documentacion
 func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
-	handlerDocs, err := docgenerator.HandlersDocs("game", my.services, getPtrNames)
+	handlerDocs, err := internal.HandlersDocs("game", my.services, getPtrNames)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +204,7 @@ func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
 }
 
 func (my *App) encodeHeartbeatData() []byte {
-	var bytes, err = my.packetEncoder.Encode(packet.Heartbeat, nil)
+	var bytes, err = my.packetEncoder.Encode(internal.Heartbeat, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -239,7 +238,7 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 		}
 	}
 
-	bytes, err := my.packetEncoder.Encode(packet.Handshake, data)
+	bytes, err := my.packetEncoder.Encode(internal.Handshake, data)
 	if err != nil {
 		panic(err)
 	}
