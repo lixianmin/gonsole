@@ -2,8 +2,8 @@ package beans
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/tools"
-	"github.com/lixianmin/road"
 )
 
 /********************************************************************

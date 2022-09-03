@@ -2,7 +2,7 @@ package gonsole
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/road"
+	"github.com/lixianmin/gonsole/road"
 )
 
 /********************************************************************
