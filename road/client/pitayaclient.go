@@ -22,7 +22,7 @@ package client
 
 import (
 	"crypto/tls"
-	"github.com/lixianmin/gonsole/road/conn/message"
+	"github.com/lixianmin/gonsole/road/message"
 )
 
 // PitayaClient iface
