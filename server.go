@@ -115,7 +115,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 // 这里不需要开放OnHandShaken()事件, 原因是:
 //	1. 目前项目中使用的app并不是gonsole中自动创建的这一个, 是项目自己单独创建的
-//	2. 即使项目使用的是gonsole创建的app对象, 也可以直接通过server.App()方法拿到app对象后自己注册ONHandShaken()回调
+//	2. 即使项目使用的是gonsole创建的app对象, 也可以直接通过server.App()方法拿到app对象后自己注册OnHandShaken()回调
 //
 // OnHandShaken 开放OnHandShaken()事件(可以反复注册多个). 原因是在用户认证流程中需要在这个时机向client发送challenge协议
 //func (server *Server) OnHandShaken(handler func(session road.Session)) {
