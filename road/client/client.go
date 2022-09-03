@@ -27,9 +27,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gobwas/ws"
-	codec2 "github.com/lixianmin/gonsole/road/codec"
-	"github.com/lixianmin/gonsole/road/conn/message"
-	"github.com/lixianmin/gonsole/road/conn/packet"
+	"github.com/lixianmin/gonsole/road/codec"
+	"github.com/lixianmin/gonsole/road/message"
+	"github.com/lixianmin/gonsole/road/packet"
 	"github.com/lixianmin/gonsole/road/util/compression"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -61,8 +61,8 @@ type pendingRequest struct {
 type Client struct {
 	conn             net.Conn
 	isConnected      int32
-	packetEncoder    codec2.PacketEncoder
-	packetDecoder    codec2.PacketDecoder
+	packetEncoder    codec.PacketEncoder
+	packetDecoder    codec.PacketDecoder
 	packetChan       chan *packet.Packet
 	IncomingMsgChan  chan *message.Message
 	requestTimeout   time.Duration
@@ -92,8 +92,8 @@ func New(requestTimeout ...time.Duration) *Client {
 
 	return &Client{
 		isConnected:    0,
-		packetEncoder:  codec2.NewPomeloPacketEncoder(),
-		packetDecoder:  codec2.NewPomeloPacketDecoder(),
+		packetEncoder:  codec.NewPomeloPacketEncoder(),
+		packetDecoder:  codec.NewPomeloPacketDecoder(),
 		packetChan:     make(chan *packet.Packet, 10),
 		requestTimeout: reqTimeout,
 		messageEncoder: message.NewMessagesEncoder(false),
@@ -159,8 +159,9 @@ func (c *Client) handleHandshakeResponse() error {
 	logo.Debug("got handshake from sv, data: %v", handshake)
 
 	if handshake.Sys.Dict != nil {
-		message.SetDictionary(handshake.Sys.Dict)
+		_ = message.SetDictionary(handshake.Sys.Dict)
 	}
+
 	p, err := c.packetEncoder.Encode(packet.HandshakeAck, []byte{})
 	if err != nil {
 		return err
@@ -211,15 +212,18 @@ func (c *Client) readPackets(buf *bytes.Buffer) ([]*packet.Packet, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		buf.Write(data[:n])
 	}
+
 	packets, err := c.packetDecoder.Decode(buf.Bytes())
 	if err != nil {
 		logo.Info("error decoding packet from server: %s", err.Error())
 	}
+	
 	totalProcessed := 0
 	for _, p := range packets {
-		totalProcessed += codec2.HeadLength + p.Length
+		totalProcessed += codec.HeadLength + p.Length
 	}
 	buf.Next(totalProcessed)
 
