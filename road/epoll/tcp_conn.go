@@ -2,6 +2,7 @@ package epoll
 
 import (
 	"github.com/lixianmin/gonsole/road/codec"
+	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/xtaci/gaio"
 	"net"
@@ -18,7 +19,7 @@ type TcpConn struct {
 	conn         net.Conn
 	watcher      *gaio.Watcher
 	receivedChan chan Message
-	input        *Buffer
+	input        *iox.Buffer
 	wc           loom.WaitClose
 }
 
@@ -28,7 +29,7 @@ func newTcpConn(conn net.Conn, watcher *gaio.Watcher, receivedChanSize int) *Tcp
 		conn:         conn,
 		watcher:      watcher,
 		receivedChan: receivedChan,
-		input:        &Buffer{},
+		input:        &iox.Buffer{},
 	}
 
 	return my

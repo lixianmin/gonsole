@@ -1,6 +1,7 @@
 package epoll
 
 import (
+	"github.com/lixianmin/got/iox"
 	"github.com/xtaci/gaio"
 	"net"
 )
@@ -15,14 +16,14 @@ Copyright (C) - All Rights Reserved
 type WsReaderWriter struct {
 	conn    net.Conn
 	watcher *gaio.Watcher
-	input   *Buffer
+	input   *iox.Buffer
 }
 
 func NewWsReaderWriter(conn net.Conn, watcher *gaio.Watcher) *WsReaderWriter {
 	var my = &WsReaderWriter{
 		conn:    conn,
 		watcher: watcher,
-		input:   &Buffer{},
+		input:   &iox.Buffer{},
 	}
 
 	return my

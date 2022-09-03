@@ -52,11 +52,11 @@ func (my *WsConn) onReceiveData(buff []byte) error {
 	_, _ = input.Write(buff)
 
 	for input.Len() > codec.HeaderLength {
-		var lastOffsetSet = input.GetOffset()
+		input.MakeCheckpoint()
 		data, _, err := wsutil.ReadData(my.readerWriter, ws.StateServerSide)
 		if err != nil {
 			if err == io.EOF || err == io.ErrUnexpectedEOF {
-				input.SetOffset(lastOffsetSet)
+				input.RestoreCheckpoint()
 				return nil
 			}
 
@@ -65,7 +65,7 @@ func (my *WsConn) onReceiveData(buff []byte) error {
 		}
 
 		if err := checkReceivedMsgBytes(data); err != nil {
-			input.SetOffset(lastOffsetSet)
+			input.RestoreCheckpoint()
 			return nil
 		}
 
