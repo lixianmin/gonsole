@@ -204,7 +204,7 @@ func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
 }
 
 func (my *App) encodeHeartbeatData() []byte {
-	var bytes, err = my.packetEncoder.Encode(internal.Heartbeat, nil)
+	var bytes, err = my.packetEncoder.Encode(codec.Heartbeat, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -238,7 +238,7 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 		}
 	}
 
-	bytes, err := my.packetEncoder.Encode(internal.Handshake, data)
+	bytes, err := my.packetEncoder.Encode(codec.Handshake, data)
 	if err != nil {
 		panic(err)
 	}

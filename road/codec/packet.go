@@ -18,11 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package internal
+package codec
 
 import (
 	"fmt"
 )
+
+// PacketType represents the packet's type such as: handshake and so on.
+type PacketType = byte
 
 type Packet struct {
 	Type   PacketType

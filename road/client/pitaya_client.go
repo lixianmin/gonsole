@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
-	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/util/compression"
 	"github.com/lixianmin/got/loom"
@@ -31,7 +30,7 @@ type PitayaClient struct {
 	isConnected         int32
 	packetEncoder       codec.PacketEncoder
 	packetDecoder       codec.PacketDecoder
-	receivedPacketChan  chan *internal.Packet
+	receivedPacketChan  chan *codec.Packet
 	receivedMessageChan chan *message.Message
 	requestTimeout      time.Duration
 	nextId              uint32
@@ -50,7 +49,7 @@ func NewPitayaClient(requestTimeout ...time.Duration) *PitayaClient {
 		isConnected:         0,
 		packetEncoder:       codec.NewPomeloPacketEncoder(),
 		packetDecoder:       codec.NewPomeloPacketDecoder(),
-		receivedPacketChan:  make(chan *internal.Packet, 10),
+		receivedPacketChan:  make(chan *codec.Packet, 10),
 		receivedMessageChan: make(chan *message.Message, 10),
 
 		requestTimeout: reqTimeout,
@@ -81,17 +80,17 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 		select {
 		case p := <-client.receivedPacketChan:
 			switch p.Type {
-			case internal.Data:
+			case codec.Data:
 				msg, err := message.Decode(p.Data)
 				if err != nil {
 					logo.Info("error decoding msg from sv: %s", string(msg.Data))
 				}
 				client.receivedMessageChan <- msg
-			case internal.Kick:
+			case codec.Kick:
 				logo.Info("got kick packet from the server! disconnecting...")
 			}
 		case <-heartbeatTicker.C:
-			p, _ := client.packetEncoder.Encode(internal.Heartbeat, []byte{})
+			p, _ := client.packetEncoder.Encode(codec.Heartbeat, []byte{})
 			if _, err := client.conn.Write(p); err != nil {
 				logo.Info("error sending heartbeat to server: %s", err.Error())
 				return
@@ -130,7 +129,7 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 		return err
 	}
 
-	p, err := client.packetEncoder.Encode(internal.Handshake, enc)
+	p, err := client.packetEncoder.Encode(codec.Handshake, enc)
 	if err != nil {
 		return err
 	}
@@ -148,7 +147,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 
 	// 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
 	handshakePacket := packets[0]
-	if handshakePacket.Type != internal.Handshake {
+	if handshakePacket.Type != codec.Handshake {
 		return fmt.Errorf("got first packet from server that is not a handshake, aborting")
 	}
 
@@ -171,7 +170,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 		_ = message.SetDictionary(handshake.Sys.Dict)
 	}
 
-	p, err := client.packetEncoder.Encode(internal.HandshakeAck, []byte{})
+	p, err := client.packetEncoder.Encode(codec.HandshakeAck, []byte{})
 	if err != nil {
 		return err
 	}
@@ -184,7 +183,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 	return nil
 }
 
-func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*internal.Packet, error) {
+func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*codec.Packet, error) {
 	// listen for server messages
 	var data = make([]byte, 1024)
 	var n = len(data)
@@ -302,7 +301,7 @@ func (client *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
 		return nil, err
 	}
 
-	p, err := client.packetEncoder.Encode(internal.Data, encMsg)
+	p, err := client.packetEncoder.Encode(codec.Data, encMsg)
 	if err != nil {
 		return nil, err
 	}
