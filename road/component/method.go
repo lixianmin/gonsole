@@ -74,7 +74,7 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 			if nameFunc != nil {
 				mn = nameFunc(mn)
 			}
-			var msgType message.Type
+			var msgType message.Kind
 			if mt.NumOut() == 0 {
 				msgType = message.Notify
 			} else {

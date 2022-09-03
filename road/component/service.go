@@ -20,7 +20,7 @@ type (
 		Method      reflect.Method // method stub
 		Type        reflect.Type   // low-level type of method
 		IsRawArg    bool           // whether the data need to serialize
-		MessageType message.Type   // handler allowed message type (either request or notify)
+		MessageType message.Kind   // handler allowed message type (either request or notify)
 	}
 
 	// Service implements a specific service, some of it's methods will be

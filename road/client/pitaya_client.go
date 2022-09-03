@@ -310,7 +310,7 @@ func (client *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
 }
 
 // sendMsg sends the request to the server
-func (client *PitayaClient) sendMsg(msgType message.Type, route string, data []byte) (uint, error) {
+func (client *PitayaClient) sendMsg(msgType message.Kind, route string, data []byte) (uint, error) {
 	// TODO mount msg and encode
 	m := message.Message{
 		Type:  msgType,

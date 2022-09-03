@@ -26,15 +26,15 @@ import (
 	"strings"
 )
 
-// Type represents the type of message, which could be Request/Notify/Response/Push
-type Type byte
+// Kind represents the type of message, which could be Request/Notify/Response/Push
+type Kind byte
 
 // Message types
 const (
-	Request  Type = 0x00
-	Notify   Type = 0x01
-	Response Type = 0x02
-	Push     Type = 0x03
+	Request  Kind = 0x00
+	Notify   Kind = 0x01
+	Response Kind = 0x02
+	Push     Kind = 0x03
 )
 
 const (
@@ -46,7 +46,7 @@ const (
 	msgHeadLength        = 0x02
 )
 
-var types = map[Type]string{
+var kinds = map[Kind]string{
 	Request:  "Request",
 	Notify:   "Notify",
 	Response: "Response",
@@ -65,9 +65,9 @@ var (
 	ErrRouteInfoNotFound = errors.New("route info not found in dictionary")
 )
 
-// Message represents a unmarshaled message or a message which to be marshaled
+// Message represents an unmarshaled message or a message which to be marshaled
 type Message struct {
-	Type       Type   // message type
+	Type       Kind   // message type
 	Id         uint   // unique id, zero while notify mode
 	Route      string // route for locating service
 	Data       []byte // payload
@@ -86,8 +86,8 @@ func New(err ...bool) *Message {
 
 // String, implementation of fmt.Stringer interface
 func (m *Message) String() string {
-	return fmt.Sprintf("Type: %s, Id: %d, Route: %s, Compressed: %t, Error: %t, Data: %v, BodyLength: %d",
-		types[m.Type],
+	return fmt.Sprintf("Kind: %s, Id: %d, Route: %s, Compressed: %t, Error: %t, Data: %v, BodyLength: %d",
+		kinds[m.Type],
 		m.Id,
 		m.Route,
 		m.compressed,
@@ -96,11 +96,11 @@ func (m *Message) String() string {
 		len(m.Data))
 }
 
-func routable(t Type) bool {
+func routable(t Kind) bool {
 	return t == Request || t == Notify || t == Push
 }
 
-func invalidType(t Type) bool {
+func invalidType(t Kind) bool {
 	return t < Request || t > Push
 
 }
@@ -136,6 +136,6 @@ func GetDictionary() map[string]uint16 {
 	return routes
 }
 
-func (t *Type) String() string {
-	return types[*t]
+func (t *Kind) String() string {
+	return kinds[*t]
 }

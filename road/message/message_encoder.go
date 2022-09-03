@@ -129,7 +129,7 @@ func Decode(data []byte) (*Message, error) {
 	m := New()
 	flag := data[0]
 	offset := 1
-	m.Type = Type((flag >> 1) & msgTypeMask)
+	m.Type = Kind((flag >> 1) & msgTypeMask)
 
 	if invalidType(m.Type) {
 		return nil, ErrWrongMessageType
