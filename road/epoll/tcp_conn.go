@@ -20,6 +20,7 @@ type TcpConn struct {
 	watcher      *gaio.Watcher
 	receivedChan chan Message
 	input        *iox.Buffer
+	frameData    []byte
 	wc           loom.WaitClose
 }
 
@@ -30,6 +31,7 @@ func newTcpConn(conn net.Conn, watcher *gaio.Watcher, receivedChanSize int) *Tcp
 		watcher:      watcher,
 		receivedChan: receivedChan,
 		input:        &iox.Buffer{},
+		frameData:    make([]byte, 0, 32),
 	}
 
 	return my
@@ -50,27 +52,31 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 		return err
 	}
 
-	var headLength = codec.HeaderLength
+	const headerLength = codec.HeaderLength
 	var data = input.Bytes()
+	var frameData = my.frameData
 
-	for len(data) > headLength {
-		var header = data[:headLength]
+	for len(data) > headerLength {
+		var header = data[:headerLength]
 		msgSize, _, err := codec.ParseHeader(header)
 		if err != nil {
 			return err
 		}
 
-		var totalSize = headLength + msgSize
+		var totalSize = headerLength + msgSize
 		if len(data) < totalSize {
 			return nil
 		}
 
-		var frameData = make([]byte, totalSize)
-		copy(frameData, data[:totalSize])
-
+		frameData = append(frameData[:0], data[:totalSize]...)
 		my.writeMessage(Message{Data: frameData})
 		input.Next(totalSize)
 		data = input.Bytes()
+	}
+
+	const maxSize = 1024
+	if len(frameData) <= maxSize {
+		my.frameData = frameData
 	}
 
 	my.input.Tidy()
