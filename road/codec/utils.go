@@ -37,11 +37,11 @@ func BytesToInt(b []byte) int {
 	return result
 }
 
-// IntToBytes encode packet data length to bytes(Big end)
-func IntToBytes(n int) []byte {
-	buf := make([]byte, 3)
-	buf[0] = byte((n >> 16) & 0xFF)
-	buf[1] = byte((n >> 8) & 0xFF)
-	buf[2] = byte(n & 0xFF)
-	return buf
-}
+//// IntToBytes encode packet data length to bytes(Big end)
+//func IntToBytes(n int) []byte {
+//	buf := make([]byte, 3)
+//	buf[0] = byte((n >> 16) & 0xFF)
+//	buf[1] = byte((n >> 8) & 0xFF)
+//	buf[2] = byte(n & 0xFF)
+//	return buf
+//}
