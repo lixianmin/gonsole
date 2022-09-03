@@ -9,7 +9,7 @@ Copyright (C) - All Rights Reserved
 
 // ParseHeader parses a packet header and returns its dataLen and packetType or an error
 func ParseHeader(header []byte) (int, PacketKind, error) {
-	if len(header) != HeadLength {
+	if len(header) != HeaderLength {
 		return 0, 0x00, ErrInvalidPomeloHeader
 	}
 

@@ -49,7 +49,7 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 		return err
 	}
 
-	var headLength = codec.HeadLength
+	var headLength = codec.HeaderLength
 	var data = input.Bytes()
 
 	for len(data) > headLength {

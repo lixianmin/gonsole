@@ -51,7 +51,7 @@ func (my *WsConn) onReceiveData(buff []byte) error {
 	var input = my.readerWriter.input
 	_, _ = input.Write(buff)
 
-	for input.Len() > codec.HeadLength {
+	for input.Len() > codec.HeaderLength {
 		var lastOffsetSet = input.GetOffset()
 		data, _, err := wsutil.ReadData(my.readerWriter, ws.StateServerSide)
 		if err != nil {

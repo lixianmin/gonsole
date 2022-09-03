@@ -13,17 +13,17 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func checkReceivedMsgBytes(msgBytes []byte) error {
-	if len(msgBytes) < codec.HeadLength {
+	if len(msgBytes) < codec.HeaderLength {
 		return codec.ErrInvalidPomeloHeader
 	}
 
-	header := msgBytes[:codec.HeadLength]
+	header := msgBytes[:codec.HeaderLength]
 	msgSize, _, err := codec.ParseHeader(header)
 	if err != nil {
 		return err
 	}
 
-	dataLen := len(msgBytes[codec.HeadLength:])
+	dataLen := len(msgBytes[codec.HeaderLength:])
 	if dataLen < msgSize {
 		return ifs.ErrReceivedMsgSmallerThanExpected
 	} else if dataLen > msgSize {

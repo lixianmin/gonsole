@@ -110,7 +110,7 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, msg epoll.Message)
 	// process all packet
 	for i := range packets {
 		var p = packets[i]
-		switch p.Type {
+		switch p.Kind {
 		case codec.Handshake:
 			if err := my.onReceivedHandshake(fetus, p); err != nil {
 				return err

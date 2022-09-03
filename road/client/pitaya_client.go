@@ -79,7 +79,7 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 	for {
 		select {
 		case p := <-client.receivedPacketChan:
-			switch p.Type {
+			switch p.Kind {
 			case codec.Data:
 				msg, err := message.Decode(p.Data)
 				if err != nil {
@@ -147,7 +147,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 
 	// 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
 	handshakePacket := packets[0]
-	if handshakePacket.Type != codec.Handshake {
+	if handshakePacket.Kind != codec.Handshake {
 		return fmt.Errorf("got first packet from server that is not a handshake, aborting")
 	}
 
@@ -206,7 +206,7 @@ func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*codec.Packet, err
 
 	var totalProcessed = 0
 	for _, p := range packets {
-		totalProcessed += codec.HeadLength + p.Length
+		totalProcessed += codec.HeaderLength + p.Length
 	}
 	buf.Next(totalProcessed)
 

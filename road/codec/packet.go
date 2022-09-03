@@ -15,11 +15,11 @@ Copyright (C) - All Rights Reserved
 type PacketKind = byte
 
 type Packet struct {
-	Type   PacketKind
+	Kind   PacketKind
 	Length int
 	Data   []byte
 }
 
 func (p *Packet) String() string {
-	return fmt.Sprintf("Type: %d, Length: %d, Data: %s", p.Type, p.Length, string(p.Data))
+	return fmt.Sprintf("Kind: %d, Length: %d, Data: %s", p.Kind, p.Length, string(p.Data))
 }
