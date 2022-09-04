@@ -1,10 +1,3 @@
-/********************************************************************
-created:    2022-09-03
-author:     lixianmin
-
-Copyright (C) - All Rights Reserved
-*********************************************************************/
-
 package client
 
 import (
@@ -25,6 +18,13 @@ import (
 	"time"
 )
 
+/********************************************************************
+created:    2022-09-03
+author:     lixianmin
+
+Copyright (C) - All Rights Reserved
+*********************************************************************/
+
 type PitayaClient struct {
 	conn                net.Conn
 	isConnected         int32
@@ -39,21 +39,27 @@ type PitayaClient struct {
 	wc                  loom.WaitClose
 }
 
-func NewPitayaClient(requestTimeout ...time.Duration) *PitayaClient {
-	var reqTimeout = 5 * time.Second
-	if len(requestTimeout) > 0 {
-		reqTimeout = requestTimeout[0]
+func NewPitayaClient(opts ...PitayaClientOption) *PitayaClient {
+
+	// 默认值
+	var options = pitayaClientOptions{
+		requestTimeout:     5 * time.Second,
+		receiverBufferSize: 10,
+	}
+
+	// 初始化
+	for _, opt := range opts {
+		opt(&options)
 	}
 
 	var client = &PitayaClient{
 		isConnected:         0,
 		packetEncoder:       codec.NewPomeloPacketEncoder(),
 		packetDecoder:       codec.NewPomeloPacketDecoder(),
-		receivedPacketChan:  make(chan *codec.Packet, 10),
-		receivedMessageChan: make(chan *message.Message, 10),
-
-		requestTimeout: reqTimeout,
-		messageEncoder: message.NewMessagesEncoder(false),
+		receivedPacketChan:  make(chan *codec.Packet, options.receiverBufferSize),
+		receivedMessageChan: make(chan *message.Message, options.receiverBufferSize),
+		requestTimeout:      options.requestTimeout,
+		messageEncoder:      message.NewMessagesEncoder(false),
 		handshakeRequest: &HandshakeRequest{
 			Sys: HandshakeClientData{
 				Platform:    "mac",
@@ -281,7 +287,7 @@ func (client *PitayaClient) startHandshake() error {
 		client.receivedPacketChan <- p
 	}
 
-	// goReadPackets需要放到最后, 否则可以导致receivedPacketChan中的数量乱序
+	// goReadPackets需要放到最后, 否则可能导致receivedPacketChan收到的数据乱序
 	loom.Go(client.goReadPackets)
 	return nil
 }
