@@ -140,16 +140,16 @@ func (my *App) onNewSession(fetus *appFetus, conn epoll.PlayerConn) {
 }
 
 // OnHandShaken 暴露一个OnConnected()事件暂时没有看到很大的意义，因为handshake必须是第一个消息
+// 如果需要接入握手事件的话, 可以自己注册OnHandShaken事件
+// 只所以叫OnHandShaken而不是OnHandshaken, 是因为后者在idea中会提示单词拼写有误
 func (my *App) OnHandShaken(handler func(session Session)) {
-	if handler == nil {
-		return
+	if handler != nil {
+		my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
+			var fetus = args.(*appFetus)
+			fetus.onHandShakenHandlers = append(fetus.onHandShakenHandlers, handler)
+			return nil, nil
+		})
 	}
-
-	my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
-		var fetus = args.(*appFetus)
-		fetus.onHandShakenHandlers = append(fetus.onHandShakenHandlers, handler)
-		return nil, nil
-	})
 }
 
 func (my *App) Register(comp component.Component, opts ...component.Option) error {
