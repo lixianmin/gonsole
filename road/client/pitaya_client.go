@@ -103,10 +103,10 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 
 func (client *PitayaClient) goReadPackets(later loom.Later) {
 	defer client.Close()
-	var buf = &iox.Buffer{}
+	var buffer = &iox.Buffer{}
 
 	for client.IsConnected() {
-		packets, err := client.readPackets(buf)
+		packets, err := client.readPackets(buffer)
 		if err != nil && client.IsConnected() {
 			logo.JsonI("err", err)
 			break
@@ -138,30 +138,36 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 	return err
 }
 
-func (client *PitayaClient) handleHandshakeResponse() error {
-	buf := &iox.Buffer{}
-	packets, err := client.readPackets(buf)
-	if err != nil || len(packets) == 0 {
-		return err
+func (client *PitayaClient) handleHandshakeResponse() ([]*codec.Packet, error) {
+	var buf = &iox.Buffer{}
+	var packets []*codec.Packet
+	var err error
+
+	for {
+		if packets, err = client.readPackets(buf); err != nil {
+			return nil, err
+		} else if len(packets) > 0 {
+			break
+		}
 	}
 
 	// 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
-	handshakePacket := packets[0]
+	var handshakePacket = packets[0]
 	if handshakePacket.Kind != codec.Handshake {
-		return fmt.Errorf("got first packet from server that is not a handshake, aborting")
+		return nil, fmt.Errorf("got first packet from server that is not a handshake, aborting")
 	}
 
 	var handshake = &HandshakeResponse{}
 	if compression.IsCompressed(handshakePacket.Data) {
 		handshakePacket.Data, err = compression.InflateData(handshakePacket.Data)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	err = json.Unmarshal(handshakePacket.Data, handshake)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	logo.Debug("got handshake from server, data: %v", handshake)
@@ -172,41 +178,32 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 
 	p, err := client.packetEncoder.Encode(codec.HandshakeAck, []byte{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	_, err = client.conn.Write(p)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	atomic.StoreInt32(&client.isConnected, 1)
-	return nil
+	return packets[1:], nil
 }
 
 func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
-	// listen for server messages
-	var data = make([]byte, 1024)
-	var n = len(data)
-	var err error
-
-	for n == len(data) {
-		n, err = client.conn.Read(data)
+	var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
+	for {
+		var n, err = client.conn.Read(data[:])
 		if err != nil {
 			return nil, err
 		}
 
-		if _, err := buffer.Write(data[:n]); err != nil {
-			return nil, err
+		buffer.Write(data[:n])
+		if n < len(data) {
+			break
 		}
 	}
 
-	packets, err := client.packetDecoder.Decode(buffer)
-	if err != nil {
-		logo.Info("error decoding packet from server: %s", err.Error())
-		return nil, err
-	}
-
-	return packets, nil
+	return client.packetDecoder.Decode(buffer)
 }
 
 // Close disconnects the client
@@ -271,11 +268,20 @@ func (client *PitayaClient) startHandshake() error {
 		return err
 	}
 
-	if err := client.handleHandshakeResponse(); err != nil {
+	var packets, err = client.handleHandshakeResponse()
+	if err != nil {
 		return err
 	}
 
+	// goLoop需要在后面的取剩余packets的前面启动, 否则可能导致block
 	loom.Go(client.goLoop)
+
+	// 把剩下的packets放到chan中
+	for _, p := range packets {
+		client.receivedPacketChan <- p
+	}
+
+	// goReadPackets需要放到最后, 否则可以导致receivedPacketChan中的数量乱序
 	loom.Go(client.goReadPackets)
 	return nil
 }
