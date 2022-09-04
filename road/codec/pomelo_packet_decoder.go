@@ -12,44 +12,34 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 // PomeloPacketDecoder reads and decodes data slice following pomelo's protocol
-type PomeloPacketDecoder struct {
-	buffer *iox.Buffer
-}
+type PomeloPacketDecoder struct{}
 
 // NewPomeloPacketDecoder returns a new decoder that used for decode bytes slice.
 func NewPomeloPacketDecoder() *PomeloPacketDecoder {
-	var my = &PomeloPacketDecoder{
-		buffer: &iox.Buffer{},
-	}
-
+	var my = &PomeloPacketDecoder{}
 	return my
 }
 
 // Decode decode the bytes slice to packet.Packet(s)
-func (my *PomeloPacketDecoder) Decode(data []byte) ([]*Packet, error) {
-	var buf = my.buffer
-	if _, err := buf.Write(data); err != nil {
-		return nil, err
-	}
-
+func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
 	var packets []*Packet = nil
 	for {
-		if buf.Len() < HeaderLength {
+		if buffer.Len() < HeaderLength {
 			return packets, nil
 		}
 
-		buf.MakeCheckpoint()
-		var size, kind, err = ParseHeader(buf.Next(HeaderLength))
+		buffer.MakeCheckpoint()
+		var size, kind, err = ParseHeader(buffer.Next(HeaderLength))
 		if err != nil {
 			return nil, err
 		}
 
-		if buf.Len() < size {
-			buf.RestoreCheckpoint()
+		if buffer.Len() < size {
+			buffer.RestoreCheckpoint()
 			return packets, nil
 		}
 
-		var p = &Packet{Kind: kind, Size: int32(size), Data: buf.Next(size)}
+		var p = &Packet{Kind: kind, Size: int32(size), Data: buffer.Next(size)}
 		packets = append(packets, p)
 	}
 }

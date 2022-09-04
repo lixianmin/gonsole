@@ -9,5 +9,5 @@ Copyright (C) - All Rights Reserved
 
 // PacketEncoder interface
 type PacketEncoder interface {
-	Encode(typ PacketKind, data []byte) ([]byte, error)
+	Encode(kind PacketKind, data []byte) ([]byte, error)
 }

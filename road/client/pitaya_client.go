@@ -8,7 +8,6 @@ Copyright (C) - All Rights Reserved
 package client
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -17,6 +16,7 @@ import (
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/util/compression"
+	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
@@ -103,7 +103,7 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 
 func (client *PitayaClient) goReadPackets(later loom.Later) {
 	defer client.Close()
-	var buf = bytes.NewBuffer(nil)
+	var buf = &iox.Buffer{}
 
 	for client.IsConnected() {
 		packets, err := client.readPackets(buf)
@@ -139,7 +139,7 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 }
 
 func (client *PitayaClient) handleHandshakeResponse() error {
-	buf := bytes.NewBuffer(nil)
+	buf := &iox.Buffer{}
 	packets, err := client.readPackets(buf)
 	if err != nil || len(packets) == 0 {
 		return err
@@ -183,7 +183,7 @@ func (client *PitayaClient) handleHandshakeResponse() error {
 	return nil
 }
 
-func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*codec.Packet, error) {
+func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
 	// listen for server messages
 	var data = make([]byte, 1024)
 	var n = len(data)
@@ -195,21 +195,18 @@ func (client *PitayaClient) readPackets(buf *bytes.Buffer) ([]*codec.Packet, err
 			return nil, err
 		}
 
-		buf.Write(data[:n])
+		if _, err := buffer.Write(data[:n]); err != nil {
+			return nil, err
+		}
 	}
 
-	packets, err := client.packetDecoder.Decode(buf.Bytes())
+	packets, err := client.packetDecoder.Decode(buffer)
 	if err != nil {
 		logo.Info("error decoding packet from server: %s", err.Error())
 		return nil, err
 	}
 
-	var totalProcessed = 0
-	for _, p := range packets {
-		totalProcessed += codec.HeaderLength + int(p.Size)
-	}
-	buf.Next(totalProcessed)
-
+	buffer.Tidy()
 	return packets, nil
 }
 
