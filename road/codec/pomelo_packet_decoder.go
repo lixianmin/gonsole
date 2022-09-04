@@ -22,6 +22,8 @@ func NewPomeloPacketDecoder() *PomeloPacketDecoder {
 
 // Decode decode the bytes slice to packet.Packet(s)
 func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
+	defer buffer.Tidy()
+
 	var packets []*Packet = nil
 	for {
 		if buffer.Len() < HeaderLength {

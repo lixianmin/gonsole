@@ -206,7 +206,6 @@ func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, er
 		return nil, err
 	}
 
-	buffer.Tidy()
 	return packets, nil
 }
 

@@ -7,11 +7,11 @@ import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/gonsole/road/util"
+	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/mathx"
 	"github.com/lixianmin/got/timex"
@@ -37,6 +37,7 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 	var heartbeatInterval = app.heartbeatInterval
 	var heartbeatTimer = app.wheelSecond.NewTimer(heartbeatInterval)
 	var stepRateLimitTokens = mathx.MaxI32(1, int32(float64(heartbeatInterval)/float64(time.Second)*float64(app.rateLimitBySecond)))
+	var msgBuffer = &iox.Buffer{}
 
 	var fetus = &sessionFetus{
 		lastAt:           time.Now(),
@@ -60,7 +61,14 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 		case msg := <-receivedChan:
 			fetus.lastAt = time.Now()
 			fetus.rateLimitTokens--
-			if err := my.onReceivedMessage(fetus, msg); err != nil {
+
+			if msg.Err != nil {
+				logo.Info("close session(%d) by msg.Err=%q", my.id, msg.Err)
+				return
+			}
+
+			_, _ = msgBuffer.Write(msg.Data)
+			if err := my.onReceivedMessage(fetus, msgBuffer); err != nil {
 				logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
 				return
 			}
@@ -95,13 +103,8 @@ func (my *sessionImpl) onHeartbeat(fetus *sessionFetus) error {
 	return nil
 }
 
-func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, msg epoll.Message) error {
-	var err = msg.Err
-	if err != nil {
-		return msg.Err
-	}
-
-	packets, err := my.app.packetDecoder.Decode(msg.Data)
+func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer) error {
+	packets, err := my.app.packetDecoder.Decode(buffer)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to decode message: %s", err.Error())
 		return err1
