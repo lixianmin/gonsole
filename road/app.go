@@ -111,7 +111,7 @@ func (my *App) goLoop(later loom.Later) {
 		case task := <-my.tasks.C:
 			var err = task.Do(fetus)
 			if err != nil {
-				logo.Info("err=%q", err)
+				logo.JsonI("err", err)
 			}
 		case <-closeChan:
 			return
