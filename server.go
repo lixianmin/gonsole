@@ -6,7 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
-	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
 	"net/http"
@@ -76,9 +76,9 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	var server = &Server{
 		options: options,
 		app:     app,
-		gpid:    tools.GetGPID(options.Port),
+		gpid:    osx.GetGPID(options.Port),
 		// todo 这个不一定是http的, 有可能是https, 这怎么办?
-		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", tools.GetLocalIP(), options.Port, options.getPathByDirectory("")),
+		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))

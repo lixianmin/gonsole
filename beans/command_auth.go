@@ -3,7 +3,7 @@ package beans
 import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road"
-	"github.com/lixianmin/gonsole/tools"
+	"github.com/lixianmin/got/osx"
 )
 
 /********************************************************************
@@ -35,7 +35,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		return bean
 	}
 
-	bean.GPID = tools.GetGPID(port)
+	bean.GPID = osx.GetGPID(port)
 	bean.ClientAddress = session.RemoteAddr().String()
 	bean.Text = "验证成功"
 	session.Attachment().Put(ifs.KeyIsAuthorized, true)
