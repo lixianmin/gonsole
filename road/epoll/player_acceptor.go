@@ -14,6 +14,7 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
+
 type PlayerAcceptor struct {
 	watcher  *gaio.Watcher
 	isClosed int32

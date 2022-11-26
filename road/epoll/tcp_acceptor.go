@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
+	"sync/atomic"
 )
 
 /********************************************************************
@@ -14,8 +15,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	*PlayerAcceptor
 	connChan chan PlayerConn
+	isClosed int32
 }
 
 func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
@@ -30,8 +31,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
-		PlayerAcceptor: newPlayerAcceptor(),
-		connChan:       make(chan PlayerConn, options.ConnChanSize),
+		connChan: make(chan PlayerConn, options.ConnChanSize),
 	}
 
 	go my.goListener(address, options.ReceivedChanSize)
@@ -48,22 +48,22 @@ func (my *TcpAcceptor) goListener(address string, receivedChanSize int) {
 	}
 	defer listener.Close()
 
-	var watcher = my.getWatcher()
-	for !my.IsClosed() {
+	// while this acceptor is not closed
+	for atomic.LoadInt32(&my.isClosed) == 0 {
 		conn, err := listener.Accept()
 		if err != nil {
 			logo.Info("failed to accept TCP connection: %q", err)
 			continue
 		}
 
-		var connection = newTcpConn(conn, watcher, receivedChanSize)
-		if connection != nil {
-			var err = watcher.Read(connection, conn, nil)
-			if err == nil {
-				my.connChan <- connection
-			}
-		}
+		var connection = newTcpConn(conn, receivedChanSize)
+		my.connChan <- connection
 	}
+}
+
+func (my *TcpAcceptor) Close() error {
+	atomic.StoreInt32(&my.isClosed, 1)
+	return nil
 }
 
 func (my *TcpAcceptor) GetConnChan() chan PlayerConn {

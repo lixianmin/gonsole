@@ -4,7 +4,6 @@ import (
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/xtaci/gaio"
 	"net"
 )
 
@@ -17,17 +16,15 @@ Copyright (C) - All Rights Reserved
 
 type TcpConn struct {
 	conn         net.Conn
-	watcher      *gaio.Watcher
 	receivedChan chan Message
 	input        *iox.Buffer
 	wc           loom.WaitClose
 }
 
-func newTcpConn(conn net.Conn, watcher *gaio.Watcher, receivedChanSize int) *TcpConn {
+func newTcpConn(conn net.Conn, receivedChanSize int) *TcpConn {
 	var receivedChan = make(chan Message, receivedChanSize)
 	var my = &TcpConn{
 		conn:         conn,
-		watcher:      watcher,
 		receivedChan: receivedChan,
 		input:        &iox.Buffer{},
 	}
@@ -82,7 +79,7 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 // Write can be made to time out and return an Error with Timeout() == true
 // after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (my *TcpConn) Write(b []byte) (int, error) {
-	return len(b), my.watcher.Write(my, my.conn, b)
+	return my.conn.Write(b)
 }
 
 func (my *TcpConn) writeMessage(msg Message) {
@@ -96,7 +93,7 @@ func (my *TcpConn) writeMessage(msg Message) {
 // Any blocked Read or Write operations will be unblocked and return errors.
 func (my *TcpConn) Close() error {
 	return my.wc.Close(func() error {
-		return my.watcher.Free(my.conn)
+		return my.conn.Close()
 	})
 }
 
