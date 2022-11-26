@@ -42,13 +42,13 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 
 func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Upgrade connection
-	conn, readWriter, _, err := ws.UpgradeHTTP(r, w)
+	conn, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		logo.JsonI("err", err)
 		return
 	}
 
-	my.connChan <- newWsConn(conn, readWriter, my.receivedChanSize)
+	my.connChan <- newWsConn(conn, my.receivedChanSize)
 }
 
 func (my *WsAcceptor) GetConnChan() chan PlayerConn {

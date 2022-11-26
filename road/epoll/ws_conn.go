@@ -1,7 +1,6 @@
 package epoll
 
 import (
-	"bufio"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/lixianmin/gonsole/road/codec"
@@ -20,16 +19,14 @@ Copyright (C) - All Rights Reserved
 
 type WsConn struct {
 	conn         net.Conn
-	readWriter   *bufio.ReadWriter
 	receivedChan chan Message
 	wc           loom.WaitClose
 }
 
-func newWsConn(conn net.Conn, readWriter *bufio.ReadWriter, receivedChanSize int) *WsConn {
+func newWsConn(conn net.Conn, receivedChanSize int) *WsConn {
 	var receivedChan = make(chan Message, receivedChanSize)
 	var my = &WsConn{
 		conn:         conn,
-		readWriter:   readWriter,
 		receivedChan: receivedChan,
 	}
 
@@ -43,7 +40,7 @@ func (my *WsConn) goLoop() {
 
 	var input = &iox.Buffer{}
 	for !my.wc.IsClosed() {
-		data, _, err := wsutil.ReadData(my.readWriter, ws.StateServerSide)
+		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
 			my.writeMessage(Message{Err: err})
 			logo.JsonI("err", err)
@@ -108,7 +105,7 @@ func (my *WsConn) writeMessage(msg Message) {
 // after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (my *WsConn) Write(b []byte) (int, error) {
 	var frame = ws.NewBinaryFrame(b)
-	var err = ws.WriteFrame(my.readWriter, frame)
+	var err = ws.WriteFrame(my.conn, frame)
 	if err != nil {
 		return 0, err
 	}
