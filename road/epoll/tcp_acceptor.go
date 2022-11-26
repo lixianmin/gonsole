@@ -34,11 +34,11 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 		connChan: make(chan PlayerConn, options.ConnChanSize),
 	}
 
-	go my.goListener(address, options.ReceivedChanSize)
+	go my.goLoop(address, options.ReceivedChanSize)
 	return my
 }
 
-func (my *TcpAcceptor) goListener(address string, receivedChanSize int) {
+func (my *TcpAcceptor) goLoop(address string, receivedChanSize int) {
 	defer loom.DumpIfPanic()
 
 	listener, err := net.Listen("tcp", address)
@@ -56,8 +56,7 @@ func (my *TcpAcceptor) goListener(address string, receivedChanSize int) {
 			continue
 		}
 
-		var connection = newTcpConn(conn, receivedChanSize)
-		my.connChan <- connection
+		my.connChan <- newTcpConn(conn, receivedChanSize)
 	}
 }
 

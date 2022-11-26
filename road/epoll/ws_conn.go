@@ -1,12 +1,13 @@
 package epoll
 
 import (
+	"bufio"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/lixianmin/gonsole/road/codec"
+	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/xtaci/gaio"
-	"io"
+	"github.com/lixianmin/logo"
 	"net"
 )
 
@@ -19,27 +20,41 @@ Copyright (C) - All Rights Reserved
 
 type WsConn struct {
 	conn         net.Conn
-	watcher      *gaio.Watcher
+	readWriter   *bufio.ReadWriter
 	receivedChan chan Message
-	readerWriter *WsReaderWriter
 	wc           loom.WaitClose
 }
 
-func newWsConn(conn net.Conn, watcher *gaio.Watcher, receivedChanSize int) *WsConn {
+func newWsConn(conn net.Conn, readWriter *bufio.ReadWriter, receivedChanSize int) *WsConn {
 	var receivedChan = make(chan Message, receivedChanSize)
 	var my = &WsConn{
 		conn:         conn,
-		watcher:      watcher,
+		readWriter:   readWriter,
 		receivedChan: receivedChan,
-		readerWriter: NewWsReaderWriter(conn, watcher),
 	}
 
+	go my.goLoop()
 	return my
 }
 
-func (my *WsConn) sendErrorMessage(err error) {
-	if err != nil {
-		my.writeMessage(Message{Err: err})
+func (my *WsConn) goLoop() {
+	defer loom.DumpIfPanic()
+	defer my.Close()
+
+	var input = &iox.Buffer{}
+	for !my.wc.IsClosed() {
+		data, _, err := wsutil.ReadData(my.readWriter, ws.StateServerSide)
+		if err != nil {
+			my.writeMessage(Message{Err: err})
+			logo.JsonI("err", err)
+			return
+		}
+
+		_, _ = input.Write(data)
+		if err2 := my.onReceiveData(input); err2 != nil {
+			logo.JsonI("err2", err2)
+			return
+		}
 	}
 }
 
@@ -47,33 +62,37 @@ func (my *WsConn) GetReceivedChan() <-chan Message {
 	return my.receivedChan
 }
 
-func (my *WsConn) onReceiveData(buff []byte) error {
-	var input = my.readerWriter.input
-	_, _ = input.Write(buff)
+func (my *WsConn) onReceiveData(input *iox.Buffer) error {
+	var headLength = codec.HeaderLength
+	var data = input.Bytes()
 
-	for input.Len() > codec.HeaderLength {
-		input.MakeCheckpoint()
-		data, _, err := wsutil.ReadData(my.readerWriter, ws.StateServerSide)
+	for len(data) > headLength {
+		var header = data[:headLength]
+		msgSize, _, err := codec.ParseHeader(header)
 		if err != nil {
-			if err == io.EOF || err == io.ErrUnexpectedEOF {
-				input.RestoreCheckpoint()
-				return nil
-			}
-
-			my.writeMessage(Message{Err: err})
 			return err
 		}
 
-		if err := checkReceivedMsgBytes(data); err != nil {
-			input.RestoreCheckpoint()
+		var totalSize = headLength + msgSize
+		if len(data) < totalSize {
 			return nil
 		}
 
-		my.writeMessage(Message{Data: data})
+		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
+		var frameData = make([]byte, totalSize)
+		copy(frameData, data[:totalSize])
+
+		select {
+		case my.receivedChan <- Message{Data: frameData}:
+		case <-my.wc.C():
+			return nil
+		}
+
+		input.Next(totalSize)
+		data = input.Bytes()
 	}
 
 	input.Tidy()
-	//logo.Info("readerSize=%d, len(buff)=%d", my.readerWriter.ReaderSize(), len(buff))
 	return nil
 }
 
@@ -89,7 +108,7 @@ func (my *WsConn) writeMessage(msg Message) {
 // after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (my *WsConn) Write(b []byte) (int, error) {
 	var frame = ws.NewBinaryFrame(b)
-	var err = ws.WriteFrame(my.readerWriter, frame)
+	var err = ws.WriteFrame(my.readWriter, frame)
 	if err != nil {
 		return 0, err
 	}
@@ -101,7 +120,7 @@ func (my *WsConn) Write(b []byte) (int, error) {
 // Any blocked Read or Write operations will be unblocked and return errors.
 func (my *WsConn) Close() error {
 	return my.wc.Close(func() error {
-		return my.watcher.Free(my.conn)
+		return my.conn.Close()
 	})
 }
 

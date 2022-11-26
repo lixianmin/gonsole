@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/logo"
 	"net"
 )
 
@@ -17,7 +18,6 @@ Copyright (C) - All Rights Reserved
 type TcpConn struct {
 	conn         net.Conn
 	receivedChan chan Message
-	input        *iox.Buffer
 	wc           loom.WaitClose
 }
 
@@ -26,27 +26,38 @@ func newTcpConn(conn net.Conn, receivedChanSize int) *TcpConn {
 	var my = &TcpConn{
 		conn:         conn,
 		receivedChan: receivedChan,
-		input:        &iox.Buffer{},
 	}
 
+	go my.goLoop()
 	return my
 }
 
-func (my *TcpConn) sendErrorMessage(err error) {
-	my.writeMessage(Message{Err: err})
+func (my *TcpConn) goLoop() {
+	defer loom.DumpIfPanic()
+	defer my.Close()
+
+	var buffer = make([]byte, 1024)
+	var input = &iox.Buffer{}
+	for !my.wc.IsClosed() {
+		var num, err = my.conn.Read(buffer)
+		if err != nil {
+			logo.JsonI("err", err)
+			return
+		}
+
+		_, _ = input.Write(buffer[:num])
+		if err2 := my.onReceiveData(input); err2 != nil {
+			logo.JsonI("err2", err2)
+			return
+		}
+	}
 }
 
 func (my *TcpConn) GetReceivedChan() <-chan Message {
 	return my.receivedChan
 }
 
-func (my *TcpConn) onReceiveData(buff []byte) error {
-	var input = my.input
-	var _, err = input.Write(buff)
-	if err != nil {
-		return err
-	}
-
+func (my *TcpConn) onReceiveData(input *iox.Buffer) error {
 	var headLength = codec.HeaderLength
 	var data = input.Bytes()
 
@@ -66,12 +77,17 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 		var frameData = make([]byte, totalSize)
 		copy(frameData, data[:totalSize])
 
-		my.writeMessage(Message{Data: frameData})
+		select {
+		case my.receivedChan <- Message{Data: frameData}:
+		case <-my.wc.C():
+			return nil
+		}
+
 		input.Next(totalSize)
 		data = input.Bytes()
 	}
 
-	my.input.Tidy()
+	input.Tidy()
 	return nil
 }
 
@@ -80,13 +96,6 @@ func (my *TcpConn) onReceiveData(buff []byte) error {
 // after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (my *TcpConn) Write(b []byte) (int, error) {
 	return my.conn.Write(b)
-}
-
-func (my *TcpConn) writeMessage(msg Message) {
-	select {
-	case my.receivedChan <- msg:
-	case <-my.wc.C():
-	}
 }
 
 // Close closes the connection.
