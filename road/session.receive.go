@@ -54,6 +54,7 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 			// 使用时间窗口限制令牌数
 			fetus.rateLimitTokens = mathx.MinI32(fetus.rateLimitWindow, fetus.rateLimitTokens+stepRateLimitTokens)
 
+			// todo 经常有超时收不到的问题啊
 			if err := my.onHeartbeat(fetus); err != nil {
 				logo.Info("close session(%d) by onHeartbeat(), err=%q", my.id, err)
 				return
@@ -95,10 +96,10 @@ func (my *sessionImpl) onHeartbeat(fetus *sessionFetus) error {
 
 	// 发送心跳包，如果网络是通的，收到心跳返回时会刷新 lastAt
 	if err := my.writeBytes(my.app.heartbeatPacketData); err != nil {
-		return fmt.Errorf("failed to write in conn: %s", err.Error())
+		return fmt.Errorf("failed to write to conn: %s", err.Error())
 	}
 
-	// 注意：libpitaya的heartbeat部分好像是问题的，只能在应用层自己做ping/pong
+	// 注意：libpitaya的heartbeat部分是问题的，只能在应用层自己做ping/pong
 	//logo.Debug("session(%d) sent heartbeat", my.id)
 	return nil
 }

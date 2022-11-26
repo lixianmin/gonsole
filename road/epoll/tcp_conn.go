@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
+	"sync"
 )
 
 /********************************************************************
@@ -18,6 +19,7 @@ type TcpConn struct {
 	conn         net.Conn
 	receivedChan chan Message
 	wc           loom.WaitClose
+	writeLock    sync.Mutex
 }
 
 func newTcpConn(conn net.Conn, receivedChanSize int) *TcpConn {
@@ -59,11 +61,13 @@ func (my *TcpConn) GetReceivedChan() <-chan Message {
 	return my.receivedChan
 }
 
-// Write writes data to the connection.
-// Write can be made to time out and return an Error with Timeout() == true
-// after a fixed time limit; see SetDeadline and SetWriteDeadline.
 func (my *TcpConn) Write(b []byte) (int, error) {
-	return my.conn.Write(b)
+	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
+	my.writeLock.Lock()
+	var num, err = my.conn.Write(b)
+	my.writeLock.Unlock()
+
+	return num, err
 }
 
 // Close closes the connection.

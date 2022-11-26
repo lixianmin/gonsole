@@ -43,9 +43,9 @@ type (
 
 		accept   epoll.Acceptor
 		sessions loom.Map
-		senders  []*sessionSender
-		tasks    *taskx.Queue
-		wc       loom.WaitClose
+		//senders  []*sessionSender
+		tasks *taskx.Queue
+		wc    loom.WaitClose
 
 		services     map[string]*component.Service // all registered service
 		hookCallback HookFunc
@@ -62,7 +62,6 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 		HeartbeatInterval:        5 * time.Second,
 		DataCompression:          false,
 		SenderBufferSize:         4096,
-		SenderCount:              16,
 		SessionRateLimitBySecond: 2,
 	}
 
@@ -89,7 +88,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 		},
 	}
 
-	app.senders = createSenders(options)
+	//app.senders = createSenders(options)
 	app.heartbeatPacketData = app.encodeHeartbeatData()
 	app.handshakeResponseData = app.encodeHandshakeData(options.DataCompression)
 
@@ -246,17 +245,17 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 	return bytes
 }
 
-func (my *App) getSender(sessionId int64) *sessionSender {
-	var index = int(sessionId) % len(my.senders)
-	var sender = my.senders[index]
-	return sender
-}
-
-func createSenders(options appOptions) []*sessionSender {
-	var senders = make([]*sessionSender, options.SenderCount)
-	for i := 0; i < options.SenderCount; i++ {
-		senders[i] = newSessionSender(options.SenderBufferSize)
-	}
-
-	return senders
-}
+//func (my *App) getSender(sessionId int64) *sessionSender {
+//	var index = int(sessionId) % len(my.senders)
+//	var sender = my.senders[index]
+//	return sender
+//}
+//
+//func createSenders(options appOptions) []*sessionSender {
+//	var senders = make([]*sessionSender, options.SenderCount)
+//	for i := 0; i < options.SenderCount; i++ {
+//		senders[i] = newSessionSender(options.SenderBufferSize)
+//	}
+//
+//	return senders
+//}

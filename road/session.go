@@ -39,7 +39,7 @@ func NewSession(app *App, conn epoll.PlayerConn) Session {
 		id:         id,
 		conn:       conn,
 		attachment: &Attachment{},
-		sender:     app.getSender(id),
+		//sender:     app.getSender(id),
 	}}
 
 	logo.Info("create session(%d)", my.id)

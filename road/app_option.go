@@ -12,11 +12,11 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type appOptions struct {
-	HeartbeatInterval        time.Duration // 心跳间隔
-	DataCompression          bool          // 数据是否压缩
-	SenderBufferSize         int           // sender的发送缓冲区大小
-	SenderCount              int           // sender的数量
-	SessionRateLimitBySecond int           // session每秒限流
+	HeartbeatInterval time.Duration // 心跳间隔
+	DataCompression   bool          // 数据是否压缩
+	SenderBufferSize  int           // sender的发送缓冲区大小
+	//SenderCount              int           // sender的数量
+	SessionRateLimitBySecond int // session每秒限流
 }
 
 type AppOption func(*appOptions)
@@ -43,13 +43,13 @@ func WithSenderBufferSize(size int) AppOption {
 	}
 }
 
-func WithSenderCount(count int) AppOption {
-	return func(options *appOptions) {
-		if count > 0 {
-			options.SenderCount = count
-		}
-	}
-}
+//func WithSenderCount(count int) AppOption {
+//	return func(options *appOptions) {
+//		if count > 0 {
+//			options.SenderCount = count
+//		}
+//	}
+//}
 
 func WithSessionRateLimitBySecond(limit int) AppOption {
 	return func(options *appOptions) {

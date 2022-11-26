@@ -27,8 +27,8 @@ type (
 		id         int64
 		conn       epoll.PlayerConn
 		attachment *Attachment
-		sender     *sessionSender
-		wc         loom.WaitClose
+		//sender     *sessionSender
+		wc loom.WaitClose
 
 		onHandShaken delegate
 		onClosed     delegate

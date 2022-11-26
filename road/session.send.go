@@ -79,23 +79,23 @@ func (my *sessionImpl) encodeMessageMayError(msg message.Message, err error) ([]
 	return data, nil
 }
 
-func (my *sessionImpl) writeBytes(data []byte) error {
-	if len(data) > 0 {
-		var item = sendingItem{session: my, data: data}
-		my.sender.sendingChan <- item
-	}
-
-	return nil
-}
-
 //func (my *sessionImpl) writeBytes(data []byte) error {
 //	if len(data) > 0 {
-//		var _, err = my.conn.Write(data)
-//		return err
+//		var item = sendingItem{session: my, data: data}
+//		my.sender.sendingChan <- item
 //	}
 //
 //	return nil
 //}
+
+func (my *sessionImpl) writeBytes(data []byte) error {
+	if len(data) > 0 {
+		var _, err = my.conn.Write(data)
+		return err
+	}
+
+	return nil
+}
 
 func (my *sessionImpl) packetEncodeMessage(msg *message.Message) ([]byte, error) {
 	data, err := my.app.messageEncoder.Encode(msg)
