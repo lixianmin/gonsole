@@ -3,7 +3,6 @@ package epoll
 import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -42,13 +41,14 @@ func (my *WsConn) goLoop() {
 	for !my.wc.IsClosed() {
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
-			my.writeMessage(Message{Err: err})
+			my.receivedChan <- Message{Err: err}
 			logo.JsonI("err", err)
 			return
 		}
 
 		_, _ = input.Write(data)
-		if err2 := my.onReceiveData(input); err2 != nil {
+		if err2 := onReceiveMessage(my.receivedChan, input); err2 != nil {
+			my.receivedChan <- Message{Err: err2}
 			logo.JsonI("err2", err2)
 			return
 		}
@@ -57,47 +57,6 @@ func (my *WsConn) goLoop() {
 
 func (my *WsConn) GetReceivedChan() <-chan Message {
 	return my.receivedChan
-}
-
-func (my *WsConn) onReceiveData(input *iox.Buffer) error {
-	var headLength = codec.HeaderLength
-	var data = input.Bytes()
-
-	for len(data) > headLength {
-		var header = data[:headLength]
-		msgSize, _, err := codec.ParseHeader(header)
-		if err != nil {
-			return err
-		}
-
-		var totalSize = headLength + msgSize
-		if len(data) < totalSize {
-			return nil
-		}
-
-		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
-		var frameData = make([]byte, totalSize)
-		copy(frameData, data[:totalSize])
-
-		select {
-		case my.receivedChan <- Message{Data: frameData}:
-		case <-my.wc.C():
-			return nil
-		}
-
-		input.Next(totalSize)
-		data = input.Bytes()
-	}
-
-	input.Tidy()
-	return nil
-}
-
-func (my *WsConn) writeMessage(msg Message) {
-	select {
-	case my.receivedChan <- msg:
-	case <-my.wc.C():
-	}
 }
 
 // Write writes data to the connection.
@@ -119,11 +78,6 @@ func (my *WsConn) Close() error {
 	return my.wc.Close(func() error {
 		return my.conn.Close()
 	})
-}
-
-// LocalAddr returns the local address.
-func (my *WsConn) LocalAddr() net.Addr {
-	return my.conn.LocalAddr()
 }
 
 // RemoteAddr returns the remote address.

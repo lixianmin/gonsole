@@ -3,6 +3,7 @@ package epoll
 import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/codec"
+	"github.com/lixianmin/got/iox"
 )
 
 /********************************************************************
@@ -30,5 +31,34 @@ func checkReceivedMsgBytes(msgBytes []byte) error {
 		return ifs.ErrReceivedMsgBiggerThanExpected
 	}
 
+	return nil
+}
+
+func onReceiveMessage(receivedChan chan Message, input *iox.Buffer) error {
+	var headLength = codec.HeaderLength
+	var data = input.Bytes()
+
+	for len(data) > headLength {
+		var header = data[:headLength]
+		msgSize, _, err := codec.ParseHeader(header)
+		if err != nil {
+			return err
+		}
+
+		var totalSize = headLength + msgSize
+		if len(data) < totalSize {
+			return nil
+		}
+
+		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
+		var frameData = make([]byte, totalSize)
+		copy(frameData, data[:totalSize])
+		receivedChan <- Message{Data: frameData}
+
+		input.Next(totalSize)
+		data = input.Bytes()
+	}
+
+	input.Tidy()
 	return nil
 }
