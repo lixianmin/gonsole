@@ -43,9 +43,8 @@ type (
 
 		accept   epoll.Acceptor
 		sessions loom.Map
-		//senders  []*sessionSender
-		tasks *taskx.Queue
-		wc    loom.WaitClose
+		tasks    *taskx.Queue
+		wc       loom.WaitClose
 
 		services     map[string]*component.Service // all registered service
 		hookCallback HookFunc
@@ -118,7 +117,7 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(fetus *appFetus, conn epoll.PlayerConn) {
+func (my *App) onNewSession(fetus *appFetus, conn epoll.IConn) {
 	var session = NewSession(my, conn)
 
 	var id = session.Id()

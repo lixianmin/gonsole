@@ -9,7 +9,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type PlayerConn interface {
+type IConn interface {
 	GetReceivedChan() <-chan Message
 	Write(b []byte) (int, error)
 	Close() error

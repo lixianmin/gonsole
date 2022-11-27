@@ -32,14 +32,13 @@ type sessionWrapper struct {
 	*sessionImpl
 }
 
-func NewSession(app *App, conn epoll.PlayerConn) Session {
+func NewSession(app *App, conn epoll.IConn) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		app:        app,
 		id:         id,
 		conn:       conn,
 		attachment: &Attachment{},
-		//sender:     app.getSender(id),
 	}}
 
 	logo.Info("create session(%d)", my.id)

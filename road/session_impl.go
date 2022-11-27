@@ -25,7 +25,7 @@ type (
 	sessionImpl struct {
 		app        *App
 		id         int64
-		conn       epoll.PlayerConn
+		conn       epoll.IConn
 		attachment *Attachment
 		//sender     *sessionSender
 		wc loom.WaitClose

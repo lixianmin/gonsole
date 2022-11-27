@@ -14,7 +14,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	connChan         chan PlayerConn
+	connChan         chan IConn
 	receivedChanSize int
 	isClosed         int32
 }
@@ -31,7 +31,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		connChan:         make(chan PlayerConn, options.ConnChanSize),
+		connChan:         make(chan IConn, options.ConnChanSize),
 		receivedChanSize: options.ReceivedChanSize,
 	}
 
@@ -51,6 +51,6 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	my.connChan <- newWsConn(conn, my.receivedChanSize)
 }
 
-func (my *WsAcceptor) GetConnChan() chan PlayerConn {
+func (my *WsAcceptor) GetConnChan() chan IConn {
 	return my.connChan
 }

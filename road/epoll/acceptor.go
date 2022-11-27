@@ -8,5 +8,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
-	GetConnChan() chan PlayerConn
+	GetConnChan() chan IConn
 }
