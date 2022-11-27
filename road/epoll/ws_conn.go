@@ -6,7 +6,6 @@ import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -19,18 +18,16 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsConn struct {
-	conn              net.Conn
-	heartbeatInterval time.Duration
-	onReadHandler     OnReadHandler
-	writeLock         sync.Mutex
-	isClosed          int32
+	commonConn
 }
 
 func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
 	var my = &WsConn{
-		conn:              conn,
-		heartbeatInterval: heartbeatInterval,
-		onReadHandler:     emptyOnReadHandler,
+		commonConn: commonConn{
+			conn:              conn,
+			heartbeatInterval: heartbeatInterval,
+			onReadHandler:     emptyOnReadHandler,
+		},
 	}
 
 	go my.goLoop()
@@ -57,18 +54,12 @@ func (my *WsConn) goLoop() {
 			return
 		}
 
-		_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
+		my.resetReadDeadline()
 		_, _ = input.Write(data)
-		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
+		if err2 := my.onReceiveMessage(input); err2 != nil {
 			//logo.JsonI("err2", err2)
 			return
 		}
-	}
-}
-
-func (my *WsConn) SetOnReadHandler(handler OnReadHandler) {
-	if handler != nil {
-		my.onReadHandler = handler
 	}
 }
 
@@ -85,16 +76,4 @@ func (my *WsConn) Write(data []byte) (int, error) {
 	}
 
 	return len(data), nil
-}
-
-// Close closes the connection.
-// Any blocked Read or Write operations will be unblocked and return errors.
-func (my *WsConn) Close() error {
-	atomic.StoreInt32(&my.isClosed, 1)
-	return nil
-}
-
-// RemoteAddr returns the remote address.
-func (my *WsConn) RemoteAddr() net.Addr {
-	return my.conn.RemoteAddr()
 }

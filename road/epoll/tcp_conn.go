@@ -4,7 +4,6 @@ import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -17,18 +16,16 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpConn struct {
-	conn              net.Conn
-	heartbeatInterval time.Duration
-	onReadHandler     OnReadHandler
-	isClosed          int32
-	writeLock         sync.Mutex
+	commonConn
 }
 
 func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
 	var my = &TcpConn{
-		conn:              conn,
-		heartbeatInterval: heartbeatInterval,
-		onReadHandler:     emptyOnReadHandler,
+		commonConn: commonConn{
+			conn:              conn,
+			heartbeatInterval: heartbeatInterval,
+			onReadHandler:     emptyOnReadHandler,
+		},
 	}
 
 	go my.goLoop()
@@ -53,18 +50,12 @@ func (my *TcpConn) goLoop() {
 			return
 		}
 
-		_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
+		my.resetReadDeadline()
 		_, _ = input.Write(buffer[:num])
-		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
+		if err2 := my.onReceiveMessage(input); err2 != nil {
 			//logo.JsonI("err2", err2)
 			return
 		}
-	}
-}
-
-func (my *TcpConn) SetOnReadHandler(handler OnReadHandler) {
-	if handler != nil {
-		my.onReadHandler = handler
 	}
 }
 
@@ -75,16 +66,4 @@ func (my *TcpConn) Write(data []byte) (int, error) {
 	my.writeLock.Unlock()
 
 	return num, err
-}
-
-// Close closes the connection.
-// Any blocked Read or Write operations will be unblocked and return errors.
-func (my *TcpConn) Close() error {
-	atomic.StoreInt32(&my.isClosed, 1)
-	return nil
-}
-
-// RemoteAddr returns the remote address.
-func (my *TcpConn) RemoteAddr() net.Addr {
-	return my.conn.RemoteAddr()
 }
