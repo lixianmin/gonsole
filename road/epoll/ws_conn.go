@@ -43,6 +43,10 @@ func (my *WsConn) goLoop() {
 	for !my.wc.IsClosed() {
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
+			//if err == io.EOF || err == io.ErrUnexpectedEOF {
+			//	continue
+			//}
+
 			my.receivedChan <- Message{Err: err}
 			logo.JsonI("err", err)
 			return
@@ -68,6 +72,7 @@ func (my *WsConn) Write(b []byte) (int, error) {
 	var err = ws.WriteFrame(my.conn, frame)
 	my.writeLock.Unlock()
 
+	//logo.JsonI("b", b)
 	if err != nil {
 		return 0, err
 	}

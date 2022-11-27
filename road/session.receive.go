@@ -54,7 +54,6 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 			// 使用时间窗口限制令牌数
 			fetus.rateLimitTokens = mathx.MinI32(fetus.rateLimitWindow, fetus.rateLimitTokens+stepRateLimitTokens)
 
-			// todo 经常有超时收不到的问题啊
 			if err := my.onHeartbeat(fetus); err != nil {
 				logo.Info("close session(%d) by onHeartbeat(), err=%q", my.id, err)
 				return
@@ -73,8 +72,6 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 				logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
 				return
 			}
-		//case task := <-my.tasks.C:
-		//	_ = task.Do(my)
 		case <-closeChan:
 			logo.Info("close session(%d) by calling session.Close()", my.id)
 			return
@@ -90,8 +87,9 @@ func (my *sessionImpl) onHeartbeat(fetus *sessionFetus) error {
 	}
 
 	var passedTime = time.Now().Sub(fetus.lastAt)
+	//logo.JsonI("heartbeat", "heartbeat", "passedTime", timex.FormatDuration(passedTime))
 	if passedTime > fetus.heartbeatTimeout {
-		return fmt.Errorf("session heartbeat timeout, lastAt=%q, heartbeatTimeout=%s", fetus.lastAt.Format(timex.Layout), fetus.heartbeatTimeout)
+		return fmt.Errorf("session heartbeat timeout, lastAt=%q, heartbeatTimeout=%s", timex.FormatTime(fetus.lastAt), fetus.heartbeatTimeout)
 	}
 
 	// 发送心跳包，如果网络是通的，收到心跳返回时会刷新 lastAt
