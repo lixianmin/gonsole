@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"net"
 	"sync"
+	"time"
 )
 
 /********************************************************************
@@ -15,16 +16,18 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpConn struct {
-	conn          net.Conn
-	onReadHandler OnReadHandler
-	wc            loom.WaitClose
-	writeLock     sync.Mutex
+	conn              net.Conn
+	heartbeatInterval time.Duration
+	onReadHandler     OnReadHandler
+	wc                loom.WaitClose
+	writeLock         sync.Mutex
 }
 
-func newTcpConn(conn net.Conn) *TcpConn {
+func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
 	var my = &TcpConn{
-		conn:          conn,
-		onReadHandler: emptyOnReadHandler,
+		conn:              conn,
+		heartbeatInterval: heartbeatInterval,
+		onReadHandler:     emptyOnReadHandler,
 	}
 
 	go my.goLoop()
@@ -46,6 +49,7 @@ func (my *TcpConn) goLoop() {
 			return
 		}
 
+		_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
 		_, _ = input.Write(buffer[:num])
 		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
 			//logo.JsonI("err2", err2)

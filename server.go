@@ -67,9 +67,10 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
-	var acceptor = epoll.NewWsAcceptor(mux, servePath)
+	var acceptor = epoll.NewWsAcceptor(mux, servePath, epoll.WithHeartbeatInterval(5*time.Second))
 	var app = road.NewApp(acceptor,
-		road.WithSessionRateLimitBySecond(2),
+		road.WithSessionRateLimitBySecond(5),
+		road.WithHeartbeatInterval(5*time.Second), // todo 现在road与epoll两个地方需要设置heartbeat interval，感觉不对啊
 	)
 
 	var server = &Server{

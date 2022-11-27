@@ -7,6 +7,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"net"
 	"sync"
+	"time"
 )
 
 /********************************************************************
@@ -17,16 +18,18 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsConn struct {
-	conn          net.Conn
-	onReadHandler OnReadHandler
-	writeLock     sync.Mutex
-	wc            loom.WaitClose
+	conn              net.Conn
+	heartbeatInterval time.Duration
+	onReadHandler     OnReadHandler
+	writeLock         sync.Mutex
+	wc                loom.WaitClose
 }
 
-func newWsConn(conn net.Conn) *WsConn {
+func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
 	var my = &WsConn{
-		conn:          conn,
-		onReadHandler: emptyOnReadHandler,
+		conn:              conn,
+		heartbeatInterval: heartbeatInterval,
+		onReadHandler:     emptyOnReadHandler,
 	}
 
 	go my.goLoop()
@@ -50,6 +53,7 @@ func (my *WsConn) goLoop() {
 			return
 		}
 
+		_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
 		_, _ = input.Write(data)
 		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
 			//logo.JsonI("err2", err2)
