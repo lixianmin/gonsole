@@ -30,14 +30,12 @@ Copyright (C) - All Rights Reserved
 func (my *sessionImpl) goSessionLoop(later loom.Later) {
 	defer my.Close()
 
-	var receivedChan = my.conn.GetReceivedChan()
 	var closeChan = my.wc.C()
 	var app = my.app
 
 	var heartbeatInterval = app.heartbeatInterval
 	var heartbeatTimer = app.wheelSecond.NewTimer(heartbeatInterval)
 	var stepRateLimitTokens = mathx.MaxI32(1, int32(float64(heartbeatInterval)/float64(time.Second)*float64(app.rateLimitBySecond)))
-	var msgBuffer = &iox.Buffer{}
 
 	var fetus = &sessionFetus{
 		lastAt:           time.Now(),
@@ -45,6 +43,23 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 		rateLimitTokens:  stepRateLimitTokens,
 		rateLimitWindow:  2 * stepRateLimitTokens,
 	}
+
+	var msgBuffer = &iox.Buffer{}
+	my.conn.SetOnReadHandler(func(data []byte, err error) {
+		fetus.lastAt = time.Now()
+		fetus.rateLimitTokens--
+
+		if err != nil {
+			logo.Info("close session(%d) by msg.Err=%q", my.id, err)
+			return
+		}
+
+		_, _ = msgBuffer.Write(data)
+		if err := my.onReceivedMessage(fetus, msgBuffer); err != nil {
+			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
+			return
+		}
+	})
 
 	for {
 		select {
@@ -56,20 +71,6 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 
 			if err := my.onHeartbeat(fetus); err != nil {
 				logo.Info("close session(%d) by onHeartbeat(), err=%q", my.id, err)
-				return
-			}
-		case msg := <-receivedChan:
-			fetus.lastAt = time.Now()
-			fetus.rateLimitTokens--
-
-			if msg.Err != nil {
-				logo.Info("close session(%d) by msg.Err=%q", my.id, msg.Err)
-				return
-			}
-
-			_, _ = msgBuffer.Write(msg.Data)
-			if err := my.onReceivedMessage(fetus, msgBuffer); err != nil {
-				logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
 				return
 			}
 		case <-closeChan:

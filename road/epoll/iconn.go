@@ -9,9 +9,15 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+type OnReadHandler func(data []byte, err error)
+
+var emptyOnReadHandler = func(data []byte, err error) {
+
+}
+
 type IConn interface {
-	GetReceivedChan() <-chan Message
-	Write(b []byte) (int, error)
+	SetOnReadHandler(handler OnReadHandler)
+	Write(data []byte) (int, error)
 	Close() error
 	RemoteAddr() net.Addr
 }

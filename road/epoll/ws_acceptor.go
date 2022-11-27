@@ -14,16 +14,14 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	connChan         chan IConn
-	receivedChanSize int
-	isClosed         int32
+	connChan chan IConn
+	isClosed int32
 }
 
 func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption) *WsAcceptor {
 	var options = acceptorOptions{
-		ConnChanSize:     16,
-		ReceivedChanSize: 16,
-		PollBufferSize:   1024,
+		ConnChanSize:   16,
+		PollBufferSize: 1024,
 	}
 
 	for _, opt := range opts {
@@ -31,8 +29,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		connChan:         make(chan IConn, options.ConnChanSize),
-		receivedChanSize: options.ReceivedChanSize,
+		connChan: make(chan IConn, options.ConnChanSize),
 	}
 
 	// 这个相当于listener，每创建一个新的链接
@@ -48,7 +45,7 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.connChan <- newWsConn(conn, my.receivedChanSize)
+	my.connChan <- newWsConn(conn)
 }
 
 func (my *WsAcceptor) GetConnChan() chan IConn {

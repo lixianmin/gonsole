@@ -3,7 +3,6 @@ package epoll
 import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/logo"
 	"net"
 	"sync"
 )
@@ -16,17 +15,16 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpConn struct {
-	conn         net.Conn
-	receivedChan chan Message
-	wc           loom.WaitClose
-	writeLock    sync.Mutex
+	conn          net.Conn
+	onReadHandler OnReadHandler
+	wc            loom.WaitClose
+	writeLock     sync.Mutex
 }
 
-func newTcpConn(conn net.Conn, receivedChanSize int) *TcpConn {
-	var receivedChan = make(chan Message, receivedChanSize)
+func newTcpConn(conn net.Conn) *TcpConn {
 	var my = &TcpConn{
-		conn:         conn,
-		receivedChan: receivedChan,
+		conn:          conn,
+		onReadHandler: emptyOnReadHandler,
 	}
 
 	go my.goLoop()
@@ -43,28 +41,29 @@ func (my *TcpConn) goLoop() {
 	for !my.wc.IsClosed() {
 		var num, err = my.conn.Read(buffer)
 		if err != nil {
-			my.receivedChan <- Message{Err: err}
-			logo.JsonI("err", err)
+			my.onReadHandler(nil, err)
+			//logo.JsonI("err", err)
 			return
 		}
 
 		_, _ = input.Write(buffer[:num])
-		if err2 := onReceiveMessage(my.receivedChan, input); err2 != nil {
-			my.receivedChan <- Message{Err: err2}
-			logo.JsonI("err2", err2)
+		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
+			//logo.JsonI("err2", err2)
 			return
 		}
 	}
 }
 
-func (my *TcpConn) GetReceivedChan() <-chan Message {
-	return my.receivedChan
+func (my *TcpConn) SetOnReadHandler(handler OnReadHandler) {
+	if handler != nil {
+		my.onReadHandler = handler
+	}
 }
 
-func (my *TcpConn) Write(b []byte) (int, error) {
+func (my *TcpConn) Write(data []byte) (int, error) {
 	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
 	my.writeLock.Lock()
-	var num, err = my.conn.Write(b)
+	var num, err = my.conn.Write(data)
 	my.writeLock.Unlock()
 
 	return num, err

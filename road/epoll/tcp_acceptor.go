@@ -21,9 +21,8 @@ type TcpAcceptor struct {
 
 func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	var options = acceptorOptions{
-		ConnChanSize:     16,
-		ReceivedChanSize: 16,
-		PollBufferSize:   1024,
+		ConnChanSize:   16,
+		PollBufferSize: 1024,
 	}
 
 	for _, opt := range opts {
@@ -34,11 +33,11 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 		connChan: make(chan IConn, options.ConnChanSize),
 	}
 
-	go my.goLoop(address, options.ReceivedChanSize)
+	go my.goLoop(address)
 	return my
 }
 
-func (my *TcpAcceptor) goLoop(address string, receivedChanSize int) {
+func (my *TcpAcceptor) goLoop(address string) {
 	defer loom.DumpIfPanic()
 
 	listener, err := net.Listen("tcp", address)
@@ -56,7 +55,7 @@ func (my *TcpAcceptor) goLoop(address string, receivedChanSize int) {
 			continue
 		}
 
-		my.connChan <- newTcpConn(conn, receivedChanSize)
+		my.connChan <- newTcpConn(conn)
 	}
 }
 

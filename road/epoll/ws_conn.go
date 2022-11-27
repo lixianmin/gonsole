@@ -5,7 +5,6 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/logo"
 	"net"
 	"sync"
 )
@@ -18,17 +17,16 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsConn struct {
-	conn         net.Conn
-	receivedChan chan Message
-	wc           loom.WaitClose
-	writeLock    sync.Mutex
+	conn          net.Conn
+	onReadHandler OnReadHandler
+	writeLock     sync.Mutex
+	wc            loom.WaitClose
 }
 
-func newWsConn(conn net.Conn, receivedChanSize int) *WsConn {
-	var receivedChan = make(chan Message, receivedChanSize)
+func newWsConn(conn net.Conn) *WsConn {
 	var my = &WsConn{
-		conn:         conn,
-		receivedChan: receivedChan,
+		conn:          conn,
+		onReadHandler: emptyOnReadHandler,
 	}
 
 	go my.goLoop()
@@ -47,28 +45,29 @@ func (my *WsConn) goLoop() {
 			//	continue
 			//}
 
-			my.receivedChan <- Message{Err: err}
-			logo.JsonI("err", err)
+			my.onReadHandler(nil, err)
+			//logo.JsonI("err", err)
 			return
 		}
 
 		_, _ = input.Write(data)
-		if err2 := onReceiveMessage(my.receivedChan, input); err2 != nil {
-			my.receivedChan <- Message{Err: err2}
-			logo.JsonI("err2", err2)
+		if err2 := onReceiveMessage(input, my.onReadHandler); err2 != nil {
+			//logo.JsonI("err2", err2)
 			return
 		}
 	}
 }
 
-func (my *WsConn) GetReceivedChan() <-chan Message {
-	return my.receivedChan
+func (my *WsConn) SetOnReadHandler(handler OnReadHandler) {
+	if handler != nil {
+		my.onReadHandler = handler
+	}
 }
 
-func (my *WsConn) Write(b []byte) (int, error) {
+func (my *WsConn) Write(data []byte) (int, error) {
 	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
 	my.writeLock.Lock()
-	var frame = ws.NewBinaryFrame(b)
+	var frame = ws.NewBinaryFrame(data)
 	var err = ws.WriteFrame(my.conn, frame)
 	my.writeLock.Unlock()
 
@@ -77,7 +76,7 @@ func (my *WsConn) Write(b []byte) (int, error) {
 		return 0, err
 	}
 
-	return len(b), nil
+	return len(data), nil
 }
 
 // Close closes the connection.

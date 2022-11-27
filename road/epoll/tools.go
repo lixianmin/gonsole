@@ -34,7 +34,7 @@ func checkReceivedMsgBytes(msgBytes []byte) error {
 	return nil
 }
 
-func onReceiveMessage(receivedChan chan Message, input *iox.Buffer) error {
+func onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHandler) error {
 	var headLength = codec.HeaderLength
 	var data = input.Bytes()
 
@@ -42,6 +42,7 @@ func onReceiveMessage(receivedChan chan Message, input *iox.Buffer) error {
 		var header = data[:headLength]
 		msgSize, _, err := codec.ParseHeader(header)
 		if err != nil {
+			onReadHandler(nil, err)
 			return err
 		}
 
@@ -53,7 +54,7 @@ func onReceiveMessage(receivedChan chan Message, input *iox.Buffer) error {
 		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
 		var frameData = make([]byte, totalSize)
 		copy(frameData, data[:totalSize])
-		receivedChan <- Message{Data: frameData}
+		onReadHandler(frameData, nil)
 
 		input.Next(totalSize)
 		data = input.Bytes()
