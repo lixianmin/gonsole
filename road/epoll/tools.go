@@ -14,17 +14,17 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func checkReceivedMsgBytes(msgBytes []byte) error {
-	if len(msgBytes) < codec.HeaderLength {
+	if len(msgBytes) < codec.HeaderSize {
 		return codec.ErrInvalidPomeloHeader
 	}
 
-	header := msgBytes[:codec.HeaderLength]
+	header := msgBytes[:codec.HeaderSize]
 	msgSize, _, err := codec.ParseHeader(header)
 	if err != nil {
 		return err
 	}
 
-	dataLen := len(msgBytes[codec.HeaderLength:])
+	dataLen := len(msgBytes[codec.HeaderSize:])
 	if dataLen < msgSize {
 		return ifs.ErrReceivedMsgSmallerThanExpected
 	} else if dataLen > msgSize {
@@ -35,18 +35,19 @@ func checkReceivedMsgBytes(msgBytes []byte) error {
 }
 
 func onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHandler) error {
-	var headLength = codec.HeaderLength
+	var headSize = codec.HeaderSize
 	var data = input.Bytes()
 
-	for len(data) > headLength {
-		var header = data[:headLength]
-		msgSize, _, err := codec.ParseHeader(header)
+	// 像heartbeat之类的协议，有可能只有head没有body，所以需要使用>=
+	for len(data) >= headSize {
+		var header = data[:headSize]
+		bodySize, _, err := codec.ParseHeader(header)
 		if err != nil {
 			onReadHandler(nil, err)
 			return err
 		}
 
-		var totalSize = headLength + msgSize
+		var totalSize = headSize + bodySize
 		if len(data) < totalSize {
 			return nil
 		}

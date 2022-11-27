@@ -2,7 +2,6 @@ package road
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/codec"
@@ -13,7 +12,6 @@ import (
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
 	"reflect"
 	"time"
@@ -34,14 +32,8 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 	defer my.Close()
 
 	var closeChan = my.wc.C()
-	var app = my.app
-
-	var heartbeatInterval = app.heartbeatInterval
-	var heartbeatTimer = app.wheelSecond.NewTimer(heartbeatInterval)
-
 	var fetus = &sessionFetus{
-		lastAt:           time.Now(),
-		heartbeatTimeout: heartbeatInterval * 3,
+		lastAt: time.Now(),
 	}
 
 	var msgBuffer = &iox.Buffer{}
@@ -63,40 +55,11 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 
 	for {
 		select {
-		case <-heartbeatTimer.C:
-			heartbeatTimer.Reset()
-			if err := my.onHeartbeat(fetus); err != nil {
-				logo.Info("close session(%d) by onHeartbeat(), err=%q", my.id, err)
-				return
-			}
 		case <-closeChan:
 			logo.Info("close session(%d) by calling session.Close()", my.id)
 			return
 		}
 	}
-}
-
-func (my *sessionImpl) onHeartbeat(fetus *sessionFetus) error {
-	// 如果在一个心跳时间后还没有收到握手消息，就断开链接。
-	// 登录验证之类的事情是在机会在onHandShaken事件中验证的
-	if !fetus.isHandshakeReceived {
-		return errors.New("don't received handshake, disconnect")
-	}
-
-	var passedTime = time.Now().Sub(fetus.lastAt)
-	//logo.JsonI("heartbeat", "heartbeat", "passedTime", timex.FormatDuration(passedTime))
-	if passedTime > fetus.heartbeatTimeout {
-		return fmt.Errorf("session heartbeat timeout, lastAt=%q, heartbeatTimeout=%s", timex.FormatTime(fetus.lastAt), fetus.heartbeatTimeout)
-	}
-
-	// 发送心跳包，如果网络是通的，收到心跳返回时会刷新 lastAt
-	if err := my.writeBytes(my.app.heartbeatPacketData); err != nil {
-		return fmt.Errorf("failed to write to conn: %s", err.Error())
-	}
-
-	// 注意：libpitaya的heartbeat部分是问题的，只能在应用层自己做ping/pong
-	//logo.Debug("session(%d) sent heartbeat", my.id)
-	return nil
 }
 
 func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer) error {
@@ -113,35 +76,45 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer
 	// process all packet
 	for i := range packets {
 		var p = packets[i]
+		//logo.JsonI("p", p)
 		switch p.Kind {
 		case codec.Handshake:
-			if err := my.onReceivedHandshake(fetus, p); err != nil {
+			// todo 现在这个流程中，自动认证这个事是在握手完成之前就上传了，这听起来并不合理
+			if err := my.onReceivedHandshake(p); err != nil {
 				return err
 			}
-		case codec.HandshakeAck:
-			// handshake的流程是 client (request) --> server (response) --> client (ack) --> server (received ack)
-			logo.Debug("session(%d) received handshake ACK", my.id)
+		case codec.HandshakeAck, codec.Heartbeat: // 收到这2种消息的时候，服务器回一个心跳好了
+			if err := my.onReceivedHeartbeat(); err != nil {
+				return err
+			}
 		case codec.Data:
 			if err := my.onReceivedData(fetus, p); err != nil {
 				return err
 			}
-		case codec.Heartbeat:
-			//logo.Debug("session(%d) received heartbeat", my.id)
 		}
 	}
 
 	return nil
 }
 
-// 如果长时间收不到握手消息，服务器会主动断开链接
-func (my *sessionImpl) onReceivedHandshake(fetus *sessionFetus, p *codec.Packet) error {
-	fetus.isHandshakeReceived = true
-	var err = my.writeBytes(my.app.handshakeResponseData)
+func (my *sessionImpl) onReceivedHandshake(p *codec.Packet) error {
+	var err = my.writeBytes(my.app.handshakeData)
 	if err == nil {
 		my.onHandShaken.Invoke()
 	}
 
 	return err
+}
+
+func (my *sessionImpl) onReceivedHeartbeat() error {
+	// 发送心跳包，如果网络是通的，收到心跳返回时会刷新 lastAt
+	if err := my.writeBytes(my.app.heartbeatPacketData); err != nil {
+		return fmt.Errorf("failed to write to conn: %s", err.Error())
+	}
+
+	// 注意：libpitaya的heartbeat部分是问题的，只能在应用层自己做ping/pong
+	//logo.Debug("session(%d) sent heartbeat", my.id)
+	return nil
 }
 
 func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *codec.Packet) error {

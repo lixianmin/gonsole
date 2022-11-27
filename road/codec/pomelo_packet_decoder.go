@@ -26,12 +26,12 @@ func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
 
 	var packets []*Packet = nil
 	for {
-		if buffer.Len() < HeaderLength {
+		if buffer.Len() < HeaderSize {
 			return packets, nil
 		}
 
 		buffer.MakeCheckpoint()
-		var size, kind, err = ParseHeader(buffer.Next(HeaderLength))
+		var size, kind, err = ParseHeader(buffer.Next(HeaderSize))
 		if err != nil {
 			return nil, err
 		}

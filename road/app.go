@@ -28,18 +28,18 @@ type (
 	HookFunc func(rawMethod func() (interface{}, error)) (interface{}, error)
 	App      struct {
 		// 下面这组参数，有session里都会用到
-		handlers              map[string]*component.Handler // all handler method
-		packetEncoder         codec.PacketEncoder
-		packetDecoder         codec.PacketDecoder
-		messageEncoder        message.Encoder
-		serializer            serialize.Serializer
-		wheelSecond           *loom.Wheel
-		heartbeatInterval     time.Duration
-		heartbeatPacketData   []byte
-		handshakeResponseData []byte
-		sendingChanSize       int
-		taskQueueSize         int
-		rateLimitBySecond     int
+		handlers            map[string]*component.Handler // all handler method
+		packetEncoder       codec.PacketEncoder
+		packetDecoder       codec.PacketDecoder
+		messageEncoder      message.Encoder
+		serializer          serialize.Serializer
+		wheelSecond         *loom.Wheel
+		heartbeatInterval   time.Duration
+		heartbeatPacketData []byte
+		handshakeData       []byte
+		sendingChanSize     int
+		taskQueueSize       int
+		rateLimitBySecond   int
 
 		accept   epoll.Acceptor
 		sessions loom.Map
@@ -89,7 +89,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 
 	//app.senders = createSenders(options)
 	app.heartbeatPacketData = app.encodeHeartbeatData()
-	app.handshakeResponseData = app.encodeHandshakeData(options.DataCompression)
+	app.handshakeData = app.encodeHandshakeData(options.DataCompression)
 
 	// 这个tasks，只是内部用一下，不公开
 	app.tasks = taskx.NewQueue(taskx.WithSize(2), taskx.WithCloseChan(app.wc.C()))
@@ -243,18 +243,3 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 
 	return bytes
 }
-
-//func (my *App) getSender(sessionId int64) *sessionSender {
-//	var index = int(sessionId) % len(my.senders)
-//	var sender = my.senders[index]
-//	return sender
-//}
-//
-//func createSenders(options appOptions) []*sessionSender {
-//	var senders = make([]*sessionSender, options.SenderCount)
-//	for i := 0; i < options.SenderCount; i++ {
-//		senders[i] = newSessionSender(options.SenderBufferSize)
-//	}
-//
-//	return senders
-//}

@@ -31,18 +31,18 @@ export class Packet {
      * @return {Uint8Array}       new byte array that contains encode result
      */
     public static encode(type: number, body?: Uint8Array): Uint8Array {
-        const length = body ? body.length : 0
+        const bodySize = body ? body.length : 0
         const headSize = 4
-        const buffer = new Uint8Array(headSize + length)
+        const buffer = new Uint8Array(headSize + bodySize)
 
         let index = 0;
         buffer[index++] = type & 0xff
-        buffer[index++] = (length >> 16) & 0xff
-        buffer[index++] = (length >> 8) & 0xff
-        buffer[index++] = length & 0xff
+        buffer[index++] = (bodySize >> 16) & 0xff
+        buffer[index++] = (bodySize >> 8) & 0xff
+        buffer[index++] = bodySize & 0xff
 
         if (body) {
-            Buffers.blockCopy(body, 0, buffer, index, length)
+            Buffers.blockCopy(body, 0, buffer, index, bodySize)
         }
 
         return buffer

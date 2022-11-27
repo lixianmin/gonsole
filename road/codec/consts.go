@@ -9,10 +9,11 @@ Copyright (C) - All Rights Reserved
 
 // Codec constants.
 const (
-	HeaderLength  = 4
+	HeaderSize    = 4
 	MaxPacketSize = 1 << 24 //16MB
 )
 
+// client handshake → server handshake → client handshakeAck → server heartbeat
 const (
 	Handshake    = 0x01 // Handshake represents a handshake: request(client) <====> handshake response(server)
 	HandshakeAck = 0x02 // HandshakeAck represents a handshake ack from client to server

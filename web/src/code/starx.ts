@@ -164,7 +164,8 @@ export class StartX {
             }
 
             this.reset()
-            const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeBuffer)))
+            // client主动handshake，把自己的参数告诉server，然后server会发送HandshakeAck发送heartbeatInterval等参数
+            const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeData)))
             this.send(packet)
 
             if (onConnected != null) {
@@ -219,18 +220,19 @@ export class StartX {
         this.encode = params.encode || this.defaultEncode
         this.decode = params.decode || this.defaultDecode
 
-        this.handshakeBuffer.user = params.user;
+        this.handshakeData.user = params.user;
         // if (params.encrypt) {
         //     this.useCrypto = true;
         //     rsa.generate(1024, "10001");
-        //     this.handshakeBuffer.sys.rsa = {
+        //     this.handshakeData.sys.rsa = {
         //         rsa_n: rsa.n.toString(16),
         //         rsa_e: rsa.e
         //     };
         // }
 
+        this.handlers[PacketType.Handshake] = this.handleHandshake  // 这是服务器推过来的，用于传递一些heartbeat interval之类的参数给client
+        this.handlers[PacketType.HandshakeAck] = this.handleHandshakeAck
         this.handlers[PacketType.Heartbeat] = this.handleHeartbeat
-        this.handlers[PacketType.Handshake] = this.handleHandshake
         this.handlers[PacketType.Data] = this.handleData
         this.handlers[PacketType.Kick] = this.handleKick
         this.connectInner(params, params.url, onConnected)
@@ -274,30 +276,12 @@ export class StartX {
         this.sendMessage(0, route, message)
     }
 
-    // 通过 => 定义 function, 使它可以在定义的时候捕获this, 而不是在使用的时候
-    // https://www.typescriptlang.org/docs/handbook/functions.html#this-and-arrow-functions
-    private handleHeartbeat = (data: Uint8Array) => {
-        const packet = Packet.encode(PacketType.Heartbeat)
-        this.send(packet)
-        // console.log(`heartbeatInterval= ${this.heartbeat.interval}, time=${new Date()}`)
-        this.resetHeartbeatTimeout()
-    }
-
-    private resetHeartbeatTimeout = () => {
-        this.heartbeat.clearTimeout()
-        this.heartbeat.timeoutId = setTimeout(()=>{
-            console.error('server heartbeat timeout')
-            this.emit('heartbeat timeout')
-            this.disconnect()
-        }, this.heartbeat.interval * 3)
-    }
-
     private handleHandshake = (data) => {
         let item = JSON.parse(strdecode(data))
 
         const RES_OLD_CLIENT = 501
         if (item.code === RES_OLD_CLIENT) {
-            this.emit('error', 'client version not fullfill')
+            this.emit('error', 'client version not fulfill')
             return;
         }
 
@@ -311,6 +295,31 @@ export class StartX {
 
         const packet = Packet.encode(PacketType.HandshakeAck)
         this.send(packet)
+    }
+
+    private handleHandshakeAck = (data: Uint8Array) => {
+        const packet = Packet.encode(PacketType.Heartbeat)
+        this.send(packet)
+    }
+
+    // 通过 => 定义 function, 使它可以在定义的时候捕获this, 而不是在使用的时候
+    // https://www.typescriptlang.org/docs/handbook/functions.html#this-and-arrow-functions
+    private handleHeartbeat = (data: Uint8Array) => {
+        setTimeout(()=>{
+            const packet = Packet.encode(PacketType.Heartbeat)
+            this.send(packet)
+        }, this.heartbeat.interval)
+
+        this.resetHeartbeatTimeout()
+    }
+
+    private resetHeartbeatTimeout = () => {
+        this.heartbeat.clearTimeout()
+        this.heartbeat.timeoutId = setTimeout(()=>{
+            console.error('server heartbeat timeout')
+            this.emit('heartbeat timeout')
+            this.disconnect()
+        }, this.heartbeat.interval * 3)
     }
 
     private handleData = (data) => {
@@ -341,7 +350,7 @@ export class StartX {
     private reconnectAttempts = 0
     private reconnectionDelay = 5000
 
-    private handshakeBuffer = {
+    private handshakeData = {
         'sys': {
             type: 'js-websocket',
             version: '0.0.1',
