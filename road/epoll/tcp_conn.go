@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type TcpConn struct {
 	conn              net.Conn
 	heartbeatInterval time.Duration
 	onReadHandler     OnReadHandler
-	wc                loom.WaitClose
+	isClosed          int32
 	writeLock         sync.Mutex
 }
 
@@ -36,12 +37,15 @@ func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
 
 func (my *TcpConn) goLoop() {
 	defer loom.DumpIfPanic()
-	defer my.Close()
+	defer func() {
+		_ = my.conn.Close()
+		_ = my.Close()
+	}()
 
 	var buffer = make([]byte, 1024)
 	var input = &iox.Buffer{}
 
-	for !my.wc.IsClosed() {
+	for atomic.LoadInt32(&my.isClosed) == 0 {
 		var num, err = my.conn.Read(buffer)
 		if err != nil {
 			my.onReadHandler(nil, err)
@@ -76,9 +80,8 @@ func (my *TcpConn) Write(data []byte) (int, error) {
 // Close closes the connection.
 // Any blocked Read or Write operations will be unblocked and return errors.
 func (my *TcpConn) Close() error {
-	return my.wc.Close(func() error {
-		return my.conn.Close()
-	})
+	atomic.StoreInt32(&my.isClosed, 1)
+	return nil
 }
 
 // RemoteAddr returns the remote address.

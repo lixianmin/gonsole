@@ -7,6 +7,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -22,7 +23,7 @@ type WsConn struct {
 	heartbeatInterval time.Duration
 	onReadHandler     OnReadHandler
 	writeLock         sync.Mutex
-	wc                loom.WaitClose
+	isClosed          int32
 }
 
 func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
@@ -38,10 +39,13 @@ func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
 
 func (my *WsConn) goLoop() {
 	defer loom.DumpIfPanic()
-	defer my.Close()
+	defer func() {
+		_ = my.conn.Close()
+		_ = my.Close()
+	}()
 
 	var input = &iox.Buffer{}
-	for !my.wc.IsClosed() {
+	for atomic.LoadInt32(&my.isClosed) == 0 {
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
 			//if err == io.EOF || err == io.ErrUnexpectedEOF {
@@ -86,9 +90,8 @@ func (my *WsConn) Write(data []byte) (int, error) {
 // Close closes the connection.
 // Any blocked Read or Write operations will be unblocked and return errors.
 func (my *WsConn) Close() error {
-	return my.wc.Close(func() error {
-		return my.conn.Close()
-	})
+	atomic.StoreInt32(&my.isClosed, 1)
+	return nil
 }
 
 // RemoteAddr returns the remote address.
