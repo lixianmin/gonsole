@@ -5,7 +5,6 @@ import (
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/route"
 	"net"
-	"time"
 )
 
 /********************************************************************
@@ -20,10 +19,6 @@ var (
 )
 
 type (
-	sessionFetus struct {
-		lastAt time.Time // 最后一时收到数据的时间戳
-	}
-
 	receivedItem struct {
 		ctx   context.Context
 		route *route.Route

@@ -26,10 +26,6 @@ func (my *sessionImpl) Push(route string, v interface{}) error {
 		return err1
 	}
 
-	//select {
-	//case my.sendingChan <- data:
-	//case <-my.wc.C():
-	//}
 	err = my.writeBytes(data)
 	return err
 }
@@ -46,12 +42,6 @@ func (my *sessionImpl) Kick() error {
 	}
 
 	return my.writeBytes(p)
-	//select {
-	//case my.sendingChan <- p:
-	//	logo.Info("session(%d) will be closed by Kick()", my.id)
-	//case <-my.wc.C():
-	//}
-	//return nil
 }
 
 func (my *sessionImpl) encodeMessageMayError(msg message.Message, err error) ([]byte, error) {
@@ -78,15 +68,6 @@ func (my *sessionImpl) encodeMessageMayError(msg message.Message, err error) ([]
 
 	return data, nil
 }
-
-//func (my *sessionImpl) writeBytes(data []byte) error {
-//	if len(data) > 0 {
-//		var item = sendingItem{session: my, data: data}
-//		my.sender.sendingChan <- item
-//	}
-//
-//	return nil
-//}
 
 func (my *sessionImpl) writeBytes(data []byte) error {
 	if len(data) > 0 {

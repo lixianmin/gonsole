@@ -11,10 +11,8 @@ import (
 	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/iox"
-	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"reflect"
-	"time"
 )
 
 /********************************************************************
@@ -25,20 +23,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) initialize() {
-
-}
-
-func (my *sessionImpl) goSessionLoop(later loom.Later) {
-	defer my.Close()
-
-	var closeChan = my.wc.C()
-	var fetus = &sessionFetus{
-		lastAt: time.Now(),
-	}
-
 	var msgBuffer = &iox.Buffer{}
 	my.conn.SetOnReadHandler(func(data []byte, err error) {
-		fetus.lastAt = time.Now()
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
@@ -46,23 +32,15 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 		}
 
 		_, _ = msgBuffer.Write(data)
-		if err1 := my.onReceivedMessage(fetus, msgBuffer); err1 != nil {
+		if err1 := my.onReceivedMessage(msgBuffer); err1 != nil {
 			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err1)
 			_ = my.Close()
 			return
 		}
 	})
-
-	for {
-		select {
-		case <-closeChan:
-			logo.Info("close session(%d) by calling session.Close()", my.id)
-			return
-		}
-	}
 }
 
-func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer) error {
+func (my *sessionImpl) onReceivedMessage(buffer *iox.Buffer) error {
 	packets, err := my.app.packetDecoder.Decode(buffer)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to decode message: %s", err.Error())
@@ -88,7 +66,7 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer
 				return err
 			}
 		case codec.Data:
-			if err := my.onReceivedData(fetus, p); err != nil {
+			if err := my.onReceivedData(p); err != nil {
 				return err
 			}
 		}
@@ -117,7 +95,7 @@ func (my *sessionImpl) onReceivedHeartbeat() error {
 	return nil
 }
 
-func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *codec.Packet) error {
+func (my *sessionImpl) onReceivedData(p *codec.Packet) error {
 	item, err := my.decodeReceivedData(p)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to process packet: %s", err.Error())
