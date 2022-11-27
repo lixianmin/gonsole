@@ -52,9 +52,10 @@ func onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHandler) error {
 		}
 
 		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
-		var frameData = make([]byte, totalSize)
-		copy(frameData, data[:totalSize])
-		onReadHandler(frameData, nil)
+		//var frameData = make([]byte, totalSize)
+		//copy(frameData, data[:totalSize])
+		// onReadHandler()会把data[]中的数据copy走，因此不再需要新生成一个frameData
+		onReadHandler(data[:totalSize], nil)
 
 		input.Next(totalSize)
 		data = input.Bytes()

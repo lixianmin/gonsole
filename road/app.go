@@ -39,7 +39,7 @@ type (
 		handshakeResponseData []byte
 		sendingChanSize       int
 		taskQueueSize         int
-		rateLimitBySecond     int32
+		rateLimitBySecond     int
 
 		accept   epoll.Acceptor
 		sessions loom.Map
@@ -78,7 +78,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		heartbeatInterval: options.HeartbeatInterval,
 		sendingChanSize:   options.SenderBufferSize,
-		rateLimitBySecond: int32(options.SessionRateLimitBySecond),
+		rateLimitBySecond: options.SessionRateLimitBySecond,
 
 		accept:   accept,
 		services: make(map[string]*component.Service),

@@ -13,9 +13,9 @@ import (
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/got/mathx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
+	"golang.org/x/time/rate"
 	"reflect"
 	"time"
 )
@@ -35,28 +35,26 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 
 	var heartbeatInterval = app.heartbeatInterval
 	var heartbeatTimer = app.wheelSecond.NewTimer(heartbeatInterval)
-	var stepRateLimitTokens = mathx.MaxI32(1, int32(float64(heartbeatInterval)/float64(time.Second)*float64(app.rateLimitBySecond)))
 
 	var fetus = &sessionFetus{
 		lastAt:           time.Now(),
 		heartbeatTimeout: heartbeatInterval * 3,
-		rateLimitTokens:  stepRateLimitTokens,
-		rateLimitWindow:  2 * stepRateLimitTokens,
+		rateLimiter:      rate.NewLimiter(rate.Every(time.Second), app.rateLimitBySecond),
 	}
 
 	var msgBuffer = &iox.Buffer{}
 	my.conn.SetOnReadHandler(func(data []byte, err error) {
 		fetus.lastAt = time.Now()
-		fetus.rateLimitTokens--
-
 		if err != nil {
 			logo.Info("close session(%d) by msg.Err=%q", my.id, err)
+			my.Close()
 			return
 		}
 
 		_, _ = msgBuffer.Write(data)
 		if err := my.onReceivedMessage(fetus, msgBuffer); err != nil {
 			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
+			my.Close()
 			return
 		}
 	})
@@ -65,10 +63,6 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 		select {
 		case <-heartbeatTimer.C:
 			heartbeatTimer.Reset()
-
-			// 使用时间窗口限制令牌数
-			fetus.rateLimitTokens = mathx.MinI32(fetus.rateLimitWindow, fetus.rateLimitTokens+stepRateLimitTokens)
-
 			if err := my.onHeartbeat(fetus); err != nil {
 				logo.Info("close session(%d) by onHeartbeat(), err=%q", my.id, err)
 				return
@@ -108,6 +102,10 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer
 	if err != nil {
 		var err1 = fmt.Errorf("failed to decode message: %s", err.Error())
 		return err1
+	}
+
+	if !fetus.rateLimiter.Allow() {
+		return ErrKickedByRateLimit
 	}
 
 	// process all packet
@@ -151,32 +149,6 @@ func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *codec.Packet) erro
 		return err1
 	}
 
-	// 如果令牌数耗尽，则拒绝处理，并给客户端报错
-	needReply := item.msg.Type != message.Notify
-	//logo.Debug("needReplay=%v, message=%v", needReply, item.msg)
-
-	if fetus.rateLimitTokens <= 0 {
-		if needReply {
-			var msg = message.Message{Type: message.Response, Id: item.msg.Id}
-			var data, err1 = my.encodeMessageMayError(msg, ErrTriggerRateLimit)
-			if err1 != nil {
-				return err1
-			}
-
-			var err2 = my.writeBytes(data)
-			if err2 != nil {
-				return err2
-			}
-		}
-
-		// 如果单位时间内消耗令牌太多，则直接断开网络
-		if fetus.rateLimitTokens <= -fetus.rateLimitWindow {
-			return ErrKickedByRateLimit
-		}
-
-		return nil
-	}
-
 	// 取handler，准备处理协议
 	handler, err := my.app.getHandler(item.route)
 	if err != nil {
@@ -184,6 +156,7 @@ func (my *sessionImpl) onReceivedData(fetus *sessionFetus, p *codec.Packet) erro
 	}
 
 	payload, err := processReceivedData(item, handler, my.app.serializer, my.app.hookCallback)
+	needReply := item.msg.Type != message.Notify
 	if needReply {
 		var msg = message.Message{Type: message.Response, Id: item.msg.Id, Data: payload}
 		var data, err1 = my.encodeMessageMayError(msg, err)
