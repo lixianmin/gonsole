@@ -57,7 +57,6 @@ func (my *sessionImpl) onReceivedMessage(buffer *iox.Buffer) error {
 		//logo.JsonI("p", p)
 		switch p.Kind {
 		case codec.Handshake:
-			// todo 现在这个流程中，自动认证这个事是在握手完成之前就上传了，这听起来并不合理
 			if err := my.onReceivedHandshake(p); err != nil {
 				return err
 			}

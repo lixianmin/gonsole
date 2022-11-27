@@ -149,7 +149,7 @@ export class StartX {
         this.send(packet)
     }
 
-    private connectInner(params, url: string, onConnected) {
+    private connectInner(params, url: string) {
         console.log('connect to: ' + url)
         params = params || {}
 
@@ -167,10 +167,6 @@ export class StartX {
             // client主动handshake，把自己的参数告诉server，然后server会发送HandshakeAck发送heartbeatInterval等参数
             const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeData)))
             this.send(packet)
-
-            if (onConnected != null) {
-                onConnected()
-            }
         }
 
         const onmessage = (event: MessageEvent) => {
@@ -198,7 +194,7 @@ export class StartX {
                 this.reconnectAttempts++
 
                 this.reconnectTimer = setTimeout(() => {
-                    this.connectInner(params, this.reconnectUrl, onConnected)
+                    this.connectInner(params, this.reconnectUrl)
                 }, this.reconnectionDelay)
                 this.reconnectionDelay *= 2
             }
@@ -216,6 +212,7 @@ export class StartX {
 
     public connect(params: any, onConnected) {
         this.handshakeCallback = params.handshakeCallback
+        this.onConnected = onConnected
 
         this.encode = params.encode || this.defaultEncode
         this.decode = params.decode || this.defaultDecode
@@ -231,11 +228,10 @@ export class StartX {
         // }
 
         this.handlers[PacketType.Handshake] = this.handleHandshake  // 这是服务器推过来的，用于传递一些heartbeat interval之类的参数给client
-        this.handlers[PacketType.HandshakeAck] = this.handleHandshakeAck
         this.handlers[PacketType.Heartbeat] = this.handleHeartbeat
         this.handlers[PacketType.Data] = this.handleData
         this.handlers[PacketType.Kick] = this.handleKick
-        this.connectInner(params, params.url, onConnected)
+        this.connectInner(params, params.url)
     }
 
     private defaultEncode(requestId: number, route, message) {
@@ -295,11 +291,12 @@ export class StartX {
 
         const packet = Packet.encode(PacketType.HandshakeAck)
         this.send(packet)
-    }
 
-    private handleHandshakeAck = (data: Uint8Array) => {
-        const packet = Packet.encode(PacketType.Heartbeat)
-        this.send(packet)
+        // handshakeAck之后，目前服务器会回复heartbeat，然后 就可以自动登录了
+        const onConnected = this.onConnected
+        if (onConnected != null) {
+            onConnected()
+        }
     }
 
     // 通过 => 定义 function, 使它可以在定义的时候捕获this, 而不是在使用的时候
@@ -369,4 +366,5 @@ export class StartX {
 
     private heartbeat = new Heartbeat()
     private handshakeCallback
+    private onConnected
 }
