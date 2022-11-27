@@ -2,11 +2,8 @@ package road
 
 import (
 	"context"
-	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/route"
-	"github.com/lixianmin/got/loom"
-	"golang.org/x/time/rate"
 	"net"
 	"time"
 )
@@ -23,23 +20,10 @@ var (
 )
 
 type (
-	sessionImpl struct {
-		app        *App
-		id         int64
-		conn       epoll.IConn
-		attachment *Attachment
-		//sender     *sessionSender
-		wc loom.WaitClose
-
-		onHandShaken delegate
-		onClosed     delegate
-	}
-
 	sessionFetus struct {
 		isHandshakeReceived bool          // 是否接收到handshake消息
 		lastAt              time.Time     // 最后一时收到数据的时间戳
 		heartbeatTimeout    time.Duration // 用于判断心跳是否超时
-		rateLimiter         *rate.Limiter
 	}
 
 	receivedItem struct {

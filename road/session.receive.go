@@ -15,7 +15,6 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
-	"golang.org/x/time/rate"
 	"reflect"
 	"time"
 )
@@ -26,6 +25,10 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
+
+func (my *sessionImpl) initialize() {
+
+}
 
 func (my *sessionImpl) goSessionLoop(later loom.Later) {
 	defer my.Close()
@@ -39,22 +42,21 @@ func (my *sessionImpl) goSessionLoop(later loom.Later) {
 	var fetus = &sessionFetus{
 		lastAt:           time.Now(),
 		heartbeatTimeout: heartbeatInterval * 3,
-		rateLimiter:      rate.NewLimiter(rate.Every(time.Second), app.rateLimitBySecond),
 	}
 
 	var msgBuffer = &iox.Buffer{}
 	my.conn.SetOnReadHandler(func(data []byte, err error) {
 		fetus.lastAt = time.Now()
 		if err != nil {
-			logo.Info("close session(%d) by msg.Err=%q", my.id, err)
-			my.Close()
+			logo.Info("close session(%d) by err=%q", my.id, err)
+			_ = my.Close()
 			return
 		}
 
 		_, _ = msgBuffer.Write(data)
-		if err := my.onReceivedMessage(fetus, msgBuffer); err != nil {
-			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err)
-			my.Close()
+		if err1 := my.onReceivedMessage(fetus, msgBuffer); err1 != nil {
+			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err1)
+			_ = my.Close()
 			return
 		}
 	})
@@ -104,7 +106,7 @@ func (my *sessionImpl) onReceivedMessage(fetus *sessionFetus, buffer *iox.Buffer
 		return err1
 	}
 
-	if !fetus.rateLimiter.Allow() {
+	if !my.rateLimiter.Allow() {
 		return ErrKickedByRateLimit
 	}
 

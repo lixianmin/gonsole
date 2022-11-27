@@ -42,14 +42,6 @@ func WithSenderBufferSize(size int) AppOption {
 	}
 }
 
-//func WithSenderCount(count int) AppOption {
-//	return func(options *appOptions) {
-//		if count > 0 {
-//			options.SenderCount = count
-//		}
-//	}
-//}
-
 func WithSessionRateLimitBySecond(limit int) AppOption {
 	return func(options *appOptions) {
 		if limit > 0 {
