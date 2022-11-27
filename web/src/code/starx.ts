@@ -280,7 +280,10 @@ export class StartX {
         const packet = Packet.encode(PacketType.Heartbeat)
         this.send(packet)
         // console.log(`heartbeatInterval= ${this.heartbeat.interval}, time=${new Date()}`)
+        this.resetHeartbeatTimeout()
+    }
 
+    private resetHeartbeatTimeout = () => {
         this.heartbeat.clearTimeout()
         this.heartbeat.timeoutId = setTimeout(()=>{
             console.error('server heartbeat timeout')
@@ -317,6 +320,7 @@ export class StartX {
         }
 
         this.processMessage(msg)
+        // this.resetHeartbeatTimeout()
     }
 
     private handleKick = (data) => {
