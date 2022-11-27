@@ -10,6 +10,7 @@ import {strdecode, strencode} from "./protocol";
 import {Message} from "./message";
 import {OctetsStream} from "./core/octets_stream";
 import {MessageType} from "./message_type";
+import {Heartbeat} from "./heartbeat";
 
 type PushHandlerFunc = (data: any) => void
 type HandlerFunc = (data: string) => void
@@ -93,11 +94,7 @@ export class StartX {
 
     private handshakeInit(data) {
         if (data.sys && data.sys.heartbeat) {
-            this.heartbeatInterval = data.sys.heartbeat * 1000     // heartbeat interval
-            this.heartbeatTimeout = this.heartbeatInterval * 2     // max heartbeat timeout
-        } else {
-            this.heartbeatInterval = 0
-            this.heartbeatTimeout = 0
+            this.heartbeat.interval = data.sys.heartbeat * 1000     // heartbeat interval
         }
 
         this.initData(data)
@@ -123,18 +120,6 @@ export class StartX {
             } else {
                 console.log(`cannot find handler for route=${msg.route}, msg=`, msg)
             }
-        }
-    }
-
-    private heartbeatTimeoutCallback() {
-        const gap = this.nextHeartbeatTimeout - Date.now()
-        const gapThreshold = 100   // heartbeat gap threshold
-        if (gap > gapThreshold) {
-            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCallback, gap)
-        } else {
-            console.error('server heartbeat timeout')
-            this.emit('heartbeat timeout')
-            this.disconnect()
         }
     }
 
@@ -195,11 +180,6 @@ export class StartX {
             stream.write(data, 0, data.length)
             stream.setPosition(0)
             this.processPackages(Packet.decode(stream))
-
-            // new package arrived, update the heartbeat timeout
-            if (this.heartbeatTimeout) {
-                this.nextHeartbeatTimeout = Date.now() + this.heartbeatTimeout
-            }
         }
 
         const onerror = (event) => {
@@ -249,7 +229,7 @@ export class StartX {
         //     };
         // }
 
-        this.handlers[PacketType.Heartbeat] = this.handleHeartBeat
+        this.handlers[PacketType.Heartbeat] = this.handleHeartbeat
         this.handlers[PacketType.Handshake] = this.handleHandshake
         this.handlers[PacketType.Data] = this.handleData
         this.handlers[PacketType.Kick] = this.handleKick
@@ -277,15 +257,7 @@ export class StartX {
             this.socket = null
         }
 
-        if (this.heartbeatId) {
-            clearTimeout(this.heartbeatId)
-            this.heartbeatId = null
-        }
-
-        if (this.heartbeatTimeoutId) {
-            clearTimeout(this.heartbeatTimeoutId)
-            this.heartbeatTimeoutId = null
-        }
+        this.heartbeat.clearTimeout()
     }
 
     public request(route: string, message, callback) {
@@ -304,30 +276,17 @@ export class StartX {
 
     // 通过 => 定义 function, 使它可以在定义的时候捕获this, 而不是在使用的时候
     // https://www.typescriptlang.org/docs/handbook/functions.html#this-and-arrow-functions
-    private handleHeartBeat = (data: Uint8Array) => {
-        if (!this.heartbeatInterval) {
-            // no heartbeat
-            return;
-        }
+    private handleHeartbeat = (data: Uint8Array) => {
+        const packet = Packet.encode(PacketType.Heartbeat)
+        this.send(packet)
+        // console.log(`heartbeatInterval= ${this.heartbeat.interval}, time=${new Date()}`)
 
-        if (this.heartbeatTimeoutId) {
-            clearTimeout(this.heartbeatTimeoutId)
-            this.heartbeatTimeoutId = null
-        }
-
-        if (this.heartbeatId) {
-            // already in a heartbeat interval
-            return
-        }
-
-        this.heartbeatId = setTimeout(() => {
-            this.heartbeatId = null
-            const packet = Packet.encode(PacketType.Heartbeat)
-            this.send(packet)
-
-            this.nextHeartbeatTimeout = Date.now() + this.heartbeatTimeout
-            this.heartbeatTimeoutId = setTimeout(this.heartbeatTimeoutCallback, this.heartbeatTimeout)
-        }, this.heartbeatInterval)
+        this.heartbeat.clearTimeout()
+        this.heartbeat.timeoutId = setTimeout(()=>{
+            console.error('server heartbeat timeout')
+            this.emit('heartbeat timeout')
+            this.disconnect()
+        }, this.heartbeat.interval * 3)
     }
 
     private handleHandshake = (data) => {
@@ -395,10 +354,6 @@ export class StartX {
     private abbrs = {}
     private dict = {}
 
-    private heartbeatInterval = 0
-    private heartbeatTimeout = 0
-    private nextHeartbeatTimeout = 0
-    private heartbeatTimeoutId: any
-    private heartbeatId: any
+    private heartbeat = new Heartbeat()
     private handshakeCallback
 }
