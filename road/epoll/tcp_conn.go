@@ -60,10 +60,7 @@ func (my *TcpConn) goLoop() {
 }
 
 func (my *TcpConn) Write(data []byte) (int, error) {
-	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
-	my.writeLock.Lock()
+	// net.TCPConn本身的是thread safe的，只要每次写入的都是完整的message，就不需要并发控制
 	var num, err = my.conn.Write(data)
-	my.writeLock.Unlock()
-
 	return num, err
 }

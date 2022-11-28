@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -19,6 +20,7 @@ Copyright (C) - All Rights Reserved
 
 type WsConn struct {
 	commonConn
+	writeLock sync.Mutex
 }
 
 func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
@@ -65,6 +67,7 @@ func (my *WsConn) goLoop() {
 
 func (my *WsConn) Write(data []byte) (int, error) {
 	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
+	// 底层的net.TCPConn的Write()是thread safe的，但是因为写web socket数据的时候，是分多次调用的，所以必须使用lock控制并发
 	my.writeLock.Lock()
 	var frame = ws.NewBinaryFrame(data)
 	var err = ws.WriteFrame(my.conn, frame)

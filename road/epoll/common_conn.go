@@ -4,7 +4,6 @@ import (
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/got/iox"
 	"net"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -21,7 +20,6 @@ type commonConn struct {
 	heartbeatInterval time.Duration
 	onReadHandler     OnReadHandler
 	isClosed          int32
-	writeLock         sync.Mutex
 }
 
 func (my *commonConn) onReceiveMessage(input *iox.Buffer) error {
