@@ -60,7 +60,9 @@ func (my *sessionImpl) onReceivedMessage(buffer *iox.Buffer) error {
 			if err := my.onReceivedHandshake(p); err != nil {
 				return err
 			}
-		case codec.HandshakeAck, codec.Heartbeat: // 收到这2种消息的时候，服务器回一个心跳好了
+		case codec.HandshakeAck, codec.Heartbeat:
+			// 1. HandshakeAck：回复heartbeat是为了激活js的setTimeout()定时发送heartbeat的功能，在此之前是不应该定时发送heartbeat的
+			// 2. Heartbeat: 回复heartbeat是因为现在server只有一个goroutine，被用在了阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，转而采用client主动heartbeat而server回复的方案
 			if err := my.onReceivedHeartbeat(); err != nil {
 				return err
 			}
