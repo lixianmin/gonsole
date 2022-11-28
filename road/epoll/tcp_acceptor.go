@@ -22,12 +22,7 @@ type TcpAcceptor struct {
 }
 
 func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
-	var options = acceptorOptions{
-		ConnChanSize:      16,
-		PollBufferSize:    1024,
-		HeartbeatInterval: 5 * time.Second,
-	}
-
+	var options = newAcceptorOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}

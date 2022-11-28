@@ -13,9 +13,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type serverOptions struct {
-	ReadBufferSize  int
-	WriteBufferSize int
-
 	PageTemplate string // 主页（console.html）模板文件的路径名
 	PageTitle    string // 主页（console.html）标题
 	PageBody     string // 主页（console.html）主体
@@ -39,22 +36,6 @@ func (options serverOptions) getPathByDirectory(path string) string {
 }
 
 type ServerOption func(*serverOptions)
-
-func WithReadBufferSize(size int) ServerOption {
-	return func(options *serverOptions) {
-		if size > 0 {
-			options.ReadBufferSize = size
-		}
-	}
-}
-
-func WithWriteBufferSize(size int) ServerOption {
-	return func(options *serverOptions) {
-		if size > 0 {
-			options.WriteBufferSize = size
-		}
-	}
-}
 
 // WithAutoLoginTime 如果手动登录过，则在时限内自动登录
 func WithAutoLoginTime(d time.Duration) ServerOption {

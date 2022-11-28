@@ -11,24 +11,22 @@ Copyright (C) - All Rights Reserved
 
 type acceptorOptions struct {
 	ConnChanSize      int           // GetConnChan()返回
-	PollBufferSize    int           // poll的事件缓冲的长度
 	HeartbeatInterval time.Duration // 心跳间隔
 }
 
 type AcceptorOption func(*acceptorOptions)
 
+func newAcceptorOptions() acceptorOptions {
+	return acceptorOptions{
+		ConnChanSize:      16,
+		HeartbeatInterval: 5 * time.Second,
+	}
+}
+
 func WithConnChanSize(size int) AcceptorOption {
 	return func(options *acceptorOptions) {
 		if size > 0 {
 			options.ConnChanSize = size
-		}
-	}
-}
-
-func WithPollBufferSize(size int) AcceptorOption {
-	return func(options *acceptorOptions) {
-		if size > 0 {
-			options.PollBufferSize = size
 		}
 	}
 }

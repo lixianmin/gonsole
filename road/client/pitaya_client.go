@@ -319,7 +319,6 @@ func (client *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
 
 // sendMsg sends the request to the server
 func (client *PitayaClient) sendMsg(msgType message.Kind, route string, data []byte) (uint, error) {
-	// TODO mount msg and encode
 	m := message.Message{
 		Type:  msgType,
 		Id:    uint(atomic.AddUint32(&client.nextId, 1)),
