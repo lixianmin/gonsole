@@ -50,3 +50,7 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (my *WsAcceptor) GetConnChan() chan IConn {
 	return my.connChan
 }
+
+func (my *WsAcceptor) GetHeartbeatInterval() time.Duration {
+	return my.heartbeatInterval
+}

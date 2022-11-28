@@ -66,3 +66,7 @@ func (my *TcpAcceptor) Close() error {
 func (my *TcpAcceptor) GetConnChan() chan IConn {
 	return my.connChan
 }
+
+func (my *TcpAcceptor) GetHeartbeatInterval() time.Duration {
+	return my.heartbeatInterval
+}

@@ -37,8 +37,6 @@ type (
 		heartbeatInterval   time.Duration
 		heartbeatPacketData []byte
 		handshakeData       []byte
-		sendingChanSize     int
-		taskQueueSize       int
 		rateLimitBySecond   int
 
 		accept   epoll.Acceptor
@@ -58,9 +56,7 @@ type (
 func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
-		HeartbeatInterval:        5 * time.Second,
 		DataCompression:          false,
-		SenderBufferSize:         4096,
 		SessionRateLimitBySecond: 2,
 	}
 
@@ -69,15 +65,15 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 		opt(&options)
 	}
 
+	var heartbeatInterval = accept.GetHeartbeatInterval()
 	var app = &App{
 		handlers:          make(map[string]*component.Handler, 8),
 		packetDecoder:     codec.NewPomeloPacketDecoder(),
 		packetEncoder:     codec.NewPomeloPacketEncoder(),
 		messageEncoder:    message.NewMessagesEncoder(options.DataCompression),
 		serializer:        serialize.NewJsonSerializer(),
-		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
-		heartbeatInterval: options.HeartbeatInterval,
-		sendingChanSize:   options.SenderBufferSize,
+		wheelSecond:       loom.NewWheel(time.Second, int(heartbeatInterval/time.Second)+1),
+		heartbeatInterval: heartbeatInterval,
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 
 		accept:   accept,
