@@ -8,7 +8,6 @@ import (
 	"net"
 	"runtime"
 	"sync/atomic"
-	"time"
 )
 
 /********************************************************************
@@ -53,7 +52,7 @@ func NewSession(app *App, conn epoll.IConn) Session {
 		id:          id,
 		conn:        conn,
 		attachment:  &Attachment{},
-		rateLimiter: rate.NewLimiter(rate.Every(time.Second), app.rateLimitBySecond),
+		rateLimiter: rate.NewLimiter(rate.Limit(app.rateLimitBySecond), app.rateLimitBySecond),
 	}}
 
 	logo.Info("create session(%d)", my.id)
