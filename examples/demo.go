@@ -34,20 +34,20 @@ func main() {
 		gonsole.WithDirectory("ws"),
 	)
 
-	var app = server.App()
-	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
-		var start = time.Now()
-		var ret, err = rawMethod()
-		var delta = time.Since(start)
-		logo.Info("cost time = %s", delta)
-		return ret, err
-	})
-
-	app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
-		var ret, err = rawMethod()
-		logo.Info("hello world")
-		return ret, err
-	})
+	//var app = server.App()
+	//app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+	//	var start = time.Now()
+	//	var ret, err = rawMethod()
+	//	var delta = time.Since(start)
+	//	logo.Info("cost time = %s", delta)
+	//	return ret, err
+	//})
+	//
+	//app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
+	//	var ret, err = rawMethod()
+	//	logo.Info("hello world")
+	//	return ret, err
+	//})
 
 	server.RegisterCommand(&gonsole.Command{
 		Name: "hi",

@@ -25,8 +25,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type (
-	HookFunc func(rawMethod func() (interface{}, error)) (interface{}, error)
-	App      struct {
+	App struct {
 		// 下面这组参数，有session里都会用到
 		handlers            map[string]*component.Handler // all handler method
 		packetEncoder       codec.PacketEncoder
@@ -44,8 +43,7 @@ type (
 		tasks    *taskx.Queue
 		wc       loom.WaitClose
 
-		services     map[string]*component.Service // all registered service
-		hookCallback HookFunc
+		services map[string]*component.Service // all registered service
 	}
 
 	appFetus struct {
@@ -78,9 +76,6 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 
 		accept:   accept,
 		services: make(map[string]*component.Service),
-		hookCallback: func(rawMethod func() (interface{}, error)) (i interface{}, e error) {
-			return rawMethod()
-		},
 	}
 
 	//app.senders = createSenders(options)
@@ -166,15 +161,6 @@ func (my *App) Register(comp component.Component, opts ...component.Option) erro
 	}
 
 	return nil
-}
-
-func (my *App) AddHook(callback HookFunc) {
-	var last = my.hookCallback
-	my.hookCallback = func(rawMethod func() (interface{}, error)) (i interface{}, e error) {
-		return callback(func() (i interface{}, e error) {
-			return last(rawMethod)
-		})
-	}
 }
 
 func (my *App) getHandler(rt *route.Route) (*component.Handler, error) {

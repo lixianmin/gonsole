@@ -97,25 +97,29 @@ func (my *sessionImpl) onReceivedHeartbeat() error {
 }
 
 func (my *sessionImpl) onReceivedData(p *codec.Packet) error {
-	item, err := my.decodeReceivedData(p)
+	var item, err = my.decodeReceivedData(p)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to process packet: %s", err.Error())
 		return err1
 	}
 
 	// 取handler，准备处理协议
-	handler, err := my.app.getHandler(item.route)
-	if err != nil {
-		return err
+	var handler, err2 = my.app.getHandler(item.route)
+	if err2 != nil {
+		return err2
 	}
 
-	payload, err := processReceivedData(item, handler, my.app.serializer, my.app.hookCallback)
+	var payload, err3 = processReceivedData(item, handler, my.app.serializer)
+	if err3 != nil {
+		return err3
+	}
+
 	needReply := item.msg.Type != message.Notify
 	if needReply {
 		var msg = message.Message{Type: message.Response, Id: item.msg.Id, Data: payload}
-		var data, err1 = my.encodeMessageMayError(msg, err)
-		if err1 != nil {
-			return err1
+		var data, err4 = my.encodeMessageMayError(msg, err3)
+		if err4 != nil {
+			return err4
 		}
 
 		return my.writeBytes(data)
@@ -146,7 +150,7 @@ func (my *sessionImpl) decodeReceivedData(p *codec.Packet) (receivedItem, error)
 	return item, nil
 }
 
-func processReceivedData(data receivedItem, handler *component.Handler, serializer serialize.Serializer, hookCallback HookFunc) ([]byte, error) {
+func processReceivedData(data receivedItem, handler *component.Handler, serializer serialize.Serializer) ([]byte, error) {
 	// First unmarshal the handler argument that will be passed to
 	// both handler and pipeline functions
 	var arg, err = unmarshalHandlerArg(handler, serializer, data.msg.Data)
@@ -161,17 +165,14 @@ func processReceivedData(data receivedItem, handler *component.Handler, serializ
 		args = []reflect.Value{handler.Receiver, reflect.ValueOf(data.ctx)}
 	}
 
-	resp, err := hookCallback(func() (i interface{}, e error) {
-		return util.PCall(handler.Method, args)
-	})
-
-	if err != nil {
-		return nil, err
+	response, err2 := util.PCall(handler.Method, args)
+	if err2 != nil {
+		return nil, err2
 	}
 
-	ret, err := util.SerializeOrRaw(serializer, resp)
-	if err != nil {
-		return nil, err
+	ret, err3 := util.SerializeOrRaw(serializer, response)
+	if err3 != nil {
+		return nil, err3
 	}
 
 	return ret, nil
