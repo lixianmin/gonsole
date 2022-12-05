@@ -163,7 +163,7 @@ func processReceivedData(data receivedItem, handler *component.Handler, serializ
 		args = []reflect.Value{handler.Receiver, reflect.ValueOf(data.ctx), reflect.ValueOf(arg)}
 		// 如果request实现了IRequestPart接口，则处理一下
 		if part, ok := arg.(IRequestPart); ok {
-			if err2 := part.OnAdded(data.ctx, arg); err != nil {
+			if err2 := part.OnAdded(data.ctx, arg); err2 != nil {
 				return nil, err2
 			}
 		}
