@@ -161,18 +161,24 @@ func processReceivedData(data receivedItem, handler *component.Handler, serializ
 	var args []reflect.Value
 	if arg != nil {
 		args = []reflect.Value{handler.Receiver, reflect.ValueOf(data.ctx), reflect.ValueOf(arg)}
+		// 如果request实现了IRequestPart接口，则处理一下
+		if part, ok := arg.(IRequestPart); ok {
+			if err2 := part.OnAdded(data.ctx, arg); err != nil {
+				return nil, err2
+			}
+		}
 	} else {
 		args = []reflect.Value{handler.Receiver, reflect.ValueOf(data.ctx)}
 	}
 
-	response, err2 := util.PCall(handler.Method, args)
-	if err2 != nil {
-		return nil, err2
-	}
-
-	ret, err3 := util.SerializeOrRaw(serializer, response)
+	response, err3 := util.PCall(handler.Method, args)
 	if err3 != nil {
 		return nil, err3
+	}
+
+	ret, err4 := util.SerializeOrRaw(serializer, response)
+	if err4 != nil {
+		return nil, err4
 	}
 
 	return ret, nil
