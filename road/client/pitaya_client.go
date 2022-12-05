@@ -8,7 +8,7 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/util/compression"
+	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -164,8 +164,8 @@ func (client *PitayaClient) handleHandshakeResponse() ([]*codec.Packet, error) {
 	}
 
 	var handshake = &HandshakeResponse{}
-	if compression.IsCompressed(handshakePacket.Data) {
-		handshakePacket.Data, err = compression.InflateData(handshakePacket.Data)
+	if util.IsCompressed(handshakePacket.Data) {
+		handshakePacket.Data, err = util.InflateData(handshakePacket.Data)
 		if err != nil {
 			return nil, err
 		}

@@ -147,9 +147,9 @@ func (my *sessionImpl) decodeReceivedData(p *codec.Packet) (receivedItem, error)
 }
 
 func processReceivedData(data receivedItem, handler *component.Handler, serializer serialize.Serializer, hookCallback HookFunc) ([]byte, error) {
-	// First unmarshal the handler arg that will be passed to
+	// First unmarshal the handler argument that will be passed to
 	// both handler and pipeline functions
-	arg, err := unmarshalHandlerArg(handler, serializer, data.msg.Data)
+	var arg, err = unmarshalHandlerArg(handler, serializer, data.msg.Data)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ Copyright (C) - All Rights Reserved
 func PCall(method reflect.Method, args []reflect.Value) (rets interface{}, err error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			logo.Error("methodName=%d, recover=%v", method.Name, rec)
+			logo.Error("method=%d, recover=%v", method.Name, rec)
 		}
 	}()
 
@@ -38,7 +38,7 @@ func PCall(method reflect.Method, args []reflect.Value) (rets interface{}, err e
 	return
 }
 
-// SerializeOrRaw serializes the interface if its not an array of bytes already
+// SerializeOrRaw serializes the interface if it is not an array of bytes already
 func SerializeOrRaw(serializer serialize.Serializer, v interface{}) ([]byte, error) {
 	if data, ok := v.([]byte); ok {
 		return data, nil

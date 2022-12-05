@@ -10,7 +10,7 @@ import (
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serialize"
-	"github.com/lixianmin/gonsole/road/util/compression"
+	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -222,7 +222,7 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 	}
 
 	if dataCompression {
-		compressedData, err := compression.DeflateData(data)
+		compressedData, err := util.DeflateData(data)
 		if err != nil {
 			panic(err)
 		}

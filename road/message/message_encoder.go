@@ -22,7 +22,7 @@ package message
 
 import (
 	"encoding/binary"
-	"github.com/lixianmin/gonsole/road/util/compression"
+	"github.com/lixianmin/gonsole/road/util"
 )
 
 // Encoder interface
@@ -105,7 +105,7 @@ func (my *MessagesEncoder) Encode(message *Message) ([]byte, error) {
 	}
 
 	if my.DataCompression {
-		d, err := compression.DeflateData(message.Data)
+		d, err := util.DeflateData(message.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +175,7 @@ func Decode(data []byte) (*Message, error) {
 	m.Data = data[offset:]
 	var err error
 	if flag&gzipMask == gzipMask {
-		m.Data, err = compression.InflateData(m.Data)
+		m.Data, err = util.InflateData(m.Data)
 		if err != nil {
 			return nil, err
 		}
