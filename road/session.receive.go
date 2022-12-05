@@ -109,11 +109,9 @@ func (my *sessionImpl) onReceivedData(p *codec.Packet) error {
 		return err2
 	}
 
+	// 这个err3不能立即返回，需要变成后面的data中的err并输出到client
+	// 注意err4与err3并没有什么关系，err3是业务逻辑错误，并不引起session.Close()
 	var payload, err3 = processReceivedData(item, handler, my.app.serializer)
-	if err3 != nil {
-		return err3
-	}
-
 	needReply := item.msg.Type != message.Notify
 	if needReply {
 		var msg = message.Message{Type: message.Response, Id: item.msg.Id, Data: payload}
