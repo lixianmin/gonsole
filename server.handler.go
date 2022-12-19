@@ -89,7 +89,8 @@ func (server *Server) handleAssets(mux IServeMux) {
 	var pageRoot = filepath.Dir(server.options.PageTemplate)
 	var walkRoot = filepath.Join(pageRoot, "assets")
 
-	const dirName = "web/dist"
+	// 如果是windows平台，dirName="web\\dist"
+	const dirName = "web" + string(os.PathSeparator) + "dist"
 	const dirLength = len(dirName)
 
 	if err := filepath.Walk(walkRoot, func(relativePath string, info os.FileInfo, err error) error {
