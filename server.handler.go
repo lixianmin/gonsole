@@ -95,7 +95,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 	if err := filepath.Walk(walkRoot, func(relativePath string, info os.FileInfo, err error) error {
 		if err == nil && !info.IsDir() && isValidAsset(relativePath) {
 			var index = strings.Index(relativePath, dirName)
-			var pattern = relativePath[index+dirLength:]
+			var pattern = strings.Replace(relativePath[index+dirLength:], "\\", "/", -1) // 如果是windows平台，则需要把\替换为/
 			var contentType = getContentType(relativePath)
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
