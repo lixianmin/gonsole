@@ -24,15 +24,13 @@ func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
 		commonConn: commonConn{
 			conn:              conn,
 			heartbeatInterval: heartbeatInterval,
-			onReadHandler:     emptyOnReadHandler,
 		},
 	}
 
-	go my.goLoop()
 	return my
 }
 
-func (my *TcpConn) goLoop() {
+func (my *TcpConn) GoLoop(onReadHandler OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -45,14 +43,14 @@ func (my *TcpConn) goLoop() {
 	for atomic.LoadInt32(&my.isClosed) == 0 {
 		var num, err = my.conn.Read(buffer)
 		if err != nil {
-			my.onReadHandler(nil, err)
+			onReadHandler(nil, err)
 			//logo.JsonI("err", err)
 			return
 		}
 
 		my.resetReadDeadline()
 		_, _ = input.Write(buffer[:num])
-		if err2 := my.onReceiveMessage(input); err2 != nil {
+		if err2 := my.onReceiveMessage(input, onReadHandler); err2 != nil {
 			//logo.JsonI("err2", err2)
 			return
 		}

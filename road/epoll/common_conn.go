@@ -18,11 +18,10 @@ Copyright (C) - All Rights Reserved
 type commonConn struct {
 	conn              net.Conn
 	heartbeatInterval time.Duration
-	onReadHandler     OnReadHandler
 	isClosed          int32
 }
 
-func (my *commonConn) onReceiveMessage(input *iox.Buffer) error {
+func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHandler) error {
 	var headSize = codec.HeaderSize
 	var data = input.Bytes()
 
@@ -31,7 +30,7 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer) error {
 		var header = data[:headSize]
 		bodySize, _, err := codec.ParseHeader(header)
 		if err != nil {
-			my.onReadHandler(nil, err)
+			onReadHandler(nil, err)
 			return err
 		}
 
@@ -44,7 +43,7 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer) error {
 		//var frameData = make([]byte, totalSize)
 		//copy(frameData, data[:totalSize])
 		// onReadHandler()会把data[]中的数据copy走，因此不再需要新生成一个frameData
-		my.onReadHandler(data[:totalSize], nil)
+		onReadHandler(data[:totalSize], nil)
 
 		input.Next(totalSize)
 		data = input.Bytes()
@@ -56,12 +55,6 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer) error {
 
 func (my *commonConn) resetReadDeadline() {
 	_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
-}
-
-func (my *commonConn) SetOnReadHandler(handler OnReadHandler) {
-	if handler != nil {
-		my.onReadHandler = handler
-	}
 }
 
 // Close closes the connection.

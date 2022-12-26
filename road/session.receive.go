@@ -22,9 +22,9 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *sessionImpl) initialize() {
+func (my *sessionImpl) startGoLoop() {
 	var msgBuffer = &iox.Buffer{}
-	my.conn.SetOnReadHandler(func(data []byte, err error) {
+	go my.conn.GoLoop(func(data []byte, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()

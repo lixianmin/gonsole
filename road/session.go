@@ -56,7 +56,7 @@ func NewSession(app *App, conn epoll.IConn) Session {
 	}}
 
 	logo.Info("create session(%d)", my.id)
-	my.initialize()
+	my.startGoLoop()
 
 	// 参考: https://zhuanlan.zhihu.com/p/76504936
 	runtime.SetFinalizer(my, func(w *sessionWrapper) {
