@@ -145,6 +145,7 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 }
 
 func (client *PitayaClient) handleHandshakeResponse() ([]*codec.Packet, error) {
+	// todo 从net.Conn中接数据的buffer从头到尾必须有且只有一个，这里创建了两个，那一定是不对的，有粘包的问题
 	var buf = &iox.Buffer{}
 	var packets []*codec.Packet
 	var err error
@@ -279,7 +280,7 @@ func (client *PitayaClient) startHandshake() error {
 		return err
 	}
 
-	// goLoop需要在后面的取剩余packets的前面启动, 否则可能导致block
+	// goLoop需要从receivedPacketChan中取packets，因此必须在下面这个for循环前启动, 否则可能导致block
 	loom.Go(client.goLoop)
 
 	// 把剩下的packets放到chan中
