@@ -86,9 +86,9 @@ func main() {
 1. 引入完整的登录验证方式
 2. ~~将项目中的js逐步过渡为Vue框架, 目标是梳理代码框架, 通过import减小代码单元的大小~~
 3. ~~逐步使用typescript代替javascript, 引入编译机制~~
-4. 升级golang以引入泛型机制. 但这件事情在centos的yum默认支持到1.18+之前不能考虑. 目前(2022-09-03) 最新版本是golang 1.19
-5. 逐步移除gaio这个库, 在golang 1.17+的centos上编译会报错, 它升级太慢了. [相关issue](https://github.com/xtaci/gaio/issues/21)
-6. 引入对https的支持, 或者至少设计出完整的支持方案. 在golang库中直接支持可能比在nginx上支持要更下简单一些, 毕竟会减少对nginx的依赖. 另外, gaio这个库似乎不支持https
+4. 升级golang以引入泛型机制. 但这件事情在centos的yum默认支持到1.18+之前不能考虑. 目前(2022-09-03) 最新版本是golang 1.19。(centos目前官方不再更新)
+5. ~~逐步移除gaio这个库, 在golang 1.17+的centos上编译会报错, 它升级太慢了. [相关issue](https://github.com/xtaci/gaio/issues/21)~~
+6. 引入对https的支持, 或者至少设计出完整的支持方案. 在golang库中直接支持可能比在nginx上支持要更下简单一些, 毕竟会减少对nginx的依赖. ~~另外, gaio这个库似乎不支持https~~
 
 
 ---
