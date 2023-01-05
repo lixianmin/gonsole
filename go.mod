@@ -11,5 +11,5 @@ require (
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
-	golang.org/x/time v0.2.0
+	golang.org/x/time v0.3.0
 )
