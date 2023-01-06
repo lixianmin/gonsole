@@ -26,22 +26,23 @@ func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
 
 	var packets []*Packet = nil
 	for {
-		if buffer.Len() < HeaderSize {
+		var remains = buffer.Bytes()
+		if len(remains) < HeaderSize {
 			return packets, nil
 		}
 
-		buffer.MakeCheckpoint()
-		var size, kind, err = ParseHeader(buffer.Next(HeaderSize))
+		var bodySize, kind, err = ParseHeader(remains[:HeaderSize])
 		if err != nil {
 			return nil, err
 		}
 
-		if buffer.Len() < size {
-			buffer.RestoreCheckpoint()
+		var totalSize = HeaderSize + bodySize
+		if len(remains) < totalSize {
 			return packets, nil
 		}
 
-		var p = &Packet{Kind: kind, Size: int32(size), Data: buffer.Next(size)}
+		buffer.Next(totalSize)
+		var p = &Packet{Kind: kind, Size: int32(bodySize), Data: remains[HeaderSize:totalSize]}
 		packets = append(packets, p)
 	}
 }
