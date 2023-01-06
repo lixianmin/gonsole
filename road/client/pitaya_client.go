@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
@@ -27,7 +26,7 @@ Copyright (C) - All Rights Reserved
 
 type PitayaClient struct {
 	conn                net.Conn
-	isConnected         int32
+	connectState        int32
 	packetEncoder       codec.PacketEncoder
 	packetDecoder       codec.PacketDecoder
 	receivedPacketChan  chan *codec.Packet
@@ -53,7 +52,7 @@ func NewPitayaClient(opts ...PitayaClientOption) *PitayaClient {
 	}
 
 	var client = &PitayaClient{
-		isConnected:         0,
+		connectState:        StateHandshake,
 		packetEncoder:       codec.NewPomeloPacketEncoder(),
 		packetDecoder:       codec.NewPomeloPacketDecoder(),
 		receivedPacketChan:  make(chan *codec.Packet, options.receiverBufferSize),
@@ -119,9 +118,59 @@ func (client *PitayaClient) goReadPackets(later loom.Later) {
 		}
 
 		for _, p := range packets {
-			client.receivedPacketChan <- p
+			if err := client.onReadPacket(p); err != nil {
+				logo.JsonI("err", err)
+				break
+			}
 		}
 	}
+}
+
+func (client *PitayaClient) onReadPacket(p *codec.Packet) error {
+	switch p.Kind {
+	case codec.Handshake:
+		if err := client.onReadHandshake(p); err != nil {
+			return err
+		}
+	default:
+		client.receivedPacketChan <- p
+	}
+
+	return nil
+}
+
+func (client *PitayaClient) onReadHandshake(handshakePacket *codec.Packet) error {
+	var err error
+	var handshake = &HandshakeResponse{}
+	if util.IsCompressed(handshakePacket.Data) {
+		handshakePacket.Data, err = util.InflateData(handshakePacket.Data)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = json.Unmarshal(handshakePacket.Data, handshake)
+	if err != nil {
+		return err
+	}
+
+	logo.Debug("got handshake from server, data: %v", handshake)
+
+	if handshake.Sys.Dict != nil {
+		_ = message.SetDictionary(handshake.Sys.Dict)
+	}
+
+	p, err := client.packetEncoder.Encode(codec.HandshakeAck, []byte{})
+	if err != nil {
+		return err
+	}
+	_, err = client.conn.Write(p)
+	if err != nil {
+		return err
+	}
+
+	atomic.StoreInt32(&client.connectState, StateConnected)
+	return nil
 }
 
 // SetClientHandshakeData sets the data to send inside handshake
@@ -144,58 +193,6 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 	return err
 }
 
-func (client *PitayaClient) handleHandshakeResponse() ([]*codec.Packet, error) {
-	// todo 从net.Conn中接数据的buffer从头到尾必须有且只有一个，这里创建了两个，那一定是不对的，有粘包的问题
-	var buf = &iox.Buffer{}
-	var packets []*codec.Packet
-	var err error
-
-	for {
-		if packets, err = client.readPackets(buf); err != nil {
-			return nil, err
-		} else if len(packets) > 0 {
-			break
-		}
-	}
-
-	// 如果一次性读到多个packets的话, 后面的会被扔掉, 不合理
-	var handshakePacket = packets[0]
-	if handshakePacket.Kind != codec.Handshake {
-		return nil, fmt.Errorf("got first packet from server that is not a handshake, aborting")
-	}
-
-	var handshake = &HandshakeResponse{}
-	if util.IsCompressed(handshakePacket.Data) {
-		handshakePacket.Data, err = util.InflateData(handshakePacket.Data)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = json.Unmarshal(handshakePacket.Data, handshake)
-	if err != nil {
-		return nil, err
-	}
-
-	logo.Debug("got handshake from server, data: %v", handshake)
-
-	if handshake.Sys.Dict != nil {
-		_ = message.SetDictionary(handshake.Sys.Dict)
-	}
-
-	p, err := client.packetEncoder.Encode(codec.HandshakeAck, []byte{})
-	if err != nil {
-		return nil, err
-	}
-	_, err = client.conn.Write(p)
-	if err != nil {
-		return nil, err
-	}
-
-	atomic.StoreInt32(&client.isConnected, 1)
-	return packets[1:], nil
-}
-
 func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
 	var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
 	for {
@@ -204,7 +201,7 @@ func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, er
 			return nil, err
 		}
 
-		buffer.Write(data[:n])
+		_, _ = buffer.Write(data[:n])
 		if n < len(data) {
 			break
 		}
@@ -217,7 +214,7 @@ func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, er
 func (client *PitayaClient) Close() error {
 	return client.wc.Close(func() error {
 		if client.IsConnected() {
-			atomic.StoreInt32(&client.isConnected, 0)
+			atomic.StoreInt32(&client.connectState, StateNone)
 			_ = client.conn.Close()
 		}
 		return nil
@@ -247,7 +244,7 @@ func (client *PitayaClient) ConnectTo(addr string, tlsConfig ...*tls.Config) err
 	return nil
 }
 
-// todo 这个方法有问题，因为websocket的读数据逻辑跟tcp的不一样
+// todo 这个方法可能有问题，因为websocket的读数据逻辑跟tcp的不一样，但ws_client_conn是单独写的，是不是也能还需要仔细过一遍
 // ConnectToWS connects using web socket protocol
 func (client *PitayaClient) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config) error {
 	var uri = url.URL{Scheme: "ws", Host: addr, Path: path}
@@ -276,18 +273,8 @@ func (client *PitayaClient) startHandshake() error {
 		return err
 	}
 
-	var packets, err = client.handleHandshakeResponse()
-	if err != nil {
-		return err
-	}
-
 	// goLoop需要从receivedPacketChan中取packets，因此必须在下面这个for循环前启动, 否则可能导致block
 	loom.Go(client.goLoop)
-
-	// 把剩下的packets放到chan中
-	for _, p := range packets {
-		client.receivedPacketChan <- p
-	}
 
 	// goReadPackets需要放到最后, 否则可能导致receivedPacketChan收到的数据乱序
 	loom.Go(client.goReadPackets)
@@ -336,5 +323,5 @@ func (client *PitayaClient) GetReceivedChan() chan *message.Message {
 
 // IsConnected return the connection status
 func (client *PitayaClient) IsConnected() bool {
-	return atomic.LoadInt32(&client.isConnected) == 1
+	return atomic.LoadInt32(&client.connectState) > StateNone
 }
