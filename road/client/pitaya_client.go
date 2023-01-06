@@ -99,10 +99,15 @@ func (client *PitayaClient) goReceivePackets(later loom.Later) {
 	var buffer = &iox.Buffer{}
 
 	for client.IsConnected() {
-		packets, err := client.receivePackets(buffer)
-		if err != nil && client.IsConnected() {
+		if err := readConnection(buffer, client.conn); err != nil {
 			logo.JsonI("err", err)
-			return
+			break
+		}
+
+		packets, err := client.packetDecoder.Decode(buffer)
+		if err != nil {
+			logo.JsonI("err", err)
+			break
 		}
 
 		for _, p := range packets {
@@ -185,27 +190,6 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 
 	_, err = client.conn.Write(p)
 	return err
-}
-
-func (client *PitayaClient) receivePackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
-	//var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
-	//for {
-	//	var n, err = client.conn.Read(data[:])
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	_, _ = buffer.Write(data[:n])
-	//	if n < len(data) {
-	//		break
-	//	}
-	//}
-
-	if _, err := buffer.ReadFrom(client.conn); err != nil {
-		return nil, err
-	}
-
-	return client.packetDecoder.Decode(buffer)
 }
 
 // Close disconnects the client
