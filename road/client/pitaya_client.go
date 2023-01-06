@@ -96,15 +96,20 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 
 func (client *PitayaClient) goReceivePackets(later loom.Later) {
 	defer client.Close()
-	var buffer = &iox.Buffer{}
+
+	//var data [512]byte // 这种方式声明的data是一个实际存储在栈上的array
+	var buffer = make([]byte, 1024)
+	var input = &iox.Buffer{}
 
 	for client.IsConnected() {
-		if err := readConnection(buffer, client.conn); err != nil {
+		var num, err = client.conn.Read(buffer)
+		if err != nil {
 			logo.JsonI("err", err)
 			break
 		}
 
-		packets, err := client.packetDecoder.Decode(buffer)
+		_, _ = input.Write(buffer[:num])
+		packets, err := client.packetDecoder.Decode(input)
 		if err != nil {
 			logo.JsonI("err", err)
 			break
