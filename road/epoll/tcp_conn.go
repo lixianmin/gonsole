@@ -41,15 +41,13 @@ func (my *TcpConn) GoLoop(onReadHandler OnReadHandler) {
 	var input = &iox.Buffer{}
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
-		var num, err = my.conn.Read(buffer)
-		if err != nil {
+		if _, err := input.ReadOnce(my.conn, buffer); err != nil {
 			onReadHandler(nil, err)
 			//logo.JsonI("err", err)
 			return
 		}
 
 		my.resetReadDeadline()
-		_, _ = input.Write(buffer[:num])
 		if err2 := my.onReceiveMessage(input, onReadHandler); err2 != nil {
 			//logo.JsonI("err2", err2)
 			return
