@@ -188,17 +188,21 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 }
 
 func (client *PitayaClient) receivePackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
-	var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
-	for {
-		var n, err = client.conn.Read(data[:])
-		if err != nil {
-			return nil, err
-		}
+	//var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
+	//for {
+	//	var n, err = client.conn.Read(data[:])
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	_, _ = buffer.Write(data[:n])
+	//	if n < len(data) {
+	//		break
+	//	}
+	//}
 
-		_, _ = buffer.Write(data[:n])
-		if n < len(data) {
-			break
-		}
+	if _, err := buffer.ReadFrom(client.conn); err != nil {
+		return nil, err
 	}
 
 	return client.packetDecoder.Decode(buffer)
