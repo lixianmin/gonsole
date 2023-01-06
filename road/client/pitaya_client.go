@@ -247,6 +247,7 @@ func (client *PitayaClient) ConnectTo(addr string, tlsConfig ...*tls.Config) err
 	return nil
 }
 
+// todo 这个方法有问题，因为websocket的读数据逻辑跟tcp的不一样
 // ConnectToWS connects using web socket protocol
 func (client *PitayaClient) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config) error {
 	var uri = url.URL{Scheme: "ws", Host: addr, Path: path}
@@ -304,23 +305,9 @@ func (client *PitayaClient) SendNotify(route string, data []byte) error {
 	return err
 }
 
-func (client *PitayaClient) buildPacket(msg message.Message) ([]byte, error) {
-	var encMsg, err = client.messageEncoder.Encode(&msg)
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := client.packetEncoder.Encode(codec.Data, encMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
-}
-
 // sendMsg sends the request to the server
 func (client *PitayaClient) sendMsg(msgType message.Kind, route string, data []byte) (uint, error) {
-	m := message.Message{
+	var msg = message.Message{
 		Type:  msgType,
 		Id:    uint(atomic.AddUint32(&client.nextId, 1)),
 		Route: route,
@@ -328,17 +315,18 @@ func (client *PitayaClient) sendMsg(msgType message.Kind, route string, data []b
 		Err:   false,
 	}
 
-	p, err := client.buildPacket(m)
-	if msgType == message.Request {
-
+	var encMsg, err = client.messageEncoder.Encode(&msg)
+	if err != nil {
+		return 0, err
 	}
 
+	p, err := client.packetEncoder.Encode(codec.Data, encMsg)
 	if err != nil {
-		return m.Id, err
+		return 0, err
 	}
 
 	_, err = client.conn.Write(p)
-	return m.Id, err
+	return msg.Id, err
 }
 
 // GetReceivedChan return the incoming message channel
