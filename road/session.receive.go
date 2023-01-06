@@ -52,9 +52,7 @@ func (my *sessionImpl) onReceivedMessage(buffer *iox.Buffer) error {
 	}
 
 	// process all packet
-	for i := range packets {
-		var p = packets[i]
-		//logo.JsonI("p", p)
+	for _, p := range packets {
 		switch p.Kind {
 		case codec.Handshake:
 			if err := my.onReceivedHandshake(p); err != nil {
@@ -91,7 +89,7 @@ func (my *sessionImpl) onReceivedHeartbeat() error {
 		return fmt.Errorf("failed to write to conn: %s", err.Error())
 	}
 
-	// 注意：libpitaya的heartbeat部分是问题的，只能在应用层自己做ping/pong
+	// 注意：原libpitaya自带的heartbeat部分是问题的，只能在应用层自己做ping/pong
 	//logo.Debug("session(%d) sent heartbeat", my.id)
 	return nil
 }

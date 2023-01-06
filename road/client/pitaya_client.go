@@ -94,19 +94,19 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 	}
 }
 
-func (client *PitayaClient) goReadPackets(later loom.Later) {
+func (client *PitayaClient) goReceivePackets(later loom.Later) {
 	defer client.Close()
 	var buffer = &iox.Buffer{}
 
 	for client.IsConnected() {
-		packets, err := client.readPackets(buffer)
+		packets, err := client.receivePackets(buffer)
 		if err != nil && client.IsConnected() {
 			logo.JsonI("err", err)
 			return
 		}
 
 		for _, p := range packets {
-			if err := client.onReadPacket(p); err != nil {
+			if err := client.onReceivedPacket(p); err != nil {
 				logo.JsonI("err", err)
 				return
 			}
@@ -114,10 +114,10 @@ func (client *PitayaClient) goReadPackets(later loom.Later) {
 	}
 }
 
-func (client *PitayaClient) onReadPacket(p *codec.Packet) error {
+func (client *PitayaClient) onReceivedPacket(p *codec.Packet) error {
 	switch p.Kind {
 	case codec.Handshake:
-		if err := client.onReadHandshake(p); err != nil {
+		if err := client.onReceivedHandshake(p); err != nil {
 			return err
 		}
 	case codec.Data:
@@ -133,7 +133,7 @@ func (client *PitayaClient) onReadPacket(p *codec.Packet) error {
 	return nil
 }
 
-func (client *PitayaClient) onReadHandshake(handshakePacket *codec.Packet) error {
+func (client *PitayaClient) onReceivedHandshake(handshakePacket *codec.Packet) error {
 	var err error
 	var handshake = &HandshakeResponse{}
 	if util.IsCompressed(handshakePacket.Data) {
@@ -187,7 +187,7 @@ func (client *PitayaClient) sendHandshakeRequest() error {
 	return err
 }
 
-func (client *PitayaClient) readPackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
+func (client *PitayaClient) receivePackets(buffer *iox.Buffer) ([]*codec.Packet, error) {
 	var data [1024]byte // 这种方式声明的data是一个实际存储在栈上的array
 	for {
 		var n, err = client.conn.Read(data[:])
@@ -271,7 +271,7 @@ func (client *PitayaClient) startHandshake() error {
 	loom.Go(client.goLoop)
 
 	// goReadPackets需要放到最后, 否则可能导致receivedPacketChan收到的数据乱序
-	loom.Go(client.goReadPackets)
+	loom.Go(client.goReceivePackets)
 	return nil
 }
 
