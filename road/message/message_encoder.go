@@ -126,7 +126,8 @@ func Decode(data []byte) (*Message, error) {
 	if len(data) < msgHeadLength {
 		return nil, ErrInvalidMessage
 	}
-	m := New()
+
+	m := &Message{}
 	flag := data[0]
 	offset := 1
 	m.Type = Kind((flag >> 1) & msgTypeMask)

@@ -1,5 +1,7 @@
 package client
 
+import "errors"
+
 /********************************************************************
 created:    2023-01-06
 author:     lixianmin
@@ -12,3 +14,5 @@ const (
 	StateHandshake = 1
 	StateConnected = 2
 )
+
+var ErrKicked = errors.New("got kick packet from the server! disconnecting~")

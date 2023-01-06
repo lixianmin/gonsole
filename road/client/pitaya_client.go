@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
@@ -29,7 +30,6 @@ type PitayaClient struct {
 	connectState        int32
 	packetEncoder       codec.PacketEncoder
 	packetDecoder       codec.PacketDecoder
-	receivedPacketChan  chan *codec.Packet
 	receivedMessageChan chan *message.Message
 	requestTimeout      time.Duration
 	nextId              uint32
@@ -55,7 +55,6 @@ func NewPitayaClient(opts ...PitayaClientOption) *PitayaClient {
 		connectState:        StateHandshake,
 		packetEncoder:       codec.NewPomeloPacketEncoder(),
 		packetDecoder:       codec.NewPomeloPacketDecoder(),
-		receivedPacketChan:  make(chan *codec.Packet, options.receiverBufferSize),
 		receivedMessageChan: make(chan *message.Message, options.receiverBufferSize),
 		requestTimeout:      options.requestTimeout,
 		messageEncoder:      message.NewMessagesEncoder(false),
@@ -83,17 +82,6 @@ func (client *PitayaClient) goLoop(later loom.Later) {
 
 	for {
 		select {
-		case p := <-client.receivedPacketChan:
-			switch p.Kind {
-			case codec.Data:
-				msg, err := message.Decode(p.Data)
-				if err != nil {
-					logo.Info("error decoding msg from sv: %s", string(msg.Data))
-				}
-				client.receivedMessageChan <- msg
-			case codec.Kick:
-				logo.Info("got kick packet from the server! disconnecting...")
-			}
 		case <-heartbeatTicker.C:
 			p, _ := client.packetEncoder.Encode(codec.Heartbeat, []byte{})
 			if _, err := client.conn.Write(p); err != nil {
@@ -114,13 +102,13 @@ func (client *PitayaClient) goReadPackets(later loom.Later) {
 		packets, err := client.readPackets(buffer)
 		if err != nil && client.IsConnected() {
 			logo.JsonI("err", err)
-			break
+			return
 		}
 
 		for _, p := range packets {
 			if err := client.onReadPacket(p); err != nil {
 				logo.JsonI("err", err)
-				break
+				return
 			}
 		}
 	}
@@ -132,8 +120,14 @@ func (client *PitayaClient) onReadPacket(p *codec.Packet) error {
 		if err := client.onReadHandshake(p); err != nil {
 			return err
 		}
-	default:
-		client.receivedPacketChan <- p
+	case codec.Data:
+		msg, err := message.Decode(p.Data)
+		if err != nil {
+			return fmt.Errorf("error decoding msg from sv: %s", string(msg.Data))
+		}
+		client.receivedMessageChan <- msg
+	case codec.Kick:
+		return ErrKicked
 	}
 
 	return nil
