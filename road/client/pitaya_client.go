@@ -132,6 +132,12 @@ func (client *PitayaClient) onReceivedPacket(p *codec.Packet) error {
 		if err != nil {
 			return err
 		}
+
+		// duplicate msg.Data because it will be forward to another goroutine
+		var data = make([]byte, len(msg.Data))
+		copy(data, msg.Data)
+		msg.Data = data
+
 		client.receivedMessageChan <- msg
 	case codec.Kick:
 		return ErrKicked

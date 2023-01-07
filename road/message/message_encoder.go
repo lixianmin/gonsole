@@ -173,6 +173,7 @@ func Decode(data []byte) (*Message, error) {
 		}
 	}
 
+	// m.Data是data的一部分，因此message对象不能直接传给其它goroutine，会有竞态数据问题
 	m.Data = data[offset:]
 	var err error
 	if flag&gzipMask == gzipMask {

@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
-	"math/rand"
 	"sync"
 	"testing"
 )
@@ -27,18 +26,18 @@ func TestPitayaClient(t *testing.T) {
 		road.WithSessionRateLimitBySecond(1000),
 	)
 
-	var count = 300
+	var count = 3000
 	var wg sync.WaitGroup
 	wg.Add(count)
 
 	app.OnHandShaken(func(session road.Session) {
 		type Challenge struct {
-			Nonce int32 `json:"nonce"`
+			Nonce int `json:"nonce"`
 		}
 
 		for i := 0; i < count; i++ {
 			if err := session.Push("player.challenge", Challenge{
-				Nonce: rand.Int31(),
+				Nonce: i,
 			}); err != nil {
 				logo.JsonE("err", err)
 			}
@@ -75,10 +74,8 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 					bean.Err = msg.Err
 
 					switch bean.Route {
-					case "player.challenge":
-						logo.JsonI("data", bean.Data)
 					default:
-						logo.JsonI("route", bean.Route, "bean", bean)
+						logo.JsonI("data", msg.Data)
 					}
 				}
 				wg.Done()
