@@ -9,7 +9,7 @@ Copyright (C) - All Rights Reserved
 
 // Codec constants.
 const (
-	HeaderSize    = 4
+	HeadSize      = 4
 	MaxPacketSize = 1 << 24 //16MB
 )
 

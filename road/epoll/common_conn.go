@@ -22,12 +22,12 @@ type commonConn struct {
 }
 
 func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHandler) error {
-	var headSize = codec.HeaderSize
-	var data = input.Bytes()
+	const headSize = codec.HeadSize
+	var remains = input.Bytes()
 
 	// 像heartbeat之类的协议，有可能只有head没有body，所以需要使用>=
-	for len(data) >= headSize {
-		var header = data[:headSize]
+	for len(remains) >= headSize {
+		var header = remains[:headSize]
 		bodySize, _, err := codec.ParseHeader(header)
 		if err != nil {
 			onReadHandler(nil, err)
@@ -35,7 +35,7 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHa
 		}
 
 		var totalSize = headSize + bodySize
-		if len(data) < totalSize {
+		if len(remains) < totalSize {
 			return nil
 		}
 
@@ -43,10 +43,10 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHa
 		//var frameData = make([]byte, totalSize)
 		//copy(frameData, data[:totalSize])
 		// onReadHandler()会把data[]中的数据copy走，因此不再需要新生成一个frameData
-		onReadHandler(data[:totalSize], nil)
+		onReadHandler(remains[:totalSize], nil)
 
 		input.Next(totalSize)
-		data = input.Bytes()
+		remains = input.Bytes()
 	}
 
 	input.Tidy()

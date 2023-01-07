@@ -34,12 +34,12 @@ func (my *PomeloPacketEncoder) Encode(kind PacketKind, data []byte) ([]byte, err
 	var size = int32(len(data))
 	var p = &Packet{Kind: kind, Size: size}
 
-	var buf = make([]byte, HeaderSize+size)
+	var buf = make([]byte, HeadSize+size)
 	buf[0] = p.Kind
 	buf[1] = byte((size >> 16) & 0xFF)
 	buf[2] = byte((size >> 8) & 0xFF)
 	buf[3] = byte(size & 0xFF)
 
-	copy(buf[HeaderSize:], data)
+	copy(buf[HeadSize:], data)
 	return buf, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
 	"math/rand"
+	"sync"
 	"testing"
 )
 
@@ -26,12 +27,16 @@ func TestPitayaClient(t *testing.T) {
 		road.WithSessionRateLimitBySecond(1000),
 	)
 
+	var count = 300
+	var wg sync.WaitGroup
+	wg.Add(count)
+
 	app.OnHandShaken(func(session road.Session) {
 		type Challenge struct {
 			Nonce int32 `json:"nonce"`
 		}
 
-		for i := 0; i < 1000; i++ {
+		for i := 0; i < count; i++ {
 			if err := session.Push("player.challenge", Challenge{
 				Nonce: rand.Int31(),
 			}); err != nil {
@@ -40,14 +45,15 @@ func TestPitayaClient(t *testing.T) {
 		}
 	})
 
-	if err := pitayaConnect(fmt.Sprintf("127.0.0.1:%d", tcpPort)); err != nil {
+	if err := pitayaConnect(fmt.Sprintf("127.0.0.1:%d", tcpPort), &wg); err != nil {
 		logo.JsonE("err", err)
 	}
 
-	select {}
+	//select {}
+	wg.Wait()
 }
 
-func pitayaConnect(serverAddress string) error {
+func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var pClient = client.NewPitayaClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
 		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
@@ -70,11 +76,12 @@ func pitayaConnect(serverAddress string) error {
 
 					switch bean.Route {
 					case "player.challenge":
-						logo.JsonI("bean", bean)
+						logo.JsonI("data", bean.Data)
 					default:
 						logo.JsonI("route", bean.Route, "bean", bean)
 					}
 				}
+				wg.Done()
 				break
 			}
 		}
