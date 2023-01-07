@@ -7,8 +7,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-// ParseHeader parses a packet header and returns its dataLen and packetType or an error
-func ParseHeader(header []byte) (int, PacketKind, error) {
+// ParseHead parses a packet header and returns its dataLen and packetType or an error
+func ParseHead(header []byte) (int, PacketKind, error) {
 	if len(header) != HeadSize {
 		return 0, 0x00, ErrInvalidPomeloHeader
 	}
@@ -18,13 +18,13 @@ func ParseHeader(header []byte) (int, PacketKind, error) {
 		return 0, 0x00, ErrWrongPomeloPacketKind
 	}
 
-	var size = BytesToInt(header[1:])
+	var bodySize = BytesToInt(header[1:])
 
-	if size > MaxPacketSize {
+	if bodySize > MaxPacketSize {
 		return 0, 0x00, ErrPacketSizeExceed
 	}
 
-	return size, kind, nil
+	return bodySize, kind, nil
 }
 
 // BytesToInt32 decode packet data length byte to int(Big end)

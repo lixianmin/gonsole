@@ -32,7 +32,7 @@ func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
 			return packets, nil
 		}
 
-		var bodySize, kind, err = ParseHeader(remains[:headSize])
+		var bodySize, kind, err = ParseHead(remains[:headSize])
 		if err != nil {
 			return nil, err
 		}

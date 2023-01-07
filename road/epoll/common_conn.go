@@ -28,7 +28,7 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHa
 	// 像heartbeat之类的协议，有可能只有head没有body，所以需要使用>=
 	for len(remains) >= headSize {
 		var header = remains[:headSize]
-		bodySize, _, err := codec.ParseHeader(header)
+		bodySize, _, err := codec.ParseHead(header)
 		if err != nil {
 			onReadHandler(nil, err)
 			return err
