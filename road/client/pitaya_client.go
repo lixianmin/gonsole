@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
@@ -131,7 +130,7 @@ func (client *PitayaClient) onReceivedPacket(p *codec.Packet) error {
 	case codec.Data:
 		msg, err := message.Decode(p.Data)
 		if err != nil {
-			return fmt.Errorf("error decoding msg from sv: %s", string(msg.Data))
+			return err
 		}
 		client.receivedMessageChan <- msg
 	case codec.Kick:
