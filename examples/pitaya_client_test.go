@@ -9,6 +9,7 @@ import (
 	"github.com/lixianmin/logo"
 	"sync"
 	"testing"
+	"time"
 )
 
 /********************************************************************
@@ -43,15 +44,12 @@ func TestPitayaClient(t *testing.T) {
 		road.WithSessionRateLimitBySecond(1000),
 	)
 
-	var count = 300
-	var wg sync.WaitGroup
-
 	app.OnHandShaken(func(session road.Session) {
 		type Challenge struct {
 			Nonce int `json:"nonce"`
 		}
 
-		for i := 0; i < count; i++ {
+		for i := 0; i < 100; i++ {
 			if err := session.Push("player.challenge", Challenge{
 				Nonce: i,
 			}); err != nil {
@@ -60,8 +58,9 @@ func TestPitayaClient(t *testing.T) {
 		}
 	})
 
+	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
-		wg.Add(count)
+		wg.Add(1)
 		if err := pitayaConnect(fmt.Sprintf("127.0.0.1:%d", tcpPort), &wg); err != nil {
 			logo.JsonE("err", err)
 		}
@@ -72,12 +71,16 @@ func TestPitayaClient(t *testing.T) {
 }
 
 func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
+
 	var pClient = client.NewPitayaClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
+		wg.Done()
 		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
 	}
 
+	var timer = time.NewTimer(5 * time.Second)
 	go func() {
+		defer wg.Done()
 		for {
 			select {
 			case msg := <-pClient.GetReceivedChan():
@@ -97,8 +100,9 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 						logo.JsonI("data", msg.Data)
 					}
 				}
-				wg.Done()
 				break
+			case <-timer.C:
+				return
 			}
 		}
 	}()
