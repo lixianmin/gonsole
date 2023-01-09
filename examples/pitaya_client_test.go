@@ -25,7 +25,7 @@ func initLogo() {
 	theLogger.AddFlag(logo.LogAsyncWrite)
 
 	// 调整theLogger的filterLevel
-	var level = logo.LevelDebug
+	var level = logo.LevelInfo
 	theLogger.SetFilterLevel(level)
 
 	// 文件日志
