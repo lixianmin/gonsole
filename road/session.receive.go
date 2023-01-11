@@ -31,6 +31,7 @@ func (my *sessionImpl) startGoLoop() {
 			return
 		}
 
+		msgBuffer.Tidy()
 		_, _ = msgBuffer.Write(data)
 		if err1 := my.onReceivedMessage(msgBuffer); err1 != nil {
 			logo.Info("close session(%d) by onReceivedMessage(), err=%q", my.id, err1)

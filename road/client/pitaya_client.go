@@ -101,6 +101,7 @@ func (client *PitayaClient) goReceivePackets(later loom.Later) {
 	var input = &iox.Buffer{}
 
 	for client.IsConnected() {
+		input.Tidy()
 		if _, err := input.ReadOnce(client.conn, buffer); err != nil {
 			logo.JsonI("err", err)
 			break

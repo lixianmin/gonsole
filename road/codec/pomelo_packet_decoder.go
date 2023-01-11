@@ -22,7 +22,7 @@ func NewPomeloPacketDecoder() *PomeloPacketDecoder {
 
 // Decode decode the bytes slice to packet.Packet(s)
 func (my *PomeloPacketDecoder) Decode(buffer *iox.Buffer) ([]*Packet, error) {
-	defer buffer.Tidy()
+	// defer buffer.Tidy() 这里不能调用Tidy()，里面有copy操作，间接会破坏Packet中Data的数据
 	const headSize = HeadSize
 
 	var packets []*Packet = nil
