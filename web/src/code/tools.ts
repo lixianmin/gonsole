@@ -1,4 +1,3 @@
-
 /********************************************************************
  created:    2022-03-07
  author:     lixianmin
@@ -14,8 +13,11 @@ export function longestCommonPrefix(list: string[]): string {
     let str = list[0]
     for (let i = 1; i < list.length; i++) {
         for (let j = str.length; j > 0; j--) {
-            if (str !== list[i].substring(0, j)) str = str.substring(0, j - 1)
-            else break
+            if (str !== list[i].substring(0, j)) {
+                str = str.substring(0, j - 1)
+            } else {
+                break
+            }
         }
     }
 
