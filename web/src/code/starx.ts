@@ -13,7 +13,7 @@ import {MessageType} from "./message_type";
 import {Heartbeat} from "./heartbeat";
 
 type PushHandlerFunc = (data: any) => void
-type HandlerFunc = (data: string) => void
+type HandlerFunc = (data: Uint8Array) => void
 
 export class StartX {
     public on(key: string, handler: PushHandlerFunc) {
@@ -27,9 +27,8 @@ export class StartX {
         }
     }
 
-    private processPackages(packages: any) {
-        for (let i = 0; i < packages.length; i++) {
-            const pack = packages[i];
+    private processPackages(packages: Packet[]) {
+        for (const pack of packages) {
             const handler = this.handlers.get(pack.type)
             if (handler != null) {
                 handler(pack.body)
@@ -176,7 +175,9 @@ export class StartX {
 
             stream.write(data, 0, data.length)
             stream.setPosition(0)
-            this.processPackages(Packet.decode(stream))
+
+            const packets = Packet.decode(stream)
+            this.processPackages(packets)
         }
 
         const onerror = (event) => {
