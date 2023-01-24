@@ -8,7 +8,7 @@ import {sha256} from "js-sha256";
  *********************************************************************/
 
 export class Login {
-    public constructor(sendLogin) {
+    public constructor(sendLogin: Function) {
         this.sendLogin = sendLogin
     }
 
@@ -45,6 +45,6 @@ export class Login {
         localStorage.setItem(this.key, data)
     }
 
-    private readonly sendLogin: any
+    private readonly sendLogin: Function
     private readonly key = "autoLoginUser"
 }

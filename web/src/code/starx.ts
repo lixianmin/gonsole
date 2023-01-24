@@ -17,11 +17,11 @@ type HandlerFunc = (data: string) => void
 
 export class StartX {
     public on(key: string, handler: PushHandlerFunc) {
-        this.pushHandlers[key] = handler
+        this.pushHandlers.set(key, handler)
     }
 
     public emit(key: string, args: any = '') {
-        const handler = this.pushHandlers[key] as PushHandlerFunc
+        const handler = this.pushHandlers.get(key)
         if (handler != null) {
             handler(args)
         }
@@ -30,7 +30,7 @@ export class StartX {
     private processPackages(packages: any) {
         for (let i = 0; i < packages.length; i++) {
             const pack = packages[i];
-            const handler = this.handlers[pack.type] as HandlerFunc
+            const handler = this.handlers.get(pack.type)
             if (handler != null) {
                 handler(pack.body)
             }
@@ -41,7 +41,7 @@ export class StartX {
         const msg = Message.decode(data)
 
         if (msg.id > 0) {
-            msg.route = this.routeMap[msg.id]
+            msg.route = this.routeMap.get(msg.id)
             this.routeMap.delete(msg.id)
 
             if (!msg.route) {
@@ -107,14 +107,14 @@ export class StartX {
     private processMessage(msg: Message) {
         if (msg.id) {
             // if there is an id, then find the callback function with the request
-            const callback = this.callbacks[msg.id]
+            const callback = this.callbacks.get(msg.id)
             this.callbacks.delete(msg.id)
 
             if (typeof callback === 'function') {
                 callback(msg.body)
             }
         } else { // server push message
-            const handler = this.pushHandlers[msg.route] as PushHandlerFunc
+            const handler = this.pushHandlers.get(msg.route)
             if (typeof handler !== "undefined") {
                 handler(msg.body)
             } else {
@@ -227,10 +227,10 @@ export class StartX {
         //     };
         // }
 
-        this.handlers[PacketType.Handshake] = this.handleHandshake  // 这是服务器推过来的，用于传递一些heartbeat interval之类的参数给client
-        this.handlers[PacketType.Heartbeat] = this.handleHeartbeat
-        this.handlers[PacketType.Data] = this.handleData
-        this.handlers[PacketType.Kick] = this.handleKick
+        this.handlers.set(PacketType.Handshake, this.handleHandshake)  // 这是服务器推过来的，用于传递一些heartbeat interval之类的参数给client
+        this.handlers.set(PacketType.Heartbeat, this.handleHeartbeat)
+        this.handlers.set(PacketType.Data, this.handleData)
+        this.handlers.set(PacketType.Kick, this.handleKick)
         this.connectInner(params, params.url)
     }
 
@@ -263,8 +263,8 @@ export class StartX {
         let requestId = ++this.requestIdGenerator
         this.sendMessage(requestId, route, message)
 
-        this.callbacks[requestId] = callback
-        this.routeMap[requestId] = route
+        this.callbacks.set(requestId, callback)
+        this.routeMap.set(requestId, route)
     }
 
     public notify(route, message) {
@@ -301,8 +301,8 @@ export class StartX {
 
     // 通过 => 定义 function, 使它可以在定义的时候捕获this, 而不是在使用的时候
     // https://www.typescriptlang.org/docs/handbook/functions.html#this-and-arrow-functions
-    private handleHeartbeat = (data: Uint8Array) => {
-        setTimeout(()=>{
+    private handleHeartbeat = (data) => {
+        setTimeout(() => {
             const packet = Packet.encode(PacketType.Heartbeat)
             this.send(packet)
         }, this.heartbeat.interval)
@@ -312,7 +312,7 @@ export class StartX {
 
     private resetHeartbeatTimeout = () => {
         this.heartbeat.clearTimeout()
-        this.heartbeat.timeoutId = setTimeout(()=>{
+        this.heartbeat.timeoutId = setTimeout(() => {
             console.error('server heartbeat timeout')
             this.emit('heartbeat timeout')
             this.disconnect()
