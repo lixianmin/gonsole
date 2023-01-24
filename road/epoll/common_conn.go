@@ -39,13 +39,10 @@ func (my *commonConn) onReceiveMessage(input *iox.Buffer, onReadHandler OnReadHa
 			return nil
 		}
 
-		// 这里每次新建的frameData目前是省不下的, 原因是writeMessage()方法会把这个slice写到chan中并由另一个goroutine使用
-		//var frameData = make([]byte, totalSize)
-		//copy(frameData, data[:totalSize])
-		// onReadHandler()会把data[]中的数据copy走，因此不再需要新生成一个frameData
 		onReadHandler(remains[:totalSize], nil)
 
 		input.Next(totalSize)
+		// onReadHandler()会把remains[]中的数据copy走，因此remains才能每次都变，以及后面可以安心调用input.Tidy()
 		remains = input.Bytes()
 	}
 

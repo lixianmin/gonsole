@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/gobwas/ws v1.1.0
-	github.com/lixianmin/got v0.0.0-20230106091422-bae0f8fddea0
+	github.com/lixianmin/got v0.0.0-20230111081932-f75b0d018cda
 	github.com/lixianmin/logo v0.0.0-20220519032357-f73455888a56
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.7.0 // indirect
