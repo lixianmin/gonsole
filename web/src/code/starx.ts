@@ -156,7 +156,7 @@ export class StartX {
         const maxReconnectAttempts = params.maxReconnectAttempts || DEFAULT_MAX_RECONNECT_ATTEMPTS;
         this.reconnectUrl = url
 
-        const onopen = (event) => {
+        const onopen = (event: Event) => {
             // console.log("onopen", event)
             if (this.reconnect) {
                 this.emit('reconnect');
@@ -168,10 +168,9 @@ export class StartX {
             this.send(packet)
         }
 
-        const onmessage = (event: MessageEvent) => {
-            let data = new Uint8Array(event.data)
-            // console.log("onmessage:", data)
-            let stream = this.buffer
+        const onmessage = (event: MessageEvent<ArrayBuffer>) => {
+            const data = new Uint8Array(event.data)
+            const stream = this.buffer
 
             stream.write(data, 0, data.length)
             stream.setPosition(0)
@@ -180,12 +179,12 @@ export class StartX {
             this.processPackages(packets)
         }
 
-        const onerror = (event) => {
+        const onerror = (event: Event) => {
             this.emit('io-error', event)
             console.error('socket error: ', event)
         };
 
-        const onclose = (event) => {
+        const onclose = (event: CloseEvent) => {
             this.emit('close', event)
             this.emit('disconnect', event)
             console.log('socket close: ', event)
