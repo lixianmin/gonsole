@@ -4,7 +4,7 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {strdecode, strencode} from "./protocol";
+import {strDecode, strEncode} from "./protocol";
 import {Buffers} from "./core/buffers";
 import {MessageType} from "./message_type";
 
@@ -42,7 +42,7 @@ export class Message {
             } else {
                 msgLen += Message.MSG_ROUTE_LEN_BYTES
                 if (route) {
-                    route = strencode(route)
+                    route = strEncode(route)
                     if (route.length > 255) {
                         throw new Error('route maxlength is overflow')
                     }
@@ -118,7 +118,7 @@ export class Message {
                 if (routeLen > 0) {
                     let buf = new Uint8Array(routeLen)
                     Buffers.blockCopy(bytes, offset, buf, 0, routeLen)
-                    route = strdecode(buf)
+                    route = strDecode(buf)
                     // console.log("type=", type, ", compressRoute=", compressRoute, ", routeLen=", routeLen, ", route=", route)
                 } else {
                     route = ''

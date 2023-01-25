@@ -13,7 +13,7 @@ import {Buffers} from "./core/buffers";
  * msg message body
  * socketio current support string
  */
-export function strencode(str: string): Uint8Array {
+export function strEncode(str: string): Uint8Array {
     const buf = new ArrayBuffer(str.length * 3);
     const byteArray = new Uint8Array(buf);
 
@@ -46,7 +46,7 @@ export function strencode(str: string): Uint8Array {
  * msg String data
  * return Message Object
  */
-export function strdecode(buffer): string {
+export function strDecode(buffer: Uint8Array): string {
     const bytes = new Uint8Array(buffer);
     const array: Array<number> = [];
     let offset = 0;

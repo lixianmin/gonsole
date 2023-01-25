@@ -6,7 +6,7 @@
  *********************************************************************/
 import {Packet} from "./packet";
 import {PacketType} from "./packet_type";
-import {strdecode, strencode} from "./protocol";
+import {strDecode, strEncode} from "./protocol";
 import {Message} from "./message";
 import {OctetsStream} from "./core/octets_stream";
 import {MessageType} from "./message_type";
@@ -64,7 +64,7 @@ export class StartX {
             route = msg.route = this.abbrs[route]
         }
 
-        return JSON.parse(strdecode(msg.body))
+        return JSON.parse(strDecode(msg.body))
     }
 
     private reset() {
@@ -164,7 +164,7 @@ export class StartX {
 
             this.reset()
             // client主动handshake，把自己的参数告诉server，然后server会发送HandshakeAck发送heartbeatInterval等参数
-            const packet = Packet.encode(PacketType.Handshake, strencode(JSON.stringify(this.handshakeData)))
+            const packet = Packet.encode(PacketType.Handshake, strEncode(JSON.stringify(this.handshakeData)))
             this.send(packet)
         }
 
@@ -237,7 +237,7 @@ export class StartX {
     private defaultEncode(requestId: number, route, message) {
         const type = requestId != 0 ? MessageType.Request : MessageType.Notify
 
-        message = strencode(JSON.stringify(message))
+        message = strEncode(JSON.stringify(message))
 
         let compressRoute = false
         if (this.dict && this.dict[route]) {
@@ -272,8 +272,8 @@ export class StartX {
         this.sendMessage(0, route, message)
     }
 
-    private handleHandshake = (data) => {
-        let item = JSON.parse(strdecode(data))
+    private handleHandshake = (data: Uint8Array) => {
+        let item = JSON.parse(strDecode(data))
 
         const RES_OLD_CLIENT = 501
         if (item.code === RES_OLD_CLIENT) {
@@ -329,8 +329,8 @@ export class StartX {
         // this.resetHeartbeatTimeout()
     }
 
-    private handleKick = (data) => {
-        data = JSON.parse(strdecode(data))
+    private handleKick = (data: Uint8Array) => {
+        data = JSON.parse(strDecode(data))
         this.emit('onKick', data)
     }
 
