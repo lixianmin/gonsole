@@ -3,23 +3,23 @@ import {ElTable, ElTableColumn} from "element-plus";
 import {scrollMainPanelToBottom} from "../code/main_panel";
 
 function processTableData(tableData) {
-    let result = JSON.parse(tableData)
-    const isStruct = result[0] === undefined
+    let results = JSON.parse(tableData)
+    const isStruct = results[0] === undefined
     // 如果是struct, 则转为array
     if (isStruct) {
-        result = [result]
+        results = [results]
     } else {
         // 如果list, 则在首列加入行号
-        for (let i = 0; i < result.length; i++) {
-            let results = {" ": i + 1}
-            for (const [key, value] of Object.entries(result[i])) {
-                results[key] = value
+        for (let i = 0; i < results.length; i++) {
+            let items = {" ": i + 1}
+            for (const [key, value] of Object.entries(results[i])) {
+                items[key] = value
             }
-            result[i] = results
+            results[i] = items
         }
     }
 
-    return result
+    return results
 }
 
 function onRenderHeader({column, $index}) {
