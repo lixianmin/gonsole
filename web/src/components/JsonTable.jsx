@@ -1,6 +1,6 @@
-import {defineComponent} from "vue";
-import {ElTable, ElTableColumn} from "element-plus";
-import {scrollMainPanelToBottom} from "../code/main_panel";
+import {defineComponent} from "vue"
+import {ElTable, ElTableColumn} from "element-plus"
+import {scrollMainPanelToBottom} from "@/code/main_panel"
 
 function processTableData(tableData) {
     let results = JSON.parse(tableData)

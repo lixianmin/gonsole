@@ -25,5 +25,12 @@ export default defineConfig({
                 nested: resolve(__dirname, 'index.html')
             }
         }
+    },
+    resolve: {
+        alias: [
+            {   // 支持import时使用@代替代码根目录，另外还需要tsconfig.json中配合
+                find: '@', replacement: resolve(__dirname, '/src')
+            }
+        ]
     }
 })

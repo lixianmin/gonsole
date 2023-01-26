@@ -4,13 +4,13 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {Packet} from "./packet";
-import {PacketType} from "./packet_type";
-import {strDecode, strEncode} from "./protocol";
-import {Message} from "./message";
-import {OctetsStream} from "./core/octets_stream";
-import {MessageType} from "./message_type";
-import {Heartbeat} from "./heartbeat";
+import {Packet} from "./packet"
+import {PacketType} from "./packet_type"
+import {strDecode, strEncode} from "./protocol"
+import {Message} from "./message"
+import {OctetsStream} from "./core/octets_stream"
+import {MessageType} from "./message_type"
+import {Heartbeat} from "./heartbeat"
 
 type PushHandlerFunc = (data: any) => void
 type HandlerFunc = (data: Uint8Array) => void
