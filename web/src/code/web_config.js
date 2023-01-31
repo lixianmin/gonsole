@@ -27,7 +27,15 @@ export function createWebConfig() {
     }
 
     return {
-        getRootUrl(): string {
+        get autoLoginLimit() {
+            return autoLoginLimit
+        },
+
+        get body() {
+            return body
+        },
+
+        getRootUrl() {
             let url = `${document.location.protocol}//${host}/${directory}`
             if (url.endsWith("/")) {
                 url = url.substring(0, url.length - 1)
@@ -36,25 +44,17 @@ export function createWebConfig() {
             return url
         },
 
-        getWebsocketUrl(): string {
+        getWebsocketUrl() {
             const isHttps = "https:" === document.location.protocol
             const protocol = isHttps ? "wss:" : "ws:"
-            if (directory != "") {
+            if (directory !== "") {
                 return `${protocol}//${host}/${directory}/${websocketPath}`
             } else {
                 return `${protocol}//${host}/${websocketPath}`
             }
         },
 
-        getBody(): string {
-            return body
-        },
-
-        getAutoLoginLimit(): number {
-            return autoLoginLimit
-        },
-
-        toString(): string {
+        toString() {
             return `host=${host}, directory=${directory}, websocketPath=${websocketPath}, autoLoginLimit=${autoLoginLimit}, body=${body}`
         }
     }

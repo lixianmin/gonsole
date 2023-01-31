@@ -10,7 +10,7 @@ import {strDecode, strEncode} from "./protocol"
 import {Message} from "./message"
 import {OctetsStream} from "./core/octets_stream"
 import {MessageType} from "./message_type"
-import {Heartbeat} from "./heartbeat"
+import {createHeartbeat} from "./heartbeat.js"
 
 type PushHandlerFunc = (data: any) => void
 type HandlerFunc = (data: Uint8Array) => void
@@ -93,7 +93,7 @@ export class StartX {
 
     private handshakeInit(data) {
         if (data.sys && data.sys.heartbeat) {
-            this.heartbeat.interval = data.sys.heartbeat * 1000     // heartbeat interval
+            this.heartbeat.interval = data.sys.heartbeat * 1000
         }
 
         this.initData(data)
@@ -312,11 +312,11 @@ export class StartX {
 
     private resetHeartbeatTimeout = () => {
         this.heartbeat.clearTimeout()
-        this.heartbeat.timeoutId = setTimeout(() => {
+        this.heartbeat.setTimeout(() => {
             console.error('server heartbeat timeout')
             this.emit('heartbeat timeout')
             this.disconnect()
-        }, this.heartbeat.interval * 3)
+        })
     }
 
     private handleData = (data) => {
@@ -364,7 +364,7 @@ export class StartX {
     private abbrs = {}
     private dict = {}
 
-    private heartbeat = new Heartbeat()
+    private heartbeat = createHeartbeat()
     private handshakeCallback
     private onConnected
 }

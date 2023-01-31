@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
-import {createWebConfig} from "./code/web_config";
+import {createWebConfig} from "./code/web_config.js";
 import {Login} from "./code/login";
 import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
@@ -42,7 +42,7 @@ let login = new Login((cmd :string, ...args :string[]) => {
 
 star.connect({url: config.getWebsocketUrl()}, () => {
   console.log("websocket connected")
-  printHtml(config.getBody())
+  printHtml(config.body)
   println()
   login.tryAutoLogin()
 })
@@ -171,7 +171,7 @@ function onEnter(evt) {
       isAuthorizing = false
       // this.$el.type = "text"
       evt.target.type = "text"
-      login.login(username, name, config.getAutoLoginLimit())
+      login.login(username, name, config.autoLoginLimit)
     } else {
       sendCommand(texts.join(' '))
       historyStore.add(command)
