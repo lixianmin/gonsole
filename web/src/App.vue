@@ -2,7 +2,7 @@
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel";
 import {createWebConfig} from "./code/web_config.js";
-import {Login} from "./code/login";
+import {createLogin} from "./code/login";
 import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
 import moment from "moment";
@@ -36,7 +36,7 @@ let rootUrl = config.getRootUrl()
 // 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
 window.sendCommand = sendCommand
 
-let login = new Login((cmd :string, ...args :string[]) => {
+let login = createLogin((cmd: string, ...args: string[]) => {
   sendCommand(cmd, ...args)
 })
 
@@ -100,10 +100,10 @@ function sendBean(route: string, bean, callback) {
 }
 
 // args是可变参数列表
-function sendCommand(cmd :string, ...args :string[]) {
-  let bean = { command: cmd }
+function sendCommand(cmd: string, ...args: string[]) {
+  let bean = {command: cmd}
   if (args.length > 0) {
-     bean.command = cmd + " " + args.join(" ")
+    bean.command = cmd + " " + args.join(" ")
   }
 
   sendBean("console.command", bean, onCommand)

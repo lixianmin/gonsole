@@ -7,34 +7,10 @@ import {sha256} from "js-sha256";
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 
-export class Login {
-    public constructor(sendLogin: Function) {
-        this.sendLogin = sendLogin
-    }
+export function createLogin(sendLogin: Function) {
+    const key = "autoLoginUser"
 
-    public login(username: string, password: string, autoLoginLimit: number) {
-        this.doLogin(username, password)
-        this.save(username, password, autoLoginLimit)
-    }
-
-    // 自动登录
-    public tryAutoLogin() {
-        const data = localStorage.getItem(this.key)
-        if (data) {
-            const item = JSON.parse(data)
-            if (item && new Date().getTime() < item.expireTime) {
-                this.doLogin(item.username, item.password)
-            }
-        }
-    }
-
-    private doLogin(username: string, password: string) {
-        const key = "hey pet!"
-        const digest = sha256.hmac(key, password)
-        this.sendLogin("auth", username, digest)
-    }
-
-    private save(username: string, password: string, autoLoginLimit: number) {
+    function save(username: string, password: string, autoLoginLimit: number) {
         const item = {
             username: username,
             password: password,
@@ -42,9 +18,30 @@ export class Login {
         }
 
         const data = JSON.stringify(item)
-        localStorage.setItem(this.key, data)
+        localStorage.setItem(key, data)
     }
 
-    private readonly sendLogin: Function
-    private readonly key = "autoLoginUser"
+    function doLogin(username: string, password: string) {
+        const key = "hey pet!"
+        const digest = sha256.hmac(key, password)
+        sendLogin("auth", username, digest)
+    }
+
+    return {
+        // 自动登录
+        tryAutoLogin() {
+            const data = localStorage.getItem(key)
+            if (data) {
+                const item = JSON.parse(data)
+                if (item && new Date().getTime() < item.expireTime) {
+                    doLogin(item.username, item.password)
+                }
+            }
+        },
+        
+        login(username: string, password: string, autoLoginLimit: number) {
+            doLogin(username, password)
+            save(username, password, autoLoginLimit)
+        },
+    }
 }
