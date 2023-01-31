@@ -9,14 +9,14 @@
 </template>
 
 <script setup>
-import {onMounted} from "vue"
+import {onMounted, toRaw} from "vue"
 import {useHistoryStore} from "@/code/use_history_store"
 import {scrollMainPanelToBottom} from "@/code/main_panel"
 
-const store = useHistoryStore()
+const historyStore = useHistoryStore()
 // 把所有的数据都复制一份, 这是为了防止history的数据变化的时候, 这边再收到通知
-const histories = store.histories.map(item => item)
-const count = store.count
+const histories = toRaw(historyStore.getHistoryList())
+const count = historyStore.getHistoryCount()
 
 onMounted(() => {
   scrollMainPanelToBottom()

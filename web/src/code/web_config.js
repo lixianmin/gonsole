@@ -1,3 +1,5 @@
+'use strict'
+
 /********************************************************************
  created:    2022-01-19
  author:     lixianmin
@@ -7,36 +9,36 @@
 
 export function createWebConfig() {
     // document.title的默认值 ，本地debug的时候使用localhost:8888/ws
-    let host = "localhost:8888"
-    let directory = "ws"
-    let autoLoginLimit = 86400000
-    let websocketPath = ""
+    let _host = "localhost:8888"
+    let _directory = "ws"
+    let _autoLoginLimit = 86400000
+    let _websocketPath = ""
 
-    let body = "<h2>fake body</h2>"
+    let _body = "<h2>fake body</h2>"
     if (document.title !== "{{.Data}}") {
         let data = JSON.parse(document.title)
         // console.log("data:", data)
 
-        host = window.location.host
-        directory = data.directory
-        autoLoginLimit = data.autoLoginLimit
-        websocketPath = data.websocketPath
+        _host = window.location.host
+        _directory = data.directory
+        _autoLoginLimit = data.autoLoginLimit
+        _websocketPath = data.websocketPath
 
         document.title = data.title
-        body = data.body
+        _body = data.body
     }
 
     return {
         get autoLoginLimit() {
-            return autoLoginLimit
+            return _autoLoginLimit
         },
 
         get body() {
-            return body
+            return _body
         },
 
         getRootUrl() {
-            let url = `${document.location.protocol}//${host}/${directory}`
+            let url = `${document.location.protocol}//${_host}/${_directory}`
             if (url.endsWith("/")) {
                 url = url.substring(0, url.length - 1)
             }
@@ -47,15 +49,15 @@ export function createWebConfig() {
         getWebsocketUrl() {
             const isHttps = "https:" === document.location.protocol
             const protocol = isHttps ? "wss:" : "ws:"
-            if (directory !== "") {
-                return `${protocol}//${host}/${directory}/${websocketPath}`
+            if (_directory !== "") {
+                return `${protocol}//${_host}/${_directory}/${_websocketPath}`
             } else {
-                return `${protocol}//${host}/${websocketPath}`
+                return `${protocol}//${_host}/${_websocketPath}`
             }
         },
 
         toString() {
-            return `host=${host}, directory=${directory}, websocketPath=${websocketPath}, autoLoginLimit=${autoLoginLimit}, body=${body}`
+            return `host=${_host}, directory=${_directory}, websocketPath=${_websocketPath}, autoLoginLimit=${_autoLoginLimit}, body=${_body}`
         }
     }
 }

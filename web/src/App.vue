@@ -6,7 +6,7 @@ import {createLogin} from "./code/login";
 import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
 import moment from "moment";
-import {useHistoryStore} from "./code/use_history_store";
+import {useHistoryStore} from "./code/use_history_store.js";
 import History from "./components/History.vue"
 import JsonTable from './components/JsonTable.jsx'
 import LogList from './components/LogList.vue'
