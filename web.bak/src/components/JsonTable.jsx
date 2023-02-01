@@ -1,10 +1,16 @@
+
 /********************************************************************
  created:    2023-02-01
  author:     lixianmin
 
+ 这个版本使用了element-plus, 而这个版本在vue文件中启用js后, 编译会报 duplicate event
+ 的错误, 因为我需要测试js的代码, 所以这里尝试移除element-plus
+
  Copyright (C) - All Rights Reserved
  *********************************************************************/
+
 import {defineComponent} from "vue"
+import {ElTable, ElTableColumn} from "element-plus"
 import {scrollMainPanelToBottom} from "@/code/main_panel"
 
 function processTableData(tableData) {
@@ -27,37 +33,37 @@ function processTableData(tableData) {
     return results
 }
 
+function onRenderHeader({column, $index}) {
+    let after = " "
+    switch (column.order) {
+        case "ascending":
+            after = "↑"
+            break
+        case "descending":
+            after = "↓"
+            break
+    }
+
+    return <div>{column.label}{after}</div>
+}
+
 export default defineComponent(
     {
         props: {
             tableData: {type: String}
         }
         , setup(props) {
-            const tableData = processTableData(props.tableData)
-
-            const headData = Object.keys(tableData[0]).map((item, index) => {
-                    const handler = `sortTableByHead.call(this, ${index})`
-                    return <th onclick={handler}>{item}</th>
-                }
-            )
-
-            const bodyData = tableData.map(row => {
-                const rowHtml = Object.values(row).map(item => <td>{item}</td>)
-                return <tr>{rowHtml}</tr>
-            })
-
+            let tableData = processTableData(props.tableData)
             return () =>
                 <div>
-                    <table>
-                        <thead>
-                        <tr>
-                            {headData}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {bodyData}
-                        </tbody>
-                    </table>
+                    <ElTable data={tableData} tableLayout="auto">
+                        {
+                            Object.keys({tableData}.tableData[0]).map(item => {
+                                return <ElTableColumn prop={item} label={item} sortable
+                                                      renderHeader={onRenderHeader}/>
+                            })
+                        }
+                    </ElTable>
                     <br/>
                 </div>
         }

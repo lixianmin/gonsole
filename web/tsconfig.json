@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,  // 这一句使得*.vue文件可以使用js编译, 而不是仅仅只支持tts
     "target": "es6",
     "useDefineForClassFields": true,
     "module": "esnext",
