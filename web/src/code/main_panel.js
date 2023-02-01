@@ -9,7 +9,7 @@
 
 import moment from 'moment'
 
-let _mainPanel: any = null
+let _mainPanel = null
 
 function getMainPanel() {
     if (_mainPanel == null) {

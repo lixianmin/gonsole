@@ -27,7 +27,7 @@
 <script setup lang="ts">
 
 import {computed, nextTick} from "vue"
-import {scrollMainPanelToBottom} from "@/code/main_panel"
+import {scrollMainPanelToBottom} from "@/code/main_panel.js"
 import {getHumanReadableSize} from "@/code/tools"
 
 interface FileInfo {

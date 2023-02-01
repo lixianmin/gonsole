@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {StartX} from "./code/starx";
-import {printHtml, println, printWithTimestamp} from "./code/main_panel";
-import {createWebConfig} from "./code/web_config";
+import {printHtml, println, printWithTimestamp} from "./code/main_panel.js";
+import {createWebConfig} from "./code/web_config.js";
 import {createLogin} from "./code/login";
 import {createApp, ref} from "vue";
 import {Operation} from "./code/operation";
 import moment from "moment";
-import {useHistoryStore} from "./code/use_history_store";
+import {useHistoryStore} from "./code/use_history_store.js";
 import History from "./components/History.vue"
 import JsonTable from './components/JsonTable.jsx'
 import LogList from './components/LogList.vue'

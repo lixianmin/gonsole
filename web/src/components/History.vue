@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import {onMounted, toRaw} from "vue"
-import {useHistoryStore} from "@/code/use_history_store"
-import {scrollMainPanelToBottom} from "@/code/main_panel"
+import {useHistoryStore} from "@/code/use_history_store.js"
+import {scrollMainPanelToBottom} from "@/code/main_panel.js"
 
 const historyStore = useHistoryStore()
 // 把所有的数据都复制一份, 这是为了防止history的数据变化的时候, 这边再收到通知
