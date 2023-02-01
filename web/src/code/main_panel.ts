@@ -1,3 +1,5 @@
+'use strict'
+
 /********************************************************************
  created:    2022-01-08
  author:     lixianmin
@@ -7,9 +9,9 @@
 
 import moment from 'moment'
 
-let _mainPanel: HTMLElement | null = null
+let _mainPanel: any = null
 
-function getMainPanel(): HTMLElement | null {
+function getMainPanel() {
     if (_mainPanel == null) {
         _mainPanel = document.getElementById("mainPanel")
     }
@@ -27,7 +29,11 @@ export function scrollMainPanelToBottom() {
     }
 }
 
-export function printHtml(html: string): HTMLDivElement {
+export function printHtml(html) {
+    if (typeof html !== 'string') {
+        return ''
+    }
+
     const item = document.createElement("div")
     item.innerHTML = html
 
@@ -45,6 +51,6 @@ export function println() {
     printHtml("<br>")
 }
 
-export function printWithTimestamp(html: string) {
+export function printWithTimestamp(html) {
     printHtml("[" + moment(new Date()).format("HH:mm:ss.S") + "] " + html);
 }

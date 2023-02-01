@@ -7,9 +7,17 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 
+/**
+ * @typedef {Object} Heartbeat
+ * @property {function(callback : function)} setTimeout
+ * @property {function()} clearTimeout
+ * @property {number} interval
+ * @returns {Heartbeat}
+ */
 export function createHeartbeat() {
     let _interval = 10 * 1000 // 心跳间隔, 单位(ms)
     let _timeoutId = 0
+
     return {
         get interval() {
             return _interval

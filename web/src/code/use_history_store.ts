@@ -11,7 +11,7 @@
 // 现在改为每次add()的时候自动写入到localStorage中, 流程应该是一样的
 function createHistoryStore() {
     const storageKey = "this.is.history.store"
-    let _list = JSON.parse(localStorage.getItem(storageKey)) ?? []
+    let _list = JSON.parse(localStorage.getItem(storageKey) ?? '') ?? []
     let _currentIndex = _list.length
 
     return {

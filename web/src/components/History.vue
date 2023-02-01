@@ -8,7 +8,7 @@
   <br>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {onMounted, toRaw} from "vue"
 import {useHistoryStore} from "@/code/use_history_store"
 import {scrollMainPanelToBottom} from "@/code/main_panel"

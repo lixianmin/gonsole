@@ -10,7 +10,7 @@ import {strDecode, strEncode} from "./protocol"
 import {Message} from "./message"
 import {OctetsStream} from "./core/octets_stream"
 import {MessageType} from "./message_type"
-import {createHeartbeat} from "./heartbeat.js"
+import {createHeartbeat} from "./heartbeat"
 
 type PushHandlerFunc = (data: any) => void
 type HandlerFunc = (data: Uint8Array) => void

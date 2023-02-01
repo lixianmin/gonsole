@@ -28,9 +28,8 @@ export class OctetsStream {
         }
 
         if (capacity != this.buffer.length) {
-            let array: Uint8Array
             if (capacity != 0) {
-                array = new Uint8Array(capacity)
+                const array = new Uint8Array(capacity)
                 for (let i = 0; i < this.length; i++) {
                     array[i] = this.buffer[i]
                 }
