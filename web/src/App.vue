@@ -68,7 +68,7 @@ window.onload = () => {
       let control = document.activeElement;
       if (control !== inputBox && inputBox) {
         inputBox.focus()
-        // return false的意思是：这个按键事件本js处理了，不再传播这个事件。
+        // return false的意思是：这个按键事件当前代码处理了，不再bubble上传这个事件。
         // 默认情况下会继续传播按键事件，Enter会导致页面refresh
         return false
       }
@@ -137,9 +137,9 @@ function onEnter(evt) {
 
     // 检查是不是调用history命令
     if (command.startsWith("!")) {
-      const index = parseInt(command.substring(1)) - 1
+      const index = Number(command.substring(1)) - 1
       // console.log("index:", index)
-      if (!isNaN(index)) {
+      if (!Number.isNaN(index)) {
         command = historyStore.getHistory(index)
         command = historyStore.getHistory(index)
       }
