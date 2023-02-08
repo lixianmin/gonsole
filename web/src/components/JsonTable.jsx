@@ -16,11 +16,8 @@ function processTableData(tableData) {
     } else {
         // 如果list, 则在首列加入行号
         for (let i = 0; i < results.length; i++) {
-            let items = {" ": i + 1}
-            for (const [key, value] of Object.entries(results[i])) {
-                items[key] = value
-            }
-            results[i] = items
+            const headIndex = [' ', i + 1]
+            results[i] = new Map([headIndex, ...Object.entries(results[i])])
         }
     }
 
@@ -33,16 +30,16 @@ export default defineComponent(
             tableData: {type: String}
         }
         , setup(props) {
-            const tableData = processTableData(props.tableData)
+            const mapList = processTableData(props.tableData)
 
-            const headData = Object.keys(tableData[0]).map((item, index) => {
+            const headData = Array.from(mapList[0].keys()).map((item, index) => {
                     const handler = `sortTableByHead.call(this, ${index})`
                     return <th onclick={handler}>{item}</th>
                 }
             )
 
-            const bodyData = tableData.map(row => {
-                const rowHtml = Object.values(row).map(item => <td>{item}</td>)
+            const bodyData = mapList.map(row => {
+                const rowHtml = Array.from(row.values()).map(item => <td>{item}</td>)
                 return <tr>{rowHtml}</tr>
             })
 
