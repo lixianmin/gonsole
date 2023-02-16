@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/tools"
 	"time"
 )
 
@@ -101,11 +100,12 @@ func WithDirectory(path string) ServerOption {
 func WithUserPasswords(passwords map[string]string) ServerOption {
 	return func(options *serverOptions) {
 		if len(passwords) > 0 {
-			const key = "hey pet!"
-			for k, v := range passwords {
-				var digest = tools.HmacSha256(key, v)
-				options.UserPasswords[k] = digest
-			}
+			options.UserPasswords = passwords
+			//const key = "hey pet!"
+			//for k, v := range passwords {
+			//	var digest = tools.HmacSha256(key, v)
+			//	options.UserPasswords[k] = digest
+			//}
 		}
 	}
 }

@@ -12,12 +12,10 @@ import JsonTable from './components/JsonTable.jsx'
 import LogList from './components/LogList.vue'
 import {longestCommonPrefix} from "./code/tools";
 
-// todo 把auth验证的逻辑提取出来, 并改成安全的逻辑
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
 /**
  *
- * todo 需要把存储的密码, 改为像cookie那样存储一个可以过期的hash值
  * todo 需要在readme中加入npm的开发和使用流程
  * todo 把evt.target.value等逻辑修改为vue应该使用的逻辑
  * todo 各种js中的any需要调整一下

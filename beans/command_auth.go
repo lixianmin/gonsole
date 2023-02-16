@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/osx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 /********************************************************************
@@ -28,8 +29,10 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	}
 
 	var username = args[1]
-	var password = args[2]
-	if password1, ok := userPasswords[username]; !ok || password1 != password {
+	var digest = args[2]
+
+	if password, ok := userPasswords[username]; !ok && nil != bcrypt.CompareHashAndPassword([]byte(digest), []byte(password)) {
+
 		bean.Text = "用户名或密码错误"
 		session.Attachment().Put(ifs.KeyIsAuthorized, false)
 		return bean

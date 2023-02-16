@@ -1,5 +1,5 @@
-import {sha256} from "js-sha256"
 import ls from 'localstorage-slim'
+import bcrypt from 'bcryptjs'
 
 /********************************************************************
  created:    2022-01-20
@@ -11,18 +11,16 @@ import ls from 'localstorage-slim'
 export function createLogin(sendLogin: Function) {
     const key = "autoLoginUser"
 
-    function save(username: string, password: string, autoLoginLimit: number) {
+    function save(username: string, digest: string, autoLoginLimit: number) {
         const item = {
             username: username,
-            password: password,
+            digest: digest,
         }
 
-        ls.set(key, item, { ttl: autoLoginLimit })
+        ls.set(key, item, {ttl: autoLoginLimit})
     }
 
-    function doLogin(username: string, password: string) {
-        const key = "hey pet!"
-        const digest = sha256.hmac(key, password)
+    function doLogin(username: string, digest: string) {
         sendLogin("auth", username, digest)
     }
 
@@ -32,13 +30,17 @@ export function createLogin(sendLogin: Function) {
             const item = ls.get(key)
             if (item) {
                 // @ts-ignore
-                doLogin(item.username, item.password)
+                doLogin(item.username, item.digest)
             }
         },
-        
-        login(username: string, password: string, autoLoginLimit: number) {
-            doLogin(username, password)
-            save(username, password, autoLoginLimit)
+
+        async login(username: string, password: string, autoLoginLimit: number) {
+            const salt = await bcrypt.genSalt()
+            const digest = await bcrypt.hash(password, salt)
+            // console.log('salt', salt, 'digest', digest)
+
+            doLogin(username, digest)
+            save(username, digest, autoLoginLimit)
         },
     }
 }
