@@ -11,7 +11,7 @@ export function createWebConfig() {
     // document.title的默认值 ，本地debug的时候使用localhost:8888/ws
     let _host = "localhost:8888"
     let _directory = "ws"
-    let _autoLoginLimit = 86400000
+    let _autoLoginLimit = 86400
     let _websocketPath = ""
 
     let _body = "<h2>fake body</h2>"

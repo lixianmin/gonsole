@@ -41,7 +41,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 
 	config.Directory = options.Directory
 	config.WebsocketPath = websocketPath
-	config.AutoLoginLimit = int64(options.AutoLoginTime / time.Millisecond)
+	config.AutoLoginLimit = int64(options.AutoLoginTime / time.Second)
 	config.Title = options.PageTitle
 	config.Body = options.PageBody
 

@@ -1,4 +1,5 @@
-import {sha256} from "js-sha256";
+import {sha256} from "js-sha256"
+import ls from 'localstorage-slim'
 
 /********************************************************************
  created:    2022-01-20
@@ -14,11 +15,9 @@ export function createLogin(sendLogin: Function) {
         const item = {
             username: username,
             password: password,
-            expireTime: new Date().getTime() + autoLoginLimit,
         }
 
-        const data = JSON.stringify(item)
-        localStorage.setItem(key, data)
+        ls.set(key, item, { ttl: autoLoginLimit })
     }
 
     function doLogin(username: string, password: string) {
@@ -30,12 +29,10 @@ export function createLogin(sendLogin: Function) {
     return {
         // 自动登录
         tryAutoLogin() {
-            const data = localStorage.getItem(key)
-            if (data) {
-                const item = JSON.parse(data)
-                if (item && new Date().getTime() < item.expireTime) {
-                    doLogin(item.username, item.password)
-                }
+            const item = ls.get(key)
+            if (item) {
+                // @ts-ignore
+                doLogin(item.username, item.password)
             }
         },
         
