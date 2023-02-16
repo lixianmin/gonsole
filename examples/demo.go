@@ -49,6 +49,40 @@ func main() {
 	//	return ret, err
 	//})
 
+	registerCommands(server)
+
+	var srv = &http.Server{
+		Addr:           fmt.Sprintf(":%d", webPort),
+		Handler:        mux,
+		ReadTimeout:    2 * time.Second,
+		WriteTimeout:   2 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	loom.Go(goLoop)
+	// s启用http/2, 以支持frame传输
+	log.Fatal(srv.ListenAndServe())
+}
+
+func goLoop(later loom.Later) {
+	var lock = &sync.Mutex{}
+	lock.Lock()
+	go func() {
+		lock.Lock()
+	}()
+
+	var timer = later.NewTimer(5 * time.Minute)
+
+	for {
+		select {
+		case <-timer.C:
+			fmt.Printf("timer triggered, unlock \n")
+			lock.Unlock()
+		}
+	}
+}
+
+func registerCommands(server *gonsole.Server) {
 	server.RegisterCommand(&gonsole.Command{
 		Name: "hi",
 		Note: "打印 hi console",
@@ -92,29 +126,23 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name: "test_element_table",
-		Note: "测试element_table",
-		Flag: gonsole.FlagPublic,
+		Name: "test_element_struct",
+		Note: "测试element_plus结构体",
+		Flag: gonsole.FlagPublic | gonsole.FlagInvisible,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
-				Text     string
-				Name     string
-				Age      int
-				Time     string
-				Hit      float32
-				EmptyNum string
+				Text string
+				Name string
+				Age  int
+				Time string
+				Hit  float32
 			}
 
 			var now = time.Now()
 			var layout = "2006-01-02"
-			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1, ""},
-				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2, ""},
-				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3, "10"},
-				{"oh", "this is an extremely long sentence, and this will be used for testing column with", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
-				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "2"},
-			}
+			var bean = Bean{"hello", "world", 20, now.Format(layout), 1.1}
 
-			return gonsole.NewTableResponse(beans), nil
+			return gonsole.NewTableResponse(bean), nil
 		},
 	})
 
@@ -141,23 +169,29 @@ func main() {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name: "test_element_struct",
-		Note: "测试element_plus结构体",
-		Flag: gonsole.FlagPublic | gonsole.FlagInvisible,
+		Name: "test_element_table",
+		Note: "测试element_table",
+		Flag: gonsole.FlagPublic,
 		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
 			type Bean struct {
-				Text string
-				Name string
-				Age  int
-				Time string
-				Hit  float32
+				Text     string
+				Name     string
+				Age      int
+				Time     string
+				Hit      float32
+				EmptyNum string
 			}
 
 			var now = time.Now()
 			var layout = "2006-01-02"
-			var bean = Bean{"hello", "world", 20, now.Format(layout), 1.1}
+			var beans = []Bean{{"hello", "world", 20, now.Format(layout), 1.1, ""},
+				{"what", "is", 10, now.Add(365 * timex.Day).Format(layout), 2.2, ""},
+				{"how", "are", 100, now.Add(-timex.Day).Format(layout), 4.3, "10"},
+				{"oh", "this is an extremely long sentence, and this will be used for testing column with", 30, now.Add(timex.Day).Format(layout), 0.4, "11"},
+				{"oh", "my", 30, now.Add(timex.Day).Format(layout), 0.4, "2"},
+			}
 
-			return gonsole.NewTableResponse(bean), nil
+			return gonsole.NewTableResponse(beans), nil
 		},
 	})
 
@@ -170,33 +204,4 @@ func main() {
 			return gonsole.NewDefaultResponse("hi console")
 		},
 	})
-
-	var srv = &http.Server{
-		Addr:           fmt.Sprintf(":%d", webPort),
-		Handler:        mux,
-		ReadTimeout:    2 * time.Second,
-		WriteTimeout:   2 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	loom.Go(goLoop)
-	log.Fatal(srv.ListenAndServe())
-}
-
-func goLoop(later loom.Later) {
-	var lock = &sync.Mutex{}
-	lock.Lock()
-	go func() {
-		lock.Lock()
-	}()
-
-	var timer = later.NewTimer(5 * time.Minute)
-
-	for {
-		select {
-		case <-timer.C:
-			fmt.Printf("timer triggered, unlock \n")
-			lock.Unlock()
-		}
-	}
 }
