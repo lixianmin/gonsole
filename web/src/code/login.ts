@@ -31,8 +31,7 @@ export function createLogin(sendLogin: Function) {
         const response = await sendLogin("auth", username, digestOrToken, fingerprint)
 
         // 如果返回了token, 说明是使用digest登录的, 说明client需要缓存jwt
-        const code = response.code
-        if (code === 'ok') {
+        if (response.code === 'ok') {
             const token = response.token
             if (typeof token === 'string' && token.length > 0) {
                 ls.set(loginKey, {username, token})

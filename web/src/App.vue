@@ -40,8 +40,9 @@ let login = createLogin((cmd: string, username: string, digestOrToken: string, f
 
   const bean = {command: `${cmd} ${username} ${digestOrToken} ${fingerprint}`}
   return new Promise(resolve => {
+    // 把callback改为promise
     star.request("console.command", bean, obj => {
-      const cloned = {...obj.data}
+      const cloned = {...obj.data}  // shadow clone
       resolve(obj.data)
 
       delete cloned.token
