@@ -15,7 +15,6 @@ import {longestCommonPrefix} from "./code/tools";
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
 /**
- * todo 命令行里发送的密码被看见了, 虽然是一个乱码串, 但似乎被看见也不太好
  * todo client现在存储的token, 并没有验证本机的ip等其它信息, 因此容易被人拿出来之后在其它地方复用
  * todo 需要在readme中加入npm的开发和使用流程
  * todo 把evt.target.value等逻辑修改为vue应该使用的逻辑
@@ -35,14 +34,14 @@ let rootUrl = config.getRootUrl()
 // 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
 window.sendCommand = sendCommand
 
-let login = createLogin((cmd: string, ...args: string[]) => {
-  let bean = {command: cmd}
-  if (args.length > 0) {
-    bean.command = cmd + " " + args.join(" ")
-  }
+let login = createLogin((cmd: string, username: string, digestOrToken: string) => {
+  printWithTimestamp("<b>client请求：</b>")
+  printHtml(`${cmd} ${username} [digest | token]`)
+  println()
 
+  const bean = {command: `${cmd} ${username} ${digestOrToken}`}
   return new Promise(resolve => {
-    sendBean("console.command", bean, obj => {
+    star.request("console.command", bean, obj => {
       const cloned = {...obj.data}
       resolve(obj.data)
 
@@ -106,7 +105,7 @@ function onDefault(operation: Operation) {
 }
 
 function sendBean(route: string, bean, callback) {
-  const json = JSON.stringify(bean);
+  const json = JSON.stringify(bean)
   printWithTimestamp("<b>client请求：</b>")
   printHtml(json)
   println()
