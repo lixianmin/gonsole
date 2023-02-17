@@ -29,14 +29,13 @@ type CommandAuth struct {
 func NewCommandAuth(session road.Session, args []string, userPasswords map[string]string, autoLoginTime time.Duration, port int) *CommandAuth {
 	var bean = &CommandAuth{}
 
-	if len(args) < 3 {
-		bean.Code = "格式：auth username"
+	if len(args) < 4 {
+		bean.Code = "invalid_arguments"
 		return bean
 	}
 
-	var username = args[1]
-	var digest = args[2]
-	//logo.JsonI("username", username, "digest", digest)
+	var username, digestOrToken, fingerprint = args[1], args[2], args[3]
+	//logo.JsonI("username", username, "digestOrToken", digestOrToken, "fingerprint", fingerprint)
 
 	// 判断username是否正确
 	var password, ok = userPasswords[username]
@@ -49,9 +48,10 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	const jwtSecretKey = "Hey Pet!!"
 
 	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据, 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
-	var isDigest = len(digest) == 44
+	var isDigest = len(digestOrToken) == 44
 	if isDigest {
 		// 当是digest的时候, 判断digest是否正确
+		var digest = digestOrToken
 		var targetDigest = sumSha256(password)
 		if targetDigest != digest {
 			bean.Code = "invalid_password"
@@ -64,13 +64,14 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		var data = jwt.MapClaims{}
 		data["username"] = username
 		data["digest"] = digest
+		data["fingerprint"] = fingerprint
 
 		bean.Token, _ = jwtx.Sign(jwtSecretKey, data, jwtx.WithExpiration(autoLoginTime))
 	} else {
 		// 如果client转入的是jwt, 则需要解jwt
-		var token = digest
+		var token = digestOrToken
 		var data, err = jwtx.Parse(jwtSecretKey, token)
-		if err != nil || data["username"] != username || data["digest"] != sumSha256(password) {
+		if err != nil || data["username"] != username || data["digest"] != sumSha256(password) || data["fingerprint"] != fingerprint {
 			bean.Code = "token_expired"
 			session.Attachment().Put(ifs.KeyIsAuthorized, false)
 			return bean
