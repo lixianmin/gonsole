@@ -15,7 +15,8 @@ import {longestCommonPrefix} from "./code/tools";
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
 /**
- *
+ * todo 命令行里发送的密码被看见了, 虽然是一个乱码串, 但似乎被看见也不太好
+ * todo client现在存储的token, 并没有验证本机的ip等其它信息, 因此容易被人拿出来之后在其它地方复用
  * todo 需要在readme中加入npm的开发和使用流程
  * todo 把evt.target.value等逻辑修改为vue应该使用的逻辑
  * todo 各种js中的any需要调整一下

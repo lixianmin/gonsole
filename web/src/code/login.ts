@@ -10,34 +10,27 @@ import Base64 from 'crypto-js/enc-base64'
  *********************************************************************/
 
 export function createLogin(sendLogin: Function) {
-    const tokenKey = "auto.login.user"
+    const loginKey = "auto.login.user"
 
     async function doLogin(username: string, digestOrToken: string) {
         const response = await sendLogin("auth", username, digestOrToken)
 
         // 如果返回了token, 说明是使用digest登录的, 说明client需要缓存jwt
-        switch (response.code) {
-            case 'ok':
-                if (response.token) {
-                    const item = {
-                        username: username,
-                        token: response.token,
-                    }
-
-                    ls.set(tokenKey, item)
-                    // console.log('response', response)
-                }
-                break
-            case 'token_expired':
-                ls.remove(tokenKey)
-                break
+        const code = response.code
+        if (code === 'ok') {
+            const token = response.token
+            if (typeof token === 'string' && token.length > 0) {
+                ls.set(loginKey, {username, token})
+            }
+        } else if (code === 'token_expired') {
+            ls.remove(loginKey)
         }
     }
 
     return {
         // 自动登录
         async tryAutoLogin() {
-            const item = ls.get(tokenKey)
+            const item = ls.get(loginKey)
             if (item) {
                 // @ts-ignore
                 await doLogin(item.username, item.token)
