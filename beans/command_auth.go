@@ -34,6 +34,12 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		return bean
 	}
 
+	// 默认设置为false, 如果登录成功了, 调整为真
+	var isKeyAuthorized = false
+	defer func() {
+		session.Attachment().Put(ifs.KeyIsAuthorized, isKeyAuthorized)
+	}()
+
 	var username, digestOrToken, fingerprint = args[1], args[2], args[3]
 	//logo.JsonI("username", username, "digestOrToken", digestOrToken, "fingerprint", fingerprint)
 
@@ -41,7 +47,6 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	var password, ok = userPasswords[username]
 	if !ok {
 		bean.Code = "invalid_username"
-		session.Attachment().Put(ifs.KeyIsAuthorized, false)
 		return bean
 	}
 
@@ -55,7 +60,6 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		var targetDigest = sumSha256(password)
 		if targetDigest != digest {
 			bean.Code = "invalid_password"
-			session.Attachment().Put(ifs.KeyIsAuthorized, false)
 			return bean
 		}
 
@@ -71,9 +75,23 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		// 如果client转入的是jwt, 则需要解jwt
 		var token = digestOrToken
 		var data, err = jwtx.Parse(jwtSecretKey, token)
-		if err != nil || data["username"] != username || data["digest"] != sumSha256(password) || data["fingerprint"] != fingerprint {
-			bean.Code = "token_expired"
-			session.Attachment().Put(ifs.KeyIsAuthorized, false)
+		if err != nil {
+			bean.Code = "expired_token"
+			return bean
+		}
+
+		if data["username"] != username {
+			bean.Code = "stolen_username"
+			return bean
+		}
+
+		if data["digest"] != sumSha256(password) {
+			bean.Code = "invalid_digest"
+			return bean
+		}
+
+		if data["fingerprint"] != fingerprint {
+			bean.Code = "invalid_fingerprint"
 			return bean
 		}
 	}
@@ -81,7 +99,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	bean.Code = "ok"
 	bean.GPID = osx.GetGPID(port)
 	bean.ClientAddress = session.RemoteAddr().String()
-	session.Attachment().Put(ifs.KeyIsAuthorized, true)
+	isKeyAuthorized = true
 	return bean
 }
 

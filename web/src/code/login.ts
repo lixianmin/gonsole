@@ -30,7 +30,7 @@ export function createLogin(sendLogin: Function) {
             if (typeof token === 'string' && token.length > 0) {
                 ls.set(loginKey, {username, token})
             }
-        } else if (code === 'token_expired') {
+        } else {
             ls.remove(loginKey)
         }
     }
