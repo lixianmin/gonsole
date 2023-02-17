@@ -82,6 +82,7 @@ func RequestFileByRange(fullPath string, writer http.ResponseWriter, request *ht
 	}
 
 	var header = writer.Header()
+	header.Add("Cache-Control", "max-age=864000") // 这个会建议http/2从memory cache或disk cache读取文件
 	header.Add("Accept-ranges", "bytes")
 	header.Add("Content-Length", strconv.FormatInt(end-start+1, 10))
 	header.Add("Content-Range", "bytes "+strconv.FormatInt(start, 10)+"-"+strconv.FormatInt(end, 10)+"/"+strconv.FormatInt(info.Size()-start, 10))

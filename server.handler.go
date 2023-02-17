@@ -5,7 +5,9 @@ import (
 	"github.com/lixianmin/gonsole/beans"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
+	"github.com/lixianmin/got/iox"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -49,11 +51,16 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 
 	// 真正传的是一个json序列化后的Data字段
 	data.Data = convert.String(convert.ToJson(config))
+	// 模板数据刷到cache中, 后续只使用cache即可
+	var cache = &iox.Buffer{}
+	_ = tmpl.Execute(cache, data)
 
 	// 刷新的时候，console间隔性的pending刷新不出来，这个有可能是http.ServeMux的问题，使用gin之后无此bug
 	var pattern = options.getPathByDirectory("/console")
+
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
-		_ = tmpl.Execute(writer, data)
+		_, _ = cache.Seek(0, io.SeekStart)
+		_, _ = io.Copy(writer, cache)
 	})
 }
 
