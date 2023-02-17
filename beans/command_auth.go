@@ -9,6 +9,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
+	"strings"
 	"time"
 )
 
@@ -69,6 +70,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		data["username"] = username
 		data["digest"] = digest
 		data["fingerprint"] = fingerprint
+		data["ip"] = extractIpAddress(session)
 
 		bean.Token, _ = jwtx.Sign(jwtSecretKey, data, jwtx.WithExpiration(autoLoginTime))
 	} else {
@@ -94,6 +96,11 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 			bean.Code = "invalid_fingerprint"
 			return bean
 		}
+
+		if data["ip"] != extractIpAddress(session) {
+			bean.Code = "invalid_ip"
+			return bean
+		}
 	}
 
 	bean.Code = "ok"
@@ -101,6 +108,17 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	bean.ClientAddress = session.RemoteAddr().String()
 	isKeyAuthorized = true
 	return bean
+}
+
+func extractIpAddress(session road.Session) string {
+	var ipWithPort = session.RemoteAddr().String()
+	var lastIndex = strings.LastIndex(ipWithPort, ":")
+	var result = ipWithPort
+	if lastIndex >= 0 {
+		result = ipWithPort[:lastIndex]
+	}
+
+	return result
 }
 
 func sumSha256(data string) string {

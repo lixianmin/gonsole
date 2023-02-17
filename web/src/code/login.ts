@@ -1,7 +1,6 @@
 import ls from 'localstorage-slim'
 import sha256 from 'crypto-js/sha256'
 import Base64 from 'crypto-js/enc-base64'
-import FingerprintJS from '@fingerprintjs/fingerprintjs'
 
 /********************************************************************
  created:    2022-01-20
@@ -13,14 +12,20 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs'
 export function createLogin(sendLogin: Function) {
     const loginKey = "auto.login.user"
 
-    async function fetchFingerprint() {
-        const fp = await FingerprintJS.load()
-        const result = await fp.get()
-        return result.visitorId
+    function fetchFingerprint() {
+        const data = JSON.stringify([
+            window.navigator.userAgent,
+            window.navigator.language,
+            new Date().getTimezoneOffset(),
+        ])
+
+        const fingerprint = Base64.stringify(sha256(data))
+        // console.log('fingerprint', fingerprint)
+        return fingerprint
     }
 
     async function doLogin(username: string, digestOrToken: string) {
-        const fingerprint = await fetchFingerprint()
+        const fingerprint = fetchFingerprint()
         const response = await sendLogin("auth", username, digestOrToken, fingerprint)
 
         // 如果返回了token, 说明是使用digest登录的, 说明client需要缓存jwt
