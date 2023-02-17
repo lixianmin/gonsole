@@ -8,7 +8,6 @@ import (
 	"github.com/lixianmin/gonsole/jwtx"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/osx"
-	"github.com/lixianmin/got/timex"
 	"strings"
 	"time"
 )
@@ -58,7 +57,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	if isDigest {
 		// 当是digest的时候, 判断digest是否正确
 		var digest = digestOrToken
-		var targetDigest = sumSha256(password)
+		var targetDigest = sumPasswordDigest(password)
 		if targetDigest != digest {
 			bean.Code = "invalid_password"
 			return bean
@@ -87,7 +86,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 			return bean
 		}
 
-		if data["digest"] != sumSha256(password) {
+		if data["digest"] != sumPasswordDigest(password) {
 			bean.Code = "invalid_digest"
 			return bean
 		}
@@ -128,11 +127,7 @@ func sumSha256(data string) string {
 	return encoded
 }
 
-func fetchJwt(username string, digest string) (string, error) {
-	const secret = "Hey Pet!!"
-	var data = jwt.MapClaims{}
-	data["username"] = username
-	data["digest"] = digest
-	var token, err = jwtx.Sign(secret, data, jwtx.WithExpiration(timex.Day))
-	return token, err
+func sumPasswordDigest(password string) string {
+	const salt = "Hey Nurse!!"
+	return sumSha256(password + salt)
 }

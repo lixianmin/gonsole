@@ -52,8 +52,11 @@ export function createLogin(sendLogin: Function) {
         },
 
         async login(username: string, password: string) {
+            // 盐值是固定的, 但每一个项目应该不一样
+            const salt = "Hey Nurse!!"
+
             // 这个digest的固定长度为44
-            const digest = Base64.stringify(sha256(password))
+            const digest = Base64.stringify(sha256(password + salt))
             // console.log(`password=${password}, digest=${digest}, length=${digest.length}`)
 
             await doLogin(username, digest)
