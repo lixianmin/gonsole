@@ -32,16 +32,14 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
 
 	var config struct {
-		Directory      string `json:"directory"`
-		WebsocketPath  string `json:"websocketPath"`
-		AutoLoginLimit int64  `json:"autoLoginLimit"`
-		Title          string `json:"title"`
-		Body           string `json:"body"`
+		Directory     string `json:"directory"`
+		WebsocketPath string `json:"websocketPath"`
+		Title         string `json:"title"`
+		Body          string `json:"body"`
 	}
 
 	config.Directory = options.Directory
 	config.WebsocketPath = websocketPath
-	config.AutoLoginLimit = int64(options.AutoLoginTime / time.Second)
 	config.Title = options.PageTitle
 	config.Body = options.PageBody
 
@@ -164,7 +162,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Flag: flagBuiltin | FlagPublic,
 		Handler: func(client *Client, args []string) (*Response, error) {
 			server.lastAuthTime.Store(time.Now())
-			var data = beans.NewCommandAuth(client.Session(), args, server.options.UserPasswords, port)
+			var options = server.options
+
+			var data = beans.NewCommandAuth(client.Session(), args, options.UserPasswords, options.AutoLoginTime, port)
 			return NewDefaultResponse(data), nil
 		}})
 

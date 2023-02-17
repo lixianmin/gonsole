@@ -35,7 +35,22 @@ let rootUrl = config.getRootUrl()
 window.sendCommand = sendCommand
 
 let login = createLogin((cmd: string, ...args: string[]) => {
-  sendCommand(cmd, ...args)
+  let bean = {command: cmd}
+  if (args.length > 0) {
+    bean.command = cmd + " " + args.join(" ")
+  }
+
+  return new Promise(resolve => {
+    sendBean("console.command", bean, obj => {
+      const cloned = {...obj.data}
+      resolve(obj.data)
+
+      delete cloned.token
+      const text = JSON.stringify(cloned)
+      printWithTimestamp("<b>server响应：</b>" + text)
+      println()
+    })
+  })
 })
 
 star.connect({url: config.getWebsocketUrl()}, () => {
@@ -169,7 +184,7 @@ function onEnter(evt) {
       isAuthorizing = false
       // this.$el.type = "text"
       evt.target.type = "text"
-      login.login(username, name, config.autoLoginLimit)
+      login.login(username, name)
     } else {
       sendCommand(texts.join(' '))
       historyStore.add(command)

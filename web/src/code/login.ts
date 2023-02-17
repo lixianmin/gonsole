@@ -1,5 +1,6 @@
 import ls from 'localstorage-slim'
-import bcrypt from 'bcryptjs'
+import sha256 from 'crypto-js/sha256'
+import Base64 from 'crypto-js/enc-base64'
 
 /********************************************************************
  created:    2022-01-20
@@ -9,38 +10,46 @@ import bcrypt from 'bcryptjs'
  *********************************************************************/
 
 export function createLogin(sendLogin: Function) {
-    const key = "autoLoginUser"
+    const tokenKey = "auto.login.user"
 
-    function save(username: string, digest: string, autoLoginLimit: number) {
-        const item = {
-            username: username,
-            digest: digest,
+    async function doLogin(username: string, digestOrToken: string) {
+        const response = await sendLogin("auth", username, digestOrToken)
+
+        // 如果返回了token, 说明是使用digest登录的, 说明client需要缓存jwt
+        switch (response.code) {
+            case 'ok':
+                if (response.token) {
+                    const item = {
+                        username: username,
+                        token: response.token,
+                    }
+
+                    ls.set(tokenKey, item)
+                    // console.log('response', response)
+                }
+                break
+            case 'token_expired':
+                ls.remove(tokenKey)
+                break
         }
-
-        ls.set(key, item, {ttl: autoLoginLimit})
-    }
-
-    function doLogin(username: string, digest: string) {
-        sendLogin("auth", username, digest)
     }
 
     return {
         // 自动登录
-        tryAutoLogin() {
-            const item = ls.get(key)
+        async tryAutoLogin() {
+            const item = ls.get(tokenKey)
             if (item) {
                 // @ts-ignore
-                doLogin(item.username, item.digest)
+                await doLogin(item.username, item.token)
             }
         },
 
-        async login(username: string, password: string, autoLoginLimit: number) {
-            const salt = await bcrypt.genSalt()
-            const digest = await bcrypt.hash(password, salt)
-            // console.log('salt', salt, 'digest', digest)
+        async login(username: string, password: string) {
+            // 这个digest的固定长度为44
+            const digest = Base64.stringify(sha256(password))
+            // console.log(`password=${password}, digest=${digest}, length=${digest.length}`)
 
-            doLogin(username, digest)
-            save(username, digest, autoLoginLimit)
+            await doLogin(username, digest)
         },
     }
 }

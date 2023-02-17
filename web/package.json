@@ -13,6 +13,7 @@
     "@vitejs/plugin-vue-jsx": "^2.1.1",
     "@vueuse/core": "^9.6.0",
     "bcryptjs": "^2.4.3",
+    "crypto-js": "^4.1.1",
     "localstorage-slim": "^2.4.0",
     "moment": "^2.29.4",
     "type-fest": "^3.2.0",
