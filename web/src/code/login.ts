@@ -15,12 +15,14 @@ export function createLogin(sendLogin: Function) {
     function fetchFingerprint() {
         const data = JSON.stringify([
             window.navigator.userAgent,
-            window.navigator.language,
-            new Date().getTimezoneOffset(),
+            window.navigator.language,  // language of the browser which is set when launching the browser, such as zh-CN
+            window.screen.width,        // width of the screen in pixels
+            window.screen.height,
+            new Date().getTimezoneOffset(), // -480
         ])
 
         const fingerprint = Base64.stringify(sha256(data))
-        // console.log('fingerprint', fingerprint)
+        // console.log(`data=${data}, fingerprint=${fingerprint}`)
         return fingerprint
     }
 
