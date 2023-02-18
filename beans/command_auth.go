@@ -8,6 +8,7 @@ import (
 	"github.com/lixianmin/gonsole/jwtx"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/osx"
+	"github.com/lixianmin/logo"
 	"strings"
 	"time"
 )
@@ -44,9 +45,11 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	//logo.JsonI("username", username, "digestOrToken", digestOrToken, "fingerprint", fingerprint)
 
 	// 判断username是否正确
+	const invalidUsernameOrPassword = "invalid_username_or_password"
 	var password, ok = userPasswords[username]
 	if !ok {
-		bean.Code = "invalid_username"
+		bean.Code = invalidUsernameOrPassword
+		logo.JsonI("invalid_username", username)
 		return bean
 	}
 
@@ -59,7 +62,8 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		var digest = digestOrToken
 		var targetDigest = sumPasswordDigest(password)
 		if targetDigest != digest {
-			bean.Code = "invalid_password"
+			bean.Code = invalidUsernameOrPassword
+			logo.JsonI("invalid_digest", digest)
 			return bean
 		}
 
@@ -82,22 +86,27 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		}
 
 		if data["username"] != username {
-			bean.Code = "stolen_username"
+			bean.Code = invalidUsernameOrPassword
+			logo.JsonI("stolen_username", username)
 			return bean
 		}
 
 		if data["digest"] != sumPasswordDigest(password) {
-			bean.Code = "invalid_digest"
+			bean.Code = invalidUsernameOrPassword
+			logo.JsonI("invalid_jwt_digest", data["digest"])
 			return bean
 		}
 
 		if data["fingerprint"] != fingerprint {
-			bean.Code = "invalid_fingerprint"
+			bean.Code = invalidUsernameOrPassword
+			logo.JsonI("invalid_fingerprint", data["fingerprint"], "fingerprint", fingerprint)
 			return bean
 		}
 
-		if data["ip"] != extractIpAddress(session) {
-			bean.Code = "invalid_ip"
+		var ip = extractIpAddress(session)
+		if data["ip"] != ip {
+			bean.Code = invalidUsernameOrPassword
+			logo.JsonI("invalid_ip", data["ip"], "ip", ip)
 			return bean
 		}
 	}
