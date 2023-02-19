@@ -8,8 +8,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 const (
-	CtxKeySession   = "session"
-	KeyIsAuthorized = "isAuthorized"
-	KeyClient       = "client"
+	CtxKeySession   = "console.session"
+	KeyIsAuthorized = "console.isAuthorized"
+	KeyClient       = "console.client"
+	KeyNonce        = "console.nonce"
 	RouteDefault    = "console.default" // 参考console.html中的 onDefault()方法
 )

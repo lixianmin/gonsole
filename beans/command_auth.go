@@ -60,7 +60,8 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	if isDigest {
 		// 当是digest的时候, 判断digest是否正确
 		var digest = digestOrToken
-		var targetDigest = sumPasswordDigest(password)
+		var nonce = session.Attachment().Int32(ifs.KeyNonce)
+		var targetDigest = sumPasswordDigest(password, nonce)
 		if targetDigest != digest {
 			bean.Code = invalidUsernameOrPassword
 			logo.JsonI("invalid_digest", digest)
@@ -73,6 +74,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		data["username"] = username
 		data["digest"] = digest
 		data["fingerprint"] = fingerprint
+		data["nonce"] = nonce
 		data["ip"] = extractIpAddress(session)
 
 		bean.Token, _ = jwtx.Sign(jwtSecretKey, data, jwtx.WithExpiration(autoLoginTime))
@@ -91,7 +93,8 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 			return bean
 		}
 
-		if data["digest"] != sumPasswordDigest(password) {
+		var nonce = int32(data["nonce"].(float64))
+		if data["digest"] != sumPasswordDigest(password, nonce) {
 			bean.Code = invalidUsernameOrPassword
 			logo.JsonI("invalid_jwt_digest", data["digest"])
 			return bean
@@ -129,14 +132,27 @@ func extractIpAddress(session road.Session) string {
 	return result
 }
 
-func sumSha256(data string) string {
-	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据, 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
-	var digest = sha256.Sum256([]byte(data))
+func sumPasswordDigest(password string, nonce int32) string {
+	const salt = "Hey Nurse!!"
+	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据,
+	// 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
+	var digest = sha256.Sum256([]byte(password + salt))
+	for i := 0; i < len(digest); i += 4 {
+		// js中是个int32[8], golang中是个int8[32], 异或的方式需要一样
+		digest[i+0] = digest[i+0] ^ byte(nonce>>24)
+		digest[i+1] = digest[i+1] ^ byte(nonce>>16)
+		digest[i+2] = digest[i+2] ^ byte(nonce>>8)
+		digest[i+3] = digest[i+3] ^ byte(nonce>>0)
+	}
+
+	//logo.JsonI("digest", digest)
 	var encoded = base64.StdEncoding.EncodeToString(digest[:])
 	return encoded
 }
 
-func sumPasswordDigest(password string) string {
-	const salt = "Hey Nurse!!"
-	return sumSha256(password + salt)
-}
+//func sumSha256(data string) string {
+//	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据, 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
+//	var digest = sha256.Sum256([]byte(data))
+//	var encoded = base64.StdEncoding.EncodeToString(digest[:])
+//	return encoded
+//}

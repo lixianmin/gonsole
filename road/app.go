@@ -1,7 +1,6 @@
 package road
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/component"
@@ -10,7 +9,7 @@ import (
 	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serialize"
-	"github.com/lixianmin/gonsole/road/util"
+	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -35,7 +34,6 @@ type (
 		wheelSecond         *loom.Wheel
 		heartbeatInterval   time.Duration
 		heartbeatPacketData []byte
-		handshakeData       []byte
 		rateLimitBySecond   int
 
 		accept   epoll.Acceptor
@@ -80,7 +78,6 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 
 	//app.senders = createSenders(options)
 	app.heartbeatPacketData = app.encodeHeartbeatData()
-	app.handshakeData = app.encodeHandshakeData(options.DataCompression)
 
 	// 这个tasks，只是内部用一下，不公开
 	app.tasks = taskx.NewQueue(taskx.WithSize(2), taskx.WithCloseChan(app.wc.C()))
@@ -192,9 +189,10 @@ func (my *App) encodeHeartbeatData() []byte {
 	return bytes
 }
 
-func (my *App) encodeHandshakeData(dataCompression bool) []byte {
+func (my *App) encodeHandshakeData(nonce int32) []byte {
 	hData := map[string]interface{}{
-		"code": 200,
+		"code":  200,
+		"nonce": nonce,
 		"sys": map[string]interface{}{
 			"heartbeat":  my.heartbeatInterval.Seconds(),
 			"dict":       message.GetDictionary(),
@@ -202,20 +200,9 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 		},
 	}
 
-	data, err := json.Marshal(hData)
+	data, err := convert.ToJsonE(hData)
 	if err != nil {
 		panic(err)
-	}
-
-	if dataCompression {
-		compressedData, err := util.DeflateData(data)
-		if err != nil {
-			panic(err)
-		}
-
-		if len(compressedData) < len(data) {
-			data = compressedData
-		}
 	}
 
 	bytes, err := my.packetEncoder.Encode(codec.Handshake, data)
@@ -225,3 +212,37 @@ func (my *App) encodeHandshakeData(dataCompression bool) []byte {
 
 	return bytes
 }
+
+//func (my *App) encodeHandshakeData_1(dataCompression bool) []byte {
+//	hData := map[string]interface{}{
+//		"code": 200,
+//		"sys": map[string]interface{}{
+//			"heartbeat":  my.heartbeatInterval.Seconds(),
+//			"dict":       message.GetDictionary(),
+//			"serializer": my.serializer.GetName(),
+//		},
+//	}
+//
+//	data, err := json.Marshal(hData)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	if dataCompression {
+//		compressedData, err := util.DeflateData(data)
+//		if err != nil {
+//			panic(err)
+//		}
+//
+//		if len(compressedData) < len(data) {
+//			data = compressedData
+//		}
+//	}
+//
+//	bytes, err := my.packetEncoder.Encode(codec.Handshake, data)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	return bytes
+//}

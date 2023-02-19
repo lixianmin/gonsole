@@ -53,11 +53,11 @@ let login = createLogin((cmd: string, username: string, digestOrToken: string, f
   })
 })
 
-star.connect({url: config.getWebsocketUrl()}, () => {
+star.connect({url: config.getWebsocketUrl()}, (nonce: number) => {
   console.log("websocket connected")
   printHtml(config.body)
   println()
-  login.tryAutoLogin()
+  login.tryAutoLogin(nonce)
 })
 
 const uptime = new Date()

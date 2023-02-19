@@ -12,6 +12,7 @@ import (
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/logo"
+	"math/rand"
 	"reflect"
 )
 
@@ -76,7 +77,11 @@ func (my *sessionImpl) onReceivedMessage(buffer *iox.Buffer) error {
 }
 
 func (my *sessionImpl) onReceivedHandshake(p *codec.Packet) error {
-	var err = my.writeBytes(my.app.handshakeData)
+	var nonce = rand.Int31()
+	my.Attachment().Put(ifs.KeyNonce, nonce)
+
+	var handshake = my.app.encodeHandshakeData(nonce)
+	var err = my.writeBytes(handshake)
 	if err == nil {
 		my.onHandShaken.Invoke()
 	}

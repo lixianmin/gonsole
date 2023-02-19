@@ -295,7 +295,8 @@ export class StartX {
         // handshakeAck之后，目前服务器会回复heartbeat，然后 就可以自动登录了
         const onConnected = this.onConnected
         if (onConnected != null) {
-            onConnected()
+            const nonce = item.nonce
+            onConnected(nonce)
         }
     }
 
