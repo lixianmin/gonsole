@@ -53,6 +53,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		return bean
 	}
 
+	// todo secret key需要是项目启动时传入的, 不能是固定的, 否则hacker可以自己定制jwt token
 	const jwtSecretKey = "Hey Pet!!"
 
 	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据, 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
