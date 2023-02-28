@@ -52,5 +52,6 @@ export function println() {
 }
 
 export function printWithTimestamp(html) {
-    printHtml("[" + moment(new Date()).format("HH:mm:ss.S") + "] " + html);
+    const time = moment(new Date()).format("HH:mm:ss.S")
+    printHtml(`[${time}] ${html}`)
 }

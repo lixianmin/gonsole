@@ -51,7 +51,6 @@ const App = () => {
         const bean = {command: `${cmd} ${username} ${digestOrToken} ${fingerprint}`}
         return new Promise(resolve => {
             // 把callback改为promise
-            // @ts-ignore
             star.request("console.command", bean, obj => {
                 const cloned = {...obj.data}  // shadow clone
                 resolve(obj.data)
