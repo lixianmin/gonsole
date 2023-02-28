@@ -13,6 +13,7 @@ import {createWebConfig} from "./code/web_config.js";
 import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
 import moment from "moment";
+import {longestCommonPrefix} from "./code/tools";
 // import History from "./components/History.vue"
 // import JsonTable from './components/JsonTable.jsx'
 // import LogList from './components/LogList.vue'
@@ -25,7 +26,6 @@ import moment from "moment";
  * todo 各种js中的any需要调整一下
  * todo 打包后生成的assets的根目录是否需要修改
  */
-
 
 const App = () => {
 
@@ -115,7 +115,6 @@ const App = () => {
         println()
     }
 
-    // @ts-ignore
     function sendBean(route, bean, callback) {
         const json = JSON.stringify(bean)
         printWithTimestamp("<b>client请求：</b>")
@@ -243,25 +242,35 @@ const App = () => {
         }
     }
 
+    function onKeyDown(evt) {
+        const key = evt.key
+        let eaten = false
+        if (key === 'Enter') {
+            onEnter(evt)
+            eaten = true
+        } else if (key === 'Tab') {
+            onTab(evt)
+            eaten = true
+        } else if (key === 'ArrowUp' || key === 'ArrowDown'){
+            onUpDown(evt)
+            eaten = true
+        }
+
+        if (eaten) {
+            evt.preventDefault()
+        }
+
+        return true
+    }
 
     return (
         <>
             <div id="mainPanel"></div>
             <div id="inputBoxDiv">
-                <input id="inputBox" ref={inputText} placeholder="Tab补全命令, Enter执行命令"/>
+                <input id="inputBox" ref={inputText} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
             </div>
         </>
     );
 };
 
 export default App
-
-
-// <div id="mainPanel"></div>
-// <div id="inputBoxDiv">
-//   <input id="inputBox" v-model="inputText" placeholder="Tab补全命令, Enter执行命令"
-//   @keydown.enter.prevent="onEnter"
-//   @keydown.tab.prevent="onTab"
-//   @keydown.up.down.prevent="onUpDown"
-//   />
-// </div>
