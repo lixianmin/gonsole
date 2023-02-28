@@ -87,7 +87,7 @@ const App = () => {
         }
 
         inputBox.focus()
-        document.onkeydown = function (evt) {
+        document.onKeyDown = function (evt) {
             if (evt.key === 'Enter') {
                 let control = document.activeElement;
                 if (control !== inputBox && inputBox) {
@@ -195,7 +195,7 @@ const App = () => {
                 isAuthorizing = false
                 // this.$el.type = "text"
                 evt.target.type = "text"
-                login.login(username, name)
+                login.login(username, name).then()
             } else {
                 sendCommand(texts.join(' '))
                 historyStore.add(command)
