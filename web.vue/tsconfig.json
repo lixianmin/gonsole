@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowJs": true,  // 这一句使得*.vue文件可以使用js编译, 而不是仅仅只支持tts
+    "target": "es6",
+    "useDefineForClassFields": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noImplicitAny": false, // 这一句可以让一些偏js写法的代码编译通过, 并防止引用js时出错
+    "lib": ["esnext", "dom"],
+    "baseUrl": "./",  // 有这个，才能写下面的paths
+    "paths": {
+      "@/*": [        // 支持import时使用@代替代码根目录，另外还需要vite.config.ts中配合
+        "src/*"
+      ]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

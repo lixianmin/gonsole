@@ -1,0 +1,3 @@
+package dist
+
+func ForceIncludeFiles() { }
