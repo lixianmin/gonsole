@@ -18,6 +18,7 @@ import History from "./components/History";
 import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
 import LogList from "./components/LogList";
+import {onMount} from "solid-js";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -29,16 +30,15 @@ import LogList from "./components/LogList";
  */
 
 const App = () => {
-
-    let inputText
-    let username = ""
+    let inputBox
+    let username = ''
     let isAuthorizing = false
 
-    let config = createWebConfig()
+    const config = createWebConfig()
     const historyStore = useHistoryStore()
 
-    let star = new StartX()
-    let rootUrl = config.getRootUrl()
+    const star = new StartX()
+    const rootUrl = config.getRootUrl()
 
     // 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
     window.sendCommand = sendCommand
@@ -81,25 +81,20 @@ const App = () => {
     star.on("console.html", onHtml)
     star.on("console.default", onDefault)
 
-    window.onload = () => {
-        const inputBox = document.getElementById("inputBox")
-        if (!inputBox) {
-            return
-        }
-
+    onMount(()=>{
         inputBox.focus()
-        document.onKeyDown = function (evt) {
+        document.addEventListener('keydown', evt => {
             if (evt.key === 'Enter') {
-                let control = document.activeElement;
-                if (control !== inputBox && inputBox) {
+                const control = document.activeElement;
+                if (control !== inputBox) {
                     inputBox.focus()
                     // return false的意思是：这个按键事件当前代码处理了，不再bubble上传这个事件。
                     // 默认情况下会继续传播按键事件，Enter会导致页面refresh
                     return false
                 }
             }
-        }
-    }
+        })
+    })
 
     function onHtml(data) {
         printWithTimestamp("<b>server响应：</b>" + data)
@@ -156,9 +151,9 @@ const App = () => {
     }
 
     function onEnter(evt) {
-        let command = inputText.value
+        let command = inputBox.value
         if (command !== "") {
-            inputText.value = ""
+            inputBox.value = ""
 
             // 检查是不是调用history命令
             if (command.startsWith("!")) {
@@ -188,13 +183,11 @@ const App = () => {
             } else if (textsLength >= 2 && name === "auth") {
                 username = texts[1]
                 isAuthorizing = true
-                // $el.type = "password"
                 evt.target.type = "password"
                 printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
                 historyStore.add(command)
             } else if (isAuthorizing && textsLength >= 1) {
                 isAuthorizing = false
-                // this.$el.type = "text"
                 evt.target.type = "text"
                 login.login(username, name).then()
             } else {
@@ -207,7 +200,7 @@ const App = () => {
     }
 
     function onTab(evt) {
-        const text = inputText.value
+        const text = inputBox.value
         if (text.length > 0) {
             const bean = {
                 head: text,
@@ -217,7 +210,7 @@ const App = () => {
                 const size = list.length
                 if (size > 0) {
                     const names = list.map(v => v.Name)
-                    inputText.value = longestCommonPrefix(names)
+                    inputBox.value = longestCommonPrefix(names)
                     if (size > 1) {
                         // todo 这个可以化简
                         onTable(JSON.stringify(list))
@@ -233,7 +226,7 @@ const App = () => {
 
         // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
         if (nextText !== '' || step === 1) {
-            inputText.value = nextText
+            inputBox.value = nextText
 
             setTimeout(() => {
                 let position = nextText.length
@@ -264,14 +257,13 @@ const App = () => {
         return true
     }
 
-    return (
-        <>
-            <div id="mainPanel"></div>
-            <div id="inputBoxDiv">
-                <input id="inputBox" ref={inputText} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
-            </div>
-        </>
-    );
-};
+    return <>
+        <div id="mainPanel"></div>
+        <div id="inputBoxDiv">
+            <input id="inputBox" ref={inputBox} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
+        </div>
+    </>
+}
 
-render(() => <App/>, document.getElementById('app'))
+const app = document.getElementById('app')
+render(() => <App/>, app)
