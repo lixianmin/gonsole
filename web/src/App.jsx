@@ -19,6 +19,7 @@ import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
 import LogList from "./components/LogList";
 import {onMount} from "solid-js";
+import InputBox from "./components/InputBox";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -133,9 +134,7 @@ const App = () => {
     }
 
     onMount(() => {
-        inputBox.focus()
-
-        useKeyDown(document, 'Enter', evt => {
+        useKeyDown(window, 'Enter', evt => {
             const control = document.activeElement;
             if (control !== inputBox) {
                 inputBox.focus()
@@ -216,30 +215,12 @@ const App = () => {
 
             evt.preventDefault()
         })
-
-        useKeyDown(inputBox, ['ArrowUp', 'ArrowDown'], evt => {
-            const step = evt.key === 'ArrowUp' ? -1 : 1
-            const nextText = historyStore.move(step)
-
-            // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
-            if (nextText !== '' || step === 1) {
-                inputBox.value = nextText
-
-                setTimeout(() => {
-                    let position = nextText.length
-                    evt.target.setSelectionRange(position, position)
-                    evt.target.focus()
-                })
-            }
-
-            evt.preventDefault()
-        })
     })
 
     return <>
         <div id="mainPanel"></div>
         <div id="inputBoxDiv">
-            <input id="inputBox" ref={inputBox} placeholder="Tab补全命令, Enter执行命令"/>
+            <InputBox id='inputBox' ref={inputBox}/>
         </div>
     </>
 }
