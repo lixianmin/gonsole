@@ -13,13 +13,12 @@ import {createWebConfig} from "./code/web_config.js";
 import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
 import moment from "moment";
-import {longestCommonPrefix} from "./code/tools";
+import {longestCommonPrefix, useKeyDown} from "./code/tools";
 import History from "./components/History";
 import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
 import LogList from "./components/LogList";
 import {onMount} from "solid-js";
-import {Key} from "ts-keycode-enum";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -76,24 +75,8 @@ const App = () => {
         printWithTimestamp(`<b> disconnected from server after ${onlineTime} </b>`)
     })
 
-
     star.on("console.html", onHtml)
     star.on("console.default", onDefault)
-
-    onMount(()=>{
-        inputBox.focus()
-        document.addEventListener('keydown', evt => {
-            if (evt.keyCode === Key.Enter) {
-                const control = document.activeElement;
-                if (control !== inputBox) {
-                    inputBox.focus()
-                    // return false的意思是：这个按键事件当前代码处理了，不再bubble上传这个事件。
-                    // 默认情况下会继续传播按键事件，Enter会导致页面refresh
-                    return false
-                }
-            }
-        })
-    })
 
     function onHtml(data) {
         printWithTimestamp("<b>server响应：</b>" + data)
@@ -149,117 +132,114 @@ const App = () => {
         }
     }
 
-    function onEnter(evt) {
-        let command = inputBox.value
-        if (command !== "") {
-            inputBox.value = ""
+    onMount(() => {
+        inputBox.focus()
 
-            // 检查是不是调用history命令
-            if (command.startsWith("!")) {
-                const index = Number(command.substring(1)) - 1
-                // console.log("index:", index)
-                if (!Number.isNaN(index)) {
-                    command = historyStore.getHistory(index)
-                    command = historyStore.getHistory(index)
-                }
+        useKeyDown(document, 'Enter', evt => {
+            const control = document.activeElement;
+            if (control !== inputBox) {
+                inputBox.focus()
+                // return false的意思是：这个按键事件当前代码处理了，不再bubble上传这个事件。
+                // 默认情况下会继续传播按键事件，Enter会导致页面refresh
+                return false
             }
+        })
 
-            let texts = command.split(/\s+/)  // 支持连续多个空格
-            let textsLength = texts.length
-            const name = texts[0]
+        useKeyDown(inputBox, 'Enter', evt => {
+            let command = inputBox.value
+            if (command !== "") {
+                inputBox.value = ""
 
-            if (name === "help") {
-                sendCommand(name, rootUrl)
-                historyStore.add(command)
-            } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
-                const bean = {
-                    topic: texts[1],
-                };
-
-                const route = "console." + name
-                sendBean(route, bean, onCommand)
-                historyStore.add(command)
-            } else if (textsLength >= 2 && name === "auth") {
-                username = texts[1]
-                isAuthorizing = true
-                evt.target.type = "password"
-                printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
-                historyStore.add(command)
-            } else if (isAuthorizing && textsLength >= 1) {
-                isAuthorizing = false
-                evt.target.type = "text"
-                login.login(username, name).then()
-            } else {
-                sendCommand(texts.join(' '))
-                historyStore.add(command)
-            }
-        } else {
-            printWithTimestamp('')
-        }
-    }
-
-    function onTab(evt) {
-        const text = inputBox.value
-        if (text.length > 0) {
-            const bean = {
-                head: text,
-            }
-
-            star.request("console.hint", bean, (list) => {
-                const size = list.length
-                if (size > 0) {
-                    const names = list.map(v => v.Name)
-                    inputBox.value = longestCommonPrefix(names)
-                    if (size > 1) {
-                        // todo 这个可以化简
-                        onTable(JSON.stringify(list))
+                // 检查是不是调用history命令
+                if (command.startsWith("!")) {
+                    const index = Number(command.substring(1)) - 1
+                    // console.log("index:", index)
+                    if (!Number.isNaN(index)) {
+                        command = historyStore.getHistory(index)
+                        command = historyStore.getHistory(index)
                     }
                 }
-            })
-        }
-    }
 
-    function onUpDown(evt) {
-        const step = evt.keyCode === Key.UpArrow ? -1 : 1
-        const nextText = historyStore.move(step)
+                let texts = command.split(/\s+/)  // 支持连续多个空格
+                let textsLength = texts.length
+                const name = texts[0]
 
-        // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
-        if (nextText !== '' || step === 1) {
-            inputBox.value = nextText
+                if (name === "help") {
+                    sendCommand(name, rootUrl)
+                    historyStore.add(command)
+                } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
+                    const bean = {
+                        topic: texts[1],
+                    };
 
-            setTimeout(() => {
-                let position = nextText.length
-                evt.target.setSelectionRange(position, position)
-                evt.target.focus()
-            })
-        }
-    }
+                    const route = "console." + name
+                    sendBean(route, bean, onCommand)
+                    historyStore.add(command)
+                } else if (textsLength >= 2 && name === "auth") {
+                    username = texts[1]
+                    isAuthorizing = true
+                    evt.target.type = "password"
+                    printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
+                    historyStore.add(command)
+                } else if (isAuthorizing && textsLength >= 1) {
+                    isAuthorizing = false
+                    evt.target.type = "text"
+                    login.login(username, name).then()
+                } else {
+                    sendCommand(texts.join(' '))
+                    historyStore.add(command)
+                }
+            } else {
+                printWithTimestamp('')
+            }
+        })
 
-    function onKeyDown(evt) {
-        const keyCode = evt.keyCode
-        let eaten = false
-        if (keyCode === Key.Enter) {
-            onEnter(evt)
-            eaten = true
-        } else if (keyCode === Key.Tab) {
-            onTab(evt)
-            eaten = true
-        } else if (keyCode === Key.UpArrow || keyCode === Key.DownArrow) {
-            onUpDown(evt)
-            eaten = true
-        }
+        useKeyDown(inputBox, 'Tab', evt => {
+            const text = inputBox.value
+            if (text.length > 0) {
+                const bean = {
+                    head: text,
+                }
 
-        if (eaten) {
+                star.request("console.hint", bean, (list) => {
+                    const size = list.length
+                    if (size > 0) {
+                        const names = list.map(v => v.Name)
+                        inputBox.value = longestCommonPrefix(names)
+                        if (size > 1) {
+                            // todo 这个可以化简
+                            onTable(JSON.stringify(list))
+                        }
+                    }
+                })
+            }
+
             evt.preventDefault()
-        }
+        })
 
-        return true
-    }
+        useKeyDown(inputBox, ['ArrowUp', 'ArrowDown'], evt => {
+            const step = evt.key === 'ArrowUp' ? -1 : 1
+            const nextText = historyStore.move(step)
+
+            // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
+            if (nextText !== '' || step === 1) {
+                inputBox.value = nextText
+
+                setTimeout(() => {
+                    let position = nextText.length
+                    evt.target.setSelectionRange(position, position)
+                    evt.target.focus()
+                })
+            }
+
+            evt.preventDefault()
+        })
+    })
 
     return <>
         <div id="mainPanel"></div>
         <div id="inputBoxDiv">
-            <input id="inputBox" ref={inputBox} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
+            <input id="inputBox" ref={inputBox} placeholder="Tab补全命令, Enter执行命令"/>
         </div>
     </>
 }

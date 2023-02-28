@@ -35,3 +35,15 @@ export function getHumanReadableSize(size: number) {
 
     return (size / 1048576.0).toFixed(1) + "M"
 }
+
+export function useKeyDown(target: HTMLElement, keys: string | string[], handler: Function) {
+    return target.addEventListener('keydown', evt => {
+        if (typeof keys === 'string') {
+            if (evt.key === keys) {
+                return handler(evt)
+            }
+        } else if (keys.includes(evt.key)) {
+            return handler(evt)
+        }
+    })
+}
