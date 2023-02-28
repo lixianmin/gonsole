@@ -1,0 +1,48 @@
+import {For, onMount} from "solid-js";
+import {scrollMainPanelToBottom} from "../code/main_panel";
+import {getHumanReadableSize} from "../code/tools";
+
+export default function LogList(props) {
+    // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/
+    const logFiles = props.logFiles
+    const count = logFiles.length
+    const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current))
+
+    function fetchNameHtml(fi) {
+        return `<a href="${props.rootUrl}/${fi.path}">${fi.path}</a>
+          <span class="tips_text">${fi.sample}</span>
+          <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>`
+    }
+
+    onMount(() => scrollMainPanelToBottom())
+
+    return <>
+        <b>日志文件列表：</b><br/>
+        count: &nbsp; {count} <br/>
+        total: &nbsp; {totalSize} <br/>
+        <br/>
+        <table>
+            <thead>
+            <tr>
+                <th></th>
+                <th>Size</th>
+                <th>Name</th>
+                <th>Modified Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <For each={logFiles}>{(fi, index) =>
+                <tr>
+                    <td>{index() + 1}</td>
+                    <td>{getHumanReadableSize(fi.size)}</td>
+                    <td>
+                        <div innerHTML={fetchNameHtml(fi)} className='tips'></div>
+                    </td>
+                    <td>{fi.mod_time}</td>
+                </tr>
+            }</For>
+            </tbody>
+        </table>
+        <br/>
+    </>
+}

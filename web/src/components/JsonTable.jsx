@@ -38,25 +38,23 @@ export default function JsonTable(props) {
         return <tr>{rowHtml}</tr>
     })
 
-    onMount(()=>{
+    onMount(() => {
         scrollMainPanelToBottom()
     })
 
-    return (
-        <>
-            <div>
-                <table>
-                    <thead>
-                    <tr>
-                        {headData}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {bodyData}
-                    </tbody>
-                </table>
-                <br/>
-            </div>
-        </>
-    )
+    return <>
+        <div>
+            <table>
+                <thead>
+                <tr>
+                    {headData}
+                </tr>
+                </thead>
+                <tbody>
+                {bodyData}
+                </tbody>
+            </table>
+            <br/>
+        </div>
+    </>
 }

@@ -1,9 +1,8 @@
 {
-  "name": "vite-template-solid",
+  "name": "vite-template-web",
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "postbuild": "bash postbuild.sh",

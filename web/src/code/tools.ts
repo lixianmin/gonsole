@@ -24,7 +24,7 @@ export function longestCommonPrefix(list: string[]): string {
     return str
 }
 
-export function getHumanReadableSize(size) {
+export function getHumanReadableSize(size: number) {
     if (size < 1024) {
         return size + "B"
     }

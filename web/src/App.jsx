@@ -6,7 +6,6 @@
  *********************************************************************/
 
 import './App.module.css';
-import styles from './App.module.css';
 
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel.js";
@@ -18,7 +17,7 @@ import {longestCommonPrefix} from "./code/tools";
 import History from "./components/History";
 import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
-// import LogList from './components/LogList.vue'
+import LogList from "./components/LogList";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -108,7 +107,7 @@ const App = () => {
     }
 
     function onTable(data) {
-        render(()=><JsonTable tableData={data}/>, printHtml(''))
+        render(() => <JsonTable tableData={data}/>, printHtml(''))
     }
 
     function onDefault(operation) {
@@ -138,7 +137,7 @@ const App = () => {
     function onCommand(obj) {
         switch (obj.op) {
             case "log.list":
-                // createApp(LogList, {logFiles: obj.data.logFiles, rootUrl: rootUrl}).mount(printHtml(""))
+                render(() => <LogList logFiles={obj.data.logFiles} rootUrl={rootUrl}/>, printHtml(''))
                 break
             case "history":
                 render(() => <History/>, printHtml(''))
@@ -267,13 +266,12 @@ const App = () => {
 
     return (
         <>
-            <div id="mainPanel" className={styles.mainPanel}></div>
-            <div id="inputBoxDiv" className={styles.inputBoxDiv}>
-                <input id="inputBox" className={styles.inputBox} ref={inputText}
-                       placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
+            <div id="mainPanel"></div>
+            <div id="inputBoxDiv">
+                <input id="inputBox" ref={inputText} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
             </div>
         </>
     );
 };
 
-render(() => <App />, document.getElementById('app'))
+render(() => <App/>, document.getElementById('app'))
