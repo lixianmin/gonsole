@@ -6,6 +6,7 @@
  *********************************************************************/
 
 import './App.module.css';
+import styles from './App.module.css';
 
 import {StartX} from "./code/starx";
 import {printHtml, println, printWithTimestamp} from "./code/main_panel.js";
@@ -14,7 +15,8 @@ import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
 import moment from "moment";
 import {longestCommonPrefix} from "./code/tools";
-// import History from "./components/History.vue"
+import History from "./components/History";
+import {render} from "solid-js/web";
 // import JsonTable from './components/JsonTable.jsx'
 // import LogList from './components/LogList.vue'
 
@@ -139,7 +141,7 @@ const App = () => {
                 // createApp(LogList, {logFiles: obj.data.logFiles, rootUrl: rootUrl}).mount(printHtml(""))
                 break
             case "history":
-                // createApp(History).mount(printHtml(""))
+                render(() => <History/>, printHtml(''))
                 break
             case "html":
                 onHtml(obj.data)
@@ -251,7 +253,7 @@ const App = () => {
         } else if (key === 'Tab') {
             onTab(evt)
             eaten = true
-        } else if (key === 'ArrowUp' || key === 'ArrowDown'){
+        } else if (key === 'ArrowUp' || key === 'ArrowDown') {
             onUpDown(evt)
             eaten = true
         }
@@ -265,9 +267,10 @@ const App = () => {
 
     return (
         <>
-            <div id="mainPanel"></div>
-            <div id="inputBoxDiv">
-                <input id="inputBox" ref={inputText} placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
+            <div id="mainPanel" className={styles.mainPanel}></div>
+            <div id="inputBoxDiv" className={styles.inputBoxDiv}>
+                <input id="inputBox" className={styles.inputBox} ref={inputText}
+                       placeholder="Tab补全命令, Enter执行命令" onKeyDown={onKeyDown}/>
             </div>
         </>
     );
