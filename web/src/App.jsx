@@ -17,7 +17,7 @@ import moment from "moment";
 import {longestCommonPrefix} from "./code/tools";
 import History from "./components/History";
 import {render} from "solid-js/web";
-// import JsonTable from './components/JsonTable.jsx'
+import JsonTable from "./components/JsonTable";
 // import LogList from './components/LogList.vue'
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
@@ -108,7 +108,7 @@ const App = () => {
     }
 
     function onTable(data) {
-        // createApp(JsonTable, {"tableData": data}).mount(printHtml(""))
+        render(()=><JsonTable tableData={data}/>, printHtml(''))
     }
 
     function onDefault(operation) {
@@ -276,4 +276,4 @@ const App = () => {
     );
 };
 
-export default App
+render(() => <App />, document.getElementById('app'))
