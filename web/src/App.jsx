@@ -19,12 +19,12 @@ import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
 import LogList from "./components/LogList";
 import {onMount} from "solid-js";
+import {Key} from "ts-keycode-enum";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
 /**
  * todo 需要在readme中加入npm的开发和使用流程
- * todo 把evt.target.value等逻辑修改为vue应该使用的逻辑
  * todo 各种js中的any需要调整一下
  * todo 打包后生成的assets的根目录是否需要修改
  */
@@ -83,7 +83,7 @@ const App = () => {
     onMount(()=>{
         inputBox.focus()
         document.addEventListener('keydown', evt => {
-            if (evt.key === 'Enter') {
+            if (evt.keyCode === Key.Enter) {
                 const control = document.activeElement;
                 if (control !== inputBox) {
                     inputBox.focus()
@@ -220,7 +220,7 @@ const App = () => {
     }
 
     function onUpDown(evt) {
-        const step = evt.key === 'ArrowUp' ? -1 : 1
+        const step = evt.keyCode === Key.UpArrow ? -1 : 1
         const nextText = historyStore.move(step)
 
         // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
@@ -236,15 +236,15 @@ const App = () => {
     }
 
     function onKeyDown(evt) {
-        const key = evt.key
+        const keyCode = evt.keyCode
         let eaten = false
-        if (key === 'Enter') {
+        if (keyCode === Key.Enter) {
             onEnter(evt)
             eaten = true
-        } else if (key === 'Tab') {
+        } else if (keyCode === Key.Tab) {
             onTab(evt)
             eaten = true
-        } else if (key === 'ArrowUp' || key === 'ArrowDown') {
+        } else if (keyCode === Key.UpArrow || keyCode === Key.DownArrow) {
             onUpDown(evt)
             eaten = true
         }
