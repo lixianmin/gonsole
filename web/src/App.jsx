@@ -8,7 +8,6 @@
 import './App.module.css';
 
 import {StartX} from "./code/starx";
-import {printHtml, println, printWithTimestamp} from "./code/main_panel.js";
 import {createWebConfig} from "./code/web_config.js";
 import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
@@ -17,9 +16,10 @@ import {longestCommonPrefix, useKeyDown} from "./code/tools";
 import History from "./components/History";
 import {render} from "solid-js/web";
 import JsonTable from "./components/JsonTable";
-import LogList from "./components/LogList";
 import {onMount} from "solid-js";
 import InputBox from "./components/InputBox";
+import MainPanel, {printHtml, println, printWithTimestamp} from "./components/MainPanel";
+import LogList from "./components/LogList";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -85,7 +85,7 @@ const App = () => {
     }
 
     function onTable(data) {
-        render(() => <JsonTable tableData={data}/>, printHtml(''))
+        printHtml(() => <JsonTable tableData={data}/>)
     }
 
     function onDefault(operation) {
@@ -115,10 +115,10 @@ const App = () => {
     function onCommand(obj) {
         switch (obj.op) {
             case "log.list":
-                render(() => <LogList logFiles={obj.data.logFiles} rootUrl={rootUrl}/>, printHtml(''))
+                printHtml(() => <LogList logFiles={obj.data.logFiles} rootUrl={rootUrl}/>)
                 break
             case "history":
-                render(() => <History/>, printHtml(''))
+                printHtml(() => <History/>)
                 break
             case "html":
                 onHtml(obj.data)
@@ -218,7 +218,7 @@ const App = () => {
     })
 
     return <>
-        <div id="mainPanel"></div>
+        <MainPanel id='mainPanel'/>
         <div id="inputBoxDiv">
             <InputBox id='inputBox' ref={inputBox}/>
         </div>

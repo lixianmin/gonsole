@@ -1,6 +1,6 @@
 import {useHistoryStore} from "../code/use_history_store";
 import {For, onMount} from "solid-js";
-import {scrollMainPanelToBottom} from "../code/main_panel";
+import {scrollMainPanelToBottom} from "./MainPanel";
 
 export default function History() {
     onMount(() => {

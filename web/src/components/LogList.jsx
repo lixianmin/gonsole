@@ -1,6 +1,6 @@
 import {For, onMount} from "solid-js";
-import {scrollMainPanelToBottom} from "../code/main_panel";
 import {getHumanReadableSize} from "../code/tools";
+import {scrollMainPanelToBottom} from "./MainPanel";
 
 export default function LogList(props) {
     // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/

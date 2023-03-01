@@ -5,7 +5,7 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {onMount} from "solid-js";
-import {scrollMainPanelToBottom} from "../code/main_panel";
+import {scrollMainPanelToBottom} from "./MainPanel";
 
 function processTableData(tableData) {
     let results = JSON.parse(tableData)
@@ -43,18 +43,16 @@ export default function JsonTable(props) {
     })
 
     return <>
-        <div>
-            <table>
-                <thead>
-                <tr>
-                    {headData}
-                </tr>
-                </thead>
-                <tbody>
-                {bodyData}
-                </tbody>
-            </table>
-            <br/>
-        </div>
+        <table>
+            <thead>
+            <tr>
+                {headData}
+            </tr>
+            </thead>
+            <tbody>
+            {bodyData}
+            </tbody>
+        </table>
+        <br/>
     </>
 }
