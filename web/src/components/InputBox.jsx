@@ -42,6 +42,6 @@ export default function InputBox(props) {
     // props.ref是ref转发，但也因此导致没法定义一个inputBox直接使用了，没办法，这里使用document.getElementById()自己找一个
     return <>
         <input id={props.id} ref={props.ref} value={value()} onInput={onInput}
-               placeholder="Tab补全命令, Enter执行命令"/>
+               placeholder="Tab补全 Enter执行 ↑↓切历史"/>
     </>
 }
