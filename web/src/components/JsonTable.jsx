@@ -4,8 +4,6 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {onMount} from "solid-js";
-import {scrollMainPanelToBottom} from "./MainPanel";
 
 function processTableData(tableData) {
     let results = JSON.parse(tableData)
@@ -36,10 +34,6 @@ export default function JsonTable(props) {
     const bodyData = mapList.map(row => {
         const rowHtml = Array.from(row.values()).map(item => <td>{item}</td>)
         return <tr>{rowHtml}</tr>
-    })
-
-    onMount(() => {
-        scrollMainPanelToBottom()
     })
 
     return <>

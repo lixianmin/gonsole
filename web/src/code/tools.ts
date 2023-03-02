@@ -47,3 +47,14 @@ export function useKeyDown(target: HTMLElement, keys: string | string[], handler
         }
     })
 }
+
+export function createDelayed(handler: Function, wait: number) {
+    let timeoutId = 0
+    return function () {
+        if (timeoutId !== 0) {
+            clearTimeout(timeoutId)
+        }
+
+        timeoutId = setTimeout(handler, wait)
+    }
+}

@@ -1,6 +1,11 @@
-import {For, onMount} from "solid-js";
+/********************************************************************
+ created:    2023-03-02
+ author:     lixianmin
+
+ Copyright (C) - All Rights Reserved
+ *********************************************************************/
+import {For} from "solid-js";
 import {getHumanReadableSize} from "../code/tools";
-import {scrollMainPanelToBottom} from "./MainPanel";
 
 export default function LogList(props) {
     // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/
@@ -13,8 +18,6 @@ export default function LogList(props) {
           <span class="tips_text">${fi.sample}</span>
           <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>`
     }
-
-    onMount(() => scrollMainPanelToBottom())
 
     return <>
         <b>日志文件列表：</b><br/>

@@ -7,11 +7,12 @@
 import {createStore, produce} from "solid-js/store";
 import {createEffect, For, Match, onMount, Switch} from "solid-js";
 import moment from "moment/moment";
+import {createDelayed} from "../code/tools";
 
 let _mainPanel = null
 const [items, setItems] = createStore([])
 
-export function scrollMainPanelToBottom() {
+function scrollMainPanelToBottom() {
     const mainPanel = _mainPanel
     if (mainPanel) {
         const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
@@ -25,8 +26,6 @@ export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
         setItems(produce((state) => {
             state.push({html})
-            // todo 这里是每次加数据都调用一次,这个可能不是我想要的
-            setTimeout(() => scrollMainPanelToBottom())
         }))
     }
 }
@@ -45,9 +44,13 @@ export default function MainPanel(props) {
         _mainPanel = document.getElementById(props.id)
     })
 
-    createEffect(() => {
-        // todo 这里好像只执行了一次, 我们需要一个机制统一处理好这个调用
+    const delayedScrollMainPanelToBottom = createDelayed(()=>{
         scrollMainPanelToBottom()
+    }, 50)
+
+    // 如果监控items, 则只执行一次; 如果监控items.length, 则可以每次在push后都执行
+    createEffect(() => {
+        delayedScrollMainPanelToBottom(items.length)
     })
 
     return <>
