@@ -1,3 +1,10 @@
+'use strict'
+/********************************************************************
+ created:    2023-03-02
+ author:     lixianmin
+
+ Copyright (C) - All Rights Reserved
+ *********************************************************************/
 import {useHistoryStore} from "../code/use_history_store";
 import {For} from "solid-js";
 
