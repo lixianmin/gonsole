@@ -4,8 +4,8 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {createEffect, createSignal, onMount} from "solid-js";
-import {useKeyDown} from "../code/tools";
+import {createSignal, onMount} from "solid-js";
+import {createDelayed, useKeyDown} from "../code/tools";
 import {useHistoryStore} from "../code/use_history_store";
 
 export default function InputBox(props) {
@@ -17,6 +17,10 @@ export default function InputBox(props) {
         inputBox = document.getElementById(props.id)
         inputBox.focus()
 
+        const delayedSetCursor = createDelayed((position)=>{
+            inputBox.setSelectionRange(position, position)
+        })
+
         useKeyDown(inputBox, ['ArrowUp', 'ArrowDown'], evt => {
             const step = evt.key === 'ArrowUp' ? -1 : 1
             const nextText = historyStore.move(step)
@@ -24,17 +28,11 @@ export default function InputBox(props) {
             // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
             if (nextText !== '' || step === 1) {
                 inputBox.value = nextText
-                inputBox.focus()
+                delayedSetCursor(nextText.length)
             }
 
             evt.preventDefault()
         })
-    })
-
-    createEffect(() => {
-        let position = value().length
-        inputBox.setSelectionRange(position, position)
-        inputBox.focus()
     })
 
     function onInput(evt) {

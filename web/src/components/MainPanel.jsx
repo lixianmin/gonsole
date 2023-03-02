@@ -45,7 +45,7 @@ export default function MainPanel() {
 
     const delayedScrollMainPanelToBottom = createDelayed(() => {
         scrollMainPanelToBottom()
-    }, 50)
+    })
 
     // 如果监控items, 则只执行一次; 如果监控items.length, 则可以每次在push后都执行
     createEffect(() => {

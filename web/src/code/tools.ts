@@ -48,13 +48,13 @@ export function useKeyDown(target: HTMLElement, keys: string | string[], handler
     })
 }
 
-export function createDelayed(handler: Function, wait: number) {
-    let timeoutId = 0
-    return function () {
-        if (timeoutId !== 0) {
+export function createDelayed(handler: Function, wait: number = 50) {
+    let timeoutId: NodeJS.Timeout
+    return function (...args: any[]) {
+        if (timeoutId !== undefined) {
             clearTimeout(timeoutId)
         }
 
-        timeoutId = setTimeout(handler, wait)
+        timeoutId = setTimeout(() => handler(...args), wait)
     }
 }
