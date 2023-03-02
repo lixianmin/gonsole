@@ -5,28 +5,22 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {createStore, produce} from "solid-js/store";
-import {createEffect, For, Match, onMount, Switch} from "solid-js";
+import {createEffect, For, Match, Switch} from "solid-js";
 import moment from "moment/moment";
 import {createDelayed} from "../code/tools";
 
-let _mainPanel = null
-const [items, setItems] = createStore([])
-
-function scrollMainPanelToBottom() {
-    const mainPanel = _mainPanel
-    if (mainPanel) {
-        const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
-        if (mainPanel.scrollTop < targetPosition) {
-            mainPanel.scrollTop = targetPosition
-        }
-    }
-}
+// 把createStore()定义在外面, 从而支持export一些方法用于操作store的数据
+const [storePanel, setStorePanel] = createStore({
+    items: []
+})
 
 export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
-        setItems(produce((state) => {
-            state.push({html})
+        setStorePanel(produce((state) => {
+            state.items.push({html})
         }))
+    } else {
+        console.warn(`invalid html type, html=${html}`)
     }
 }
 
@@ -39,23 +33,28 @@ export function printWithTimestamp(html) {
     printHtml(`[${time}] ${html}`)
 }
 
-export default function MainPanel(props) {
-    onMount(() => {
-        _mainPanel = document.getElementById(props.id)
-    })
+export default function MainPanel() {
+    let mainPanel
 
-    const delayedScrollMainPanelToBottom = createDelayed(()=>{
+    function scrollMainPanelToBottom() {
+        const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
+        if (mainPanel.scrollTop < targetPosition) {
+            mainPanel.scrollTop = targetPosition
+        }
+    }
+
+    const delayedScrollMainPanelToBottom = createDelayed(() => {
         scrollMainPanelToBottom()
     }, 50)
 
     // 如果监控items, 则只执行一次; 如果监控items.length, 则可以每次在push后都执行
     createEffect(() => {
-        delayedScrollMainPanelToBottom(items.length)
+        delayedScrollMainPanelToBottom(storePanel.items.length)
     })
 
     return <>
-        <div id={props.id} ref={props.ref}>
-            <For each={items}>{item =>
+        <div id='mainPanel' ref={mainPanel}>
+            <For each={storePanel.items}>{item =>
                 <Switch>
                     <Match when={typeof item.html === 'string'}>
                         <div innerHTML={item.html}/>

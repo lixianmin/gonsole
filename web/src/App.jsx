@@ -206,7 +206,6 @@ const App = () => {
                         const names = list.map(v => v.Name)
                         inputBox.value = longestCommonPrefix(names)
                         if (size > 1) {
-                            // todo 这个可以化简
                             onTable(JSON.stringify(list))
                         }
                     }
@@ -218,7 +217,7 @@ const App = () => {
     })
 
     return <>
-        <MainPanel id='mainPanel'/>
+        <MainPanel/>
         <div id="inputBoxDiv">
             <InputBox id='inputBox' ref={inputBox}/>
         </div>
