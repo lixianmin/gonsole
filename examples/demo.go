@@ -60,8 +60,12 @@ func main() {
 	}
 
 	loom.Go(goLoop)
-	// s启用http/2, 以支持frame传输
-	log.Fatal(srv.ListenAndServe())
+
+	// 使用openssl可以生成一个自签名的证书，以启用并测试http/2和https，支持frame传输
+	// openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout localhost.key -out localhost.crt -subj "/CN=localhost" -extensions SAN -config <(echo "[req]"; echo distinguished_name=req; echo "[SAN]"; echo subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.0.0/16)
+	var certFile = "res/ssl/localhost.crt"
+	var keyFile = "res/ssl/localhost.key"
+	log.Fatal(srv.ListenAndServeTLS(certFile, keyFile))
 }
 
 func goLoop(later loom.Later) {

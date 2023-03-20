@@ -73,8 +73,8 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		options: options,
 		app:     app,
 		gpid:    osx.GetGPID(options.Port),
-		// todo 这个不一定是http的, 有可能是https, 这怎么办?
-		consoleUrl: fmt.Sprintf("http://%s:%d%s/console", osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
+		// 不考虑http了，直接上https
+		consoleUrl: fmt.Sprintf("https://%s:%d%s/console", osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
