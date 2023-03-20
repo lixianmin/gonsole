@@ -66,14 +66,14 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 
 func (server *Server) handleAssets(mux IServeMux) {
 	var isValidAsset = func(path string) bool {
-		var extensions = []string{".css", ".js"}
+		var extensions = []string{".css", ".html", ".js"}
 		for _, extension := range extensions {
 			if strings.HasSuffix(path, extension) {
 				return true
 			}
 		}
 
-		return true
+		return false
 	}
 
 	var getContentType = func(filename string) string {
@@ -83,6 +83,8 @@ func (server *Server) handleAssets(mux IServeMux) {
 			switch extension {
 			case ".css":
 				return "text/css"
+			case ".html":
+				return "text/html"
 			case ".js":
 				return "text/javascript"
 			}
@@ -106,7 +108,8 @@ func (server *Server) handleAssets(mux IServeMux) {
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 				if contentType != "text/plain" {
-					writer.Header().Set("Content-Type", contentType)
+					var header = writer.Header()
+					header.Set("Content-Type", contentType)
 				}
 
 				RequestFileByRange(relativePath, writer, request)
