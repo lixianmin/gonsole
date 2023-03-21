@@ -11,3 +11,5 @@ FILENAME=dist/assets/force_include.go
 echo "package assets" > $FILENAME
 echo  >> $FILENAME
 echo "func ForceIncludeFiles() { }" >> $FILENAME
+
+#cp -R statics dist/
