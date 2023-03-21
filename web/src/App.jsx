@@ -14,13 +14,13 @@ import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
 import moment from "moment";
 import {longestCommonPrefix, useKeyDown} from "./code/tools";
-import History from "./components/History";
+import History from "./widgets/History";
 import {render} from "solid-js/web";
-import JsonTable from "./components/JsonTable";
+import JsonTable from "./widgets/JsonTable";
 import {onMount} from "solid-js";
-import InputBox from "./components/InputBox";
-import MainPanel, {printHtml, println, printWithTimestamp} from "./components/MainPanel";
-import LogList from "./components/LogList";
+import InputBox from "./widgets/InputBox";
+import MainPanel, {printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
+import LogList from "./widgets/LogList";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
