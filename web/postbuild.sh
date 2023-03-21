@@ -13,3 +13,4 @@ echo  >> $FILENAME
 echo "func ForceIncludeFiles() { }" >> $FILENAME
 
 #cp -R statics dist/
+cp src/favicon.ico dist/

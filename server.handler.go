@@ -66,7 +66,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 
 func (server *Server) handleAssets(mux IServeMux) {
 	var isValidAsset = func(path string) bool {
-		var extensions = []string{".css", ".html", ".js"}
+		var extensions = []string{".css", ".html", ".ico", ".js"}
 		for _, extension := range extensions {
 			if strings.HasSuffix(path, extension) {
 				return true
@@ -85,6 +85,8 @@ func (server *Server) handleAssets(mux IServeMux) {
 				return "text/css"
 			case ".html":
 				return "text/html"
+			case ".ico":
+				return "image/x-icon"
 			case ".js":
 				return "text/javascript"
 			}
@@ -94,7 +96,8 @@ func (server *Server) handleAssets(mux IServeMux) {
 	}
 
 	var pageRoot = filepath.Dir(server.options.PageTemplate)
-	var walkRoot = filepath.Join(pageRoot, "assets")
+	//var walkRoot = filepath.Join(pageRoot, "assets")
+	var walkRoot = pageRoot
 
 	// 如果是windows平台，dirName="web\\dist"
 	const dirName = "web" + string(os.PathSeparator) + "dist"
