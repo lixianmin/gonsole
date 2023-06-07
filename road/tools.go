@@ -3,6 +3,7 @@ package road
 import (
 	"context"
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/logo"
 )
 
@@ -21,4 +22,18 @@ func GetSessionFromCtx(ctx context.Context) Session {
 	}
 
 	return fetus.(*sessionImpl)
+}
+
+// serializeOrRaw serializes the interface if it is not a []byte
+func serializeOrRaw(serde serde.Serde, v interface{}) ([]byte, error) {
+	if data, ok := v.([]byte); ok {
+		return data, nil
+	}
+
+	data, err := serde.Serialize(v)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

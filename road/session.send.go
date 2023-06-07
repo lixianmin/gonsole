@@ -1,10 +1,9 @@
 package road
 
 import (
-	"github.com/lixianmin/gonsole/road/codec"
-	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/util"
-	"github.com/lixianmin/logo"
+	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/serde"
+	"math/rand"
 )
 
 /********************************************************************
@@ -19,15 +18,19 @@ func (my *sessionImpl) Push(route string, v interface{}) error {
 		return nil
 	}
 
-	var payload, err = util.SerializeOrRaw(my.app.serializer, v)
-	var msg = message.Message{Type: message.Push, Route: route, Data: payload}
-	var data, err1 = my.encodeMessageMayError(msg, err)
+	var kind, ok = my.manger.GetKindByRoute(route)
+	if !ok {
+		return ErrInvalidRoute
+	}
+
+	var data, err1 = my.manger.GetSerde().Serialize(v)
 	if err1 != nil {
 		return err1
 	}
 
-	err = my.writeBytes(data)
-	return err
+	var pack = serde.Packet{Kind: kind, Data: data}
+	var err2 = my.writePacket(pack)
+	return err2
 }
 
 // Kick 强踢下线
@@ -36,59 +39,48 @@ func (my *sessionImpl) Kick() error {
 		return nil
 	}
 
-	p, err := my.app.packetEncoder.Encode(codec.Kick, nil)
-	if err != nil {
-		return err
-	}
-
-	return my.writeBytes(p)
+	var pack = serde.Packet{Kind: serde.Kick}
+	var err = my.writePacket(pack)
+	return err
 }
 
-func (my *sessionImpl) encodeMessageMayError(msg message.Message, err error) ([]byte, error) {
-	if err != nil {
-		msg.Err = true
-		//logo.Info("process failed, route=%s, err=%q", msg.Route, err.Error())
-
-		// err需要支持json序列化的话，就不能是一个简单的字符串
-		var errWrap = checkCreateError(err)
-
-		var err1 error
-		msg.Data, err1 = util.SerializeOrRaw(my.app.serializer, errWrap)
-		if err1 != nil {
-			logo.Info("serialize failed, route=%s, err1=%q", msg.Route, err1.Error())
-			return nil, err1
-		}
+func (my *sessionImpl) ShakeHand(heartbeat float32) error {
+	if my.wc.IsClosed() {
+		return nil
 	}
 
-	data, err2 := my.packetEncodeMessage(&msg)
+	type Handshake struct {
+		Nonce     int32   `json:"nonce"`
+		Heartbeat float32 `json:"heartbeat"` // 心跳间隔. 单位: 秒
+	}
+
+	var nonce = rand.Int31()
+	var item = Handshake{Nonce: nonce, Heartbeat: heartbeat}
+	var data, err1 = my.manger.GetSerde().Serialize(item)
+	if err1 != nil {
+		return err1
+	}
+
+	my.Attachment().Put(ifs.KeyNonce, nonce)
+	var pack = serde.Packet{Kind: serde.Handshake, Data: data}
+	var err2 = my.writePacket(pack)
+
 	if err2 != nil {
-		logo.Info("send failed, route=%s, err2=%q", msg.Route, err2.Error())
-		return nil, err2
+		_ = my.Close()
 	}
-
-	return data, nil
+	return err2
 }
 
-func (my *sessionImpl) writeBytes(data []byte) error {
-	if len(data) > 0 {
-		var _, err = my.conn.Write(data)
-		return err
-	}
+func (my *sessionImpl) writePacket(pack serde.Packet) error {
+	my.writeLock.Lock()
+	defer my.writeLock.Unlock()
 
-	return nil
-}
+	var writer = my.writer
+	var stream = writer.GetStream()
+	stream.Reset()
+	serde.Encode(writer, pack)
 
-func (my *sessionImpl) packetEncodeMessage(msg *message.Message) ([]byte, error) {
-	data, err := my.app.messageEncoder.Encode(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	// packet encode
-	p, err := my.app.packetEncoder.Encode(codec.Data, data)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
+	var buffer = stream.Bytes()
+	var _, err = my.conn.Write(buffer)
+	return err
 }

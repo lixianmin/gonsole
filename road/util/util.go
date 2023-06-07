@@ -2,7 +2,6 @@ package util
 
 import (
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road/serialize"
 	"github.com/lixianmin/logo"
 	"reflect"
 )
@@ -36,18 +35,4 @@ func PCall(method reflect.Method, args []reflect.Value) (rets interface{}, err e
 		}
 	}
 	return
-}
-
-// SerializeOrRaw serializes the interface if it is not an array of bytes already
-func SerializeOrRaw(serializer serialize.Serializer, v interface{}) ([]byte, error) {
-	if data, ok := v.([]byte); ok {
-		return data, nil
-	}
-
-	data, err := serializer.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }

@@ -1,12 +1,16 @@
 package road
 
 import (
+	"context"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
-	"golang.org/x/time/rate"
 	"net"
+	"reflect"
 	"runtime"
+	"sync"
 	"sync/atomic"
 )
 
@@ -18,10 +22,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Session interface {
+	ShakeHand(heartbeat float32) error // 心跳间隔. 单位: 秒
 	Push(route string, v interface{}) error
 	Kick() error
 
-	OnHandShaken(handler func())
 	OnClosed(handler func())
 
 	Id() int64
@@ -34,28 +38,29 @@ type sessionWrapper struct {
 }
 
 type sessionImpl struct {
-	app         *App
-	id          int64
-	conn        epoll.IConn
-	attachment  *Attachment
-	rateLimiter *rate.Limiter
-	wc          loom.WaitClose
-
-	onHandShaken delegate
-	onClosed     delegate
+	manger     *NetManager
+	writer     *iox.OctetsWriter
+	writeLock  sync.Mutex
+	id         int64
+	conn       epoll.IConn
+	ctxValue   reflect.Value
+	attachment *Attachment
+	wc         loom.WaitClose
+	onClosed   delegate
 }
 
-func NewSession(app *App, conn epoll.IConn) Session {
+func NewSession(manager *NetManager, conn epoll.IConn) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
-		app:         app,
-		id:          id,
-		conn:        conn,
-		attachment:  &Attachment{},
-		rateLimiter: rate.NewLimiter(rate.Limit(app.rateLimitBySecond), app.rateLimitBySecond),
+		manger:     manager,
+		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
+		id:         id,
+		conn:       conn,
+		attachment: &Attachment{},
 	}}
 
 	logo.Info("create session(%d)", my.id)
+	my.ctxValue = reflect.ValueOf(context.WithValue(context.Background(), ifs.CtxKeySession, my))
 	my.startGoLoop()
 
 	// 参考: https://zhuanlan.zhihu.com/p/76504936

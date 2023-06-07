@@ -36,11 +36,6 @@ func (my *sessionImpl) Close() error {
 	})
 }
 
-// OnHandShaken 握手事件：收到握手消息后触发
-func (my *sessionImpl) OnHandShaken(handler func()) {
-	my.onHandShaken.Add(handler)
-}
-
 // OnClosed 需要保证OnClosed事件在任何情况下都会有且仅有一次触发：无论是主动断开，还是意外断开链接；无论client端有没有因为网络问题收到回复消息
 func (my *sessionImpl) OnClosed(handler func()) {
 	my.onClosed.Add(handler)

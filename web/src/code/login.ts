@@ -65,7 +65,7 @@ export function createLogin(sendLogin: Function) {
             // 使用nonce弱加密, 加密强度不重要, 重要的是避免replay attack
             // 这里返回的pw.words是array[8], 每一位是int32;
             // 在golang里计算返回的是array[32], 每一位是byte, 因此是 byte[32]
-            substitute.words = substitute.words.map(item => item ^ _nonce)
+            substitute.words = substitute.words.map((item: number) => item ^ _nonce)
 
             // 这个digest的固定长度为44
             const digest = Base64.stringify(substitute)

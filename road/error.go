@@ -9,7 +9,9 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var ErrKickedByRateLimit = NewError("KickedByRateLimit", "cost too many tokens in a rate limit window")
+// var ErrKickedByRateLimit = NewError("KickedByRateLimit", "cost too many tokens in a rate limit window")
+var ErrInvalidRoute = NewError("InvalidRoute", "route is not registered")
+var ErrEmptyHandler = NewError("EmptyHandler", "handler is empty")
 
 type Error struct {
 	Code    string `json:"code"`
