@@ -1,9 +1,6 @@
 package road
 
 import (
-	"context"
-	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/route"
 	"net"
 )
 
@@ -16,14 +13,6 @@ Copyright (C) - All Rights Reserved
 
 var (
 	globalIdGenerator int64 = 0
-)
-
-type (
-	receivedItem struct {
-		ctx   context.Context
-		route *route.Route
-		msg   *message.Message
-	}
 )
 
 // Close 可以被多次调用，但只触发一次OnClosed事件

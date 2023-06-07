@@ -1,13 +1,8 @@
 package road
 
 import (
-	"context"
 	"fmt"
-	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/message"
-	"github.com/lixianmin/gonsole/road/route"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/convert"
@@ -24,17 +19,13 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) startGoLoop() {
-	var stream = &iox.OctetsStream{}
-	var reader = iox.NewOctetsReader(stream)
-	go my.conn.GoLoop(func(data []byte, err error) {
+	go my.conn.GoLoop(func(reader *iox.OctetsReader, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
 			return
 		}
 
-		stream.Tidy()
-		_ = stream.Write(data)
 		if err1 := my.onReceivePackets(reader); err1 != nil {
 			logo.Info("close session(%d) by onReceivePackets(), err=%q", my.id, err1)
 			_ = my.Close()
@@ -91,28 +82,6 @@ func (my *sessionImpl) onReceiveOther(input serde.Packet) error {
 	}
 
 	return my.writePacket(output)
-}
-
-func (my *sessionImpl) decodeReceivedData(p *codec.Packet) (receivedItem, error) {
-	msg, err := message.Decode(p.Data)
-	if err != nil {
-		return receivedItem{}, err
-	}
-
-	r, err := route.Decode(msg.Route)
-	if err != nil {
-		return receivedItem{}, err
-	}
-
-	var ctx = context.WithValue(context.Background(), ifs.CtxKeySession, my)
-
-	var item = receivedItem{
-		ctx:   ctx,
-		route: r,
-		msg:   msg,
-	}
-
-	return item, nil
 }
 
 func processReceivedData(pack serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {

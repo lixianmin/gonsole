@@ -1,6 +1,9 @@
 package epoll
 
-import "net"
+import (
+	"github.com/lixianmin/got/iox"
+	"net"
+)
 
 /********************************************************************
 created:    2020-09-06
@@ -9,7 +12,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type OnReadHandler func(data []byte, err error)
+type OnReadHandler func(reader *iox.OctetsReader, err error)
 
 type IConn interface {
 	GoLoop(onReadHandler OnReadHandler)

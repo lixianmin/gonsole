@@ -38,20 +38,20 @@ func (my *TcpConn) GoLoop(onReadHandler OnReadHandler) {
 	}()
 
 	var buffer = make([]byte, 1024)
-	var input = &iox.Buffer{}
+	var stream = &iox.OctetsStream{}
+	var reader = iox.NewOctetsReader(stream)
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
-		if _, err := input.ReadOnce(my.conn, buffer); err != nil {
-			onReadHandler(nil, err)
-			//logo.JsonI("err", err)
+		var num, err1 = my.conn.Read(buffer)
+		if err1 != nil {
+			onReadHandler(nil, err1)
 			return
 		}
 
 		my.resetReadDeadline()
-		if err2 := my.onReceiveMessage(input, onReadHandler); err2 != nil {
-			//logo.JsonI("err2", err2)
-			return
-		}
+		_ = stream.Write(buffer[:num])
+		onReadHandler(reader, nil)
+		stream.Tidy()
 	}
 }
 

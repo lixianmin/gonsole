@@ -21,17 +21,7 @@
 package route
 
 import (
-	"errors"
 	"fmt"
-	"github.com/lixianmin/logo"
-	"strings"
-)
-
-var (
-	// ErrRouteFieldCantEmpty error
-	ErrRouteFieldCantEmpty = errors.New("route field can not be empty")
-	// ErrInvalidRoute error
-	ErrInvalidRoute = errors.New("invalid route")
 )
 
 // Route struct
@@ -57,23 +47,4 @@ func (r *Route) String() string {
 // Short transforms the route into a string without the server type
 func (r *Route) Short() string {
 	return fmt.Sprintf("%s.%s", r.Service, r.Method)
-}
-
-// Decode decodes the route
-func Decode(route string) (*Route, error) {
-	r := strings.Split(route, ".")
-	for _, s := range r {
-		if strings.TrimSpace(s) == "" {
-			return nil, ErrRouteFieldCantEmpty
-		}
-	}
-	switch len(r) {
-	case 3:
-		return NewRoute(r[0], r[1], r[2]), nil
-	case 2:
-		return NewRoute("", r[0], r[1]), nil
-	default:
-		logo.Warn("invalid route: " + route)
-		return nil, ErrInvalidRoute
-	}
 }

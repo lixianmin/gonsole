@@ -41,7 +41,9 @@ func (my *WsConn) GoLoop(onReadHandler OnReadHandler) {
 		_ = my.Close()
 	}()
 
-	var input = &iox.Buffer{}
+	var stream = &iox.OctetsStream{}
+	var reader = iox.NewOctetsReader(stream)
+
 	for atomic.LoadInt32(&my.isClosed) == 0 {
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
@@ -55,11 +57,9 @@ func (my *WsConn) GoLoop(onReadHandler OnReadHandler) {
 		}
 
 		my.resetReadDeadline()
-		_, _ = input.Write(data)
-		if err2 := my.onReceiveMessage(input, onReadHandler); err2 != nil {
-			//logo.JsonI("err2", err2)
-			return
-		}
+		_ = stream.Write(data)
+		onReadHandler(reader, nil)
+		stream.Tidy()
 	}
 }
 
