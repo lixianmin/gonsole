@@ -3,6 +3,7 @@ package network
 import (
 	"github.com/lixianmin/got/iox"
 	"net"
+	"time"
 )
 
 /********************************************************************
@@ -15,7 +16,7 @@ Copyright (C) - All Rights Reserved
 type OnReadHandler func(reader *iox.OctetsReader, err error)
 
 type Connection interface {
-	GoLoop(onReadHandler OnReadHandler)
+	GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler)
 	Write(data []byte) (int, error)
 	Close() error
 	RemoteAddr() net.Addr

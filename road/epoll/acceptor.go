@@ -2,7 +2,6 @@ package epoll
 
 import (
 	"github.com/lixianmin/gonsole/road/network"
-	"time"
 )
 
 /********************************************************************
@@ -14,5 +13,4 @@ Copyright (C) - All Rights Reserved
 
 type Acceptor interface {
 	GetConnChan() chan network.Connection
-	GetHeartbeatInterval() time.Duration
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/logo"
 	"net/http"
-	"time"
 )
 
 /********************************************************************
@@ -16,9 +15,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	connChan          chan network.Connection
-	heartbeatInterval time.Duration
-	isClosed          int32
+	connChan chan network.Connection
+	isClosed int32
 }
 
 func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption) *WsAcceptor {
@@ -28,8 +26,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		connChan:          make(chan network.Connection, options.ConnChanSize),
-		heartbeatInterval: options.HeartbeatInterval,
+		connChan: make(chan network.Connection, options.ConnChanSize),
 	}
 
 	// 这个相当于listener，每创建一个新的链接
@@ -45,13 +42,9 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.connChan <- newWsConn(conn, my.heartbeatInterval)
+	my.connChan <- newWsConn(conn)
 }
 
 func (my *WsAcceptor) GetConnChan() chan network.Connection {
 	return my.connChan
-}
-
-func (my *WsAcceptor) GetHeartbeatInterval() time.Duration {
-	return my.heartbeatInterval
 }

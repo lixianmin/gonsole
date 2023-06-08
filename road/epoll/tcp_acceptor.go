@@ -6,7 +6,6 @@ import (
 	"github.com/lixianmin/logo"
 	"net"
 	"sync/atomic"
-	"time"
 )
 
 /********************************************************************
@@ -17,9 +16,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	connChan          chan network.Connection
-	heartbeatInterval time.Duration
-	isClosed          int32
+	connChan chan network.Connection
+	isClosed int32
 }
 
 func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
@@ -29,8 +27,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
-		connChan:          make(chan network.Connection, options.ConnChanSize),
-		heartbeatInterval: options.HeartbeatInterval,
+		connChan: make(chan network.Connection, options.ConnChanSize),
 	}
 
 	go my.goLoop(address)
@@ -55,7 +52,7 @@ func (my *TcpAcceptor) goLoop(address string) {
 			continue
 		}
 
-		my.connChan <- newTcpConn(conn, my.heartbeatInterval)
+		my.connChan <- newTcpConn(conn)
 	}
 }
 
@@ -66,8 +63,4 @@ func (my *TcpAcceptor) Close() error {
 
 func (my *TcpAcceptor) GetConnChan() chan network.Connection {
 	return my.connChan
-}
-
-func (my *TcpAcceptor) GetHeartbeatInterval() time.Duration {
-	return my.heartbeatInterval
 }

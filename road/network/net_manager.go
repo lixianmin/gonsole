@@ -32,6 +32,10 @@ func NewNetManager(heartbeatInterval time.Duration) *NetManager {
 	return my
 }
 
+func (my *NetManager) NewSession(conn Connection) Session {
+	return newSession(my, conn)
+}
+
 func (my *NetManager) AddHandler(route string, handler *component.Handler) {
 	if handler != nil {
 		my.routeHandlers[route] = handler

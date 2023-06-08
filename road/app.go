@@ -42,6 +42,7 @@ type (
 func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
+		HeartbeatInterval:        5 * time.Second,
 		SessionRateLimitBySecond: 2,
 	}
 
@@ -50,10 +51,9 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 		opt(&options)
 	}
 
-	var heartbeatInterval = accept.GetHeartbeatInterval()
 	var app = &App{
-		manager:           network.NewNetManager(heartbeatInterval),
-		wheelSecond:       loom.NewWheel(time.Second, int(heartbeatInterval/time.Second)+1),
+		manager:           network.NewNetManager(options.HeartbeatInterval),
+		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 
 		accept:   accept,
@@ -87,7 +87,7 @@ func (my *App) goLoop(later loom.Later) {
 }
 
 func (my *App) onNewSession(fetus *appFetus, conn network.Connection) {
-	var session = network.NewSession(my.manager, conn)
+	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
 		return

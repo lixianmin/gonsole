@@ -20,7 +20,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) startGoLoop() {
-	go my.conn.GoLoop(func(reader *iox.OctetsReader, err error) {
+	go my.conn.GoLoop(my.manger.heartbeatInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
@@ -46,7 +46,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 		switch pack.Kind {
 		case serde.Heartbeat:
 			// 回复heartbeat是因为现在server只有一个goroutine，被用在了阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，转而采用client主动heartbeat而server回复的方案
-			var pack = serde.Packet{Kind: serde.Heartbeat}
+			var pack = serde.Packet{Kind: serde.HeartbeatAck}
 			if err2 := my.writePacket(pack); err2 != nil {
 				return err2
 			}

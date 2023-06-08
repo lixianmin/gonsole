@@ -14,13 +14,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type commonConn struct {
-	conn              net.Conn
-	heartbeatInterval time.Duration
-	isClosed          int32
+	conn     net.Conn
+	isClosed int32
 }
 
-func (my *commonConn) resetReadDeadline() {
-	_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
+func (my *commonConn) resetReadDeadline(heartbeatInterval time.Duration) {
+	_ = my.conn.SetReadDeadline(time.Now().Add(heartbeatInterval * 3))
 }
 
 // Close closes the connection.

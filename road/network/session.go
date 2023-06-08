@@ -21,9 +21,9 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Session interface {
-	Handshake() error // 心跳间隔. 单位: 秒
-	Push(route string, v interface{}) error
-	Kick() error
+	Handshake() error                       // server主动向client发送服务器的配置信息
+	Kick() error                            // server主动踢client
+	Push(route string, v interface{}) error // 推送数据到对端
 
 	OnClosed(handler func())
 
@@ -48,7 +48,7 @@ type sessionImpl struct {
 	onClosed   delegate
 }
 
-func NewSession(manager *NetManager, conn Connection) Session {
+func newSession(manager *NetManager, conn Connection) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,

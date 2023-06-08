@@ -20,18 +20,17 @@ type TcpConn struct {
 	commonConn
 }
 
-func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
+func newTcpConn(conn net.Conn) *TcpConn {
 	var my = &TcpConn{
 		commonConn: commonConn{
-			conn:              conn,
-			heartbeatInterval: heartbeatInterval,
+			conn: conn,
 		},
 	}
 
 	return my
 }
 
-func (my *TcpConn) GoLoop(onReadHandler network.OnReadHandler) {
+func (my *TcpConn) GoLoop(heartbeatInterval time.Duration, onReadHandler network.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -49,7 +48,7 @@ func (my *TcpConn) GoLoop(onReadHandler network.OnReadHandler) {
 			return
 		}
 
-		my.resetReadDeadline()
+		my.resetReadDeadline(heartbeatInterval)
 		_ = stream.Write(buffer[:num])
 		onReadHandler(reader, nil)
 		stream.Tidy()

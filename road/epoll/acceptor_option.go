@@ -30,11 +30,3 @@ func WithConnChanSize(size int) AcceptorOption {
 		}
 	}
 }
-
-func WithHeartbeatInterval(interval time.Duration) AcceptorOption {
-	return func(options *acceptorOptions) {
-		if interval > 0 {
-			options.HeartbeatInterval = interval
-		}
-	}
-}

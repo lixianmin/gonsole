@@ -24,18 +24,17 @@ type WsConn struct {
 	writeLock sync.Mutex
 }
 
-func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
+func newWsConn(conn net.Conn) *WsConn {
 	var my = &WsConn{
 		commonConn: commonConn{
-			conn:              conn,
-			heartbeatInterval: heartbeatInterval,
+			conn: conn,
 		},
 	}
 
 	return my
 }
 
-func (my *WsConn) GoLoop(onReadHandler network.OnReadHandler) {
+func (my *WsConn) GoLoop(heartbeatInterval time.Duration, onReadHandler network.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -57,7 +56,7 @@ func (my *WsConn) GoLoop(onReadHandler network.OnReadHandler) {
 			return
 		}
 
-		my.resetReadDeadline()
+		my.resetReadDeadline(heartbeatInterval)
 		_ = stream.Write(data)
 		onReadHandler(reader, nil)
 		stream.Tidy()
