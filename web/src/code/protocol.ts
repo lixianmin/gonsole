@@ -4,7 +4,7 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {Buffers} from "./core/buffers";
+import {Buffers} from "./iox/buffers";
 
 /**
  * pomele client encode

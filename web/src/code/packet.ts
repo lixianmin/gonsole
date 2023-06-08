@@ -4,8 +4,8 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {OctetsStream, SeekOrigin} from "./core/octets_stream"
-import {Buffers} from "./core/buffers"
+import {OctetsStream, SeekOrigin} from "./iox/octets_stream"
+import {Buffers} from "./iox/buffers"
 
 export class Packet {
     /**

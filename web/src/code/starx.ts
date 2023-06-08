@@ -8,7 +8,7 @@ import {Packet} from "./packet"
 import {PacketType} from "./packet_type"
 import {strDecode, strEncode} from "./protocol"
 import {Message} from "./message"
-import {OctetsStream} from "./core/octets_stream"
+import {OctetsStream} from "./iox/octets_stream"
 import {MessageType} from "./message_type"
 import {createHeartbeat} from "./heartbeat.js"
 

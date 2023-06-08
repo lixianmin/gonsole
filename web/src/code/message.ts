@@ -5,7 +5,7 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {strDecode, strEncode} from "./protocol";
-import {Buffers} from "./core/buffers";
+import {Buffers} from "./iox/buffers";
 import {MessageType} from "./message_type";
 
 export class Message {
