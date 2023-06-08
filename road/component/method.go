@@ -2,7 +2,6 @@ package component
 
 import (
 	"context"
-	"github.com/lixianmin/gonsole/road/message"
 	"reflect"
 	"unicode"
 	"unicode/utf8"
@@ -74,16 +73,9 @@ func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[
 			if nameFunc != nil {
 				mn = nameFunc(mn)
 			}
-			var msgType message.Kind
-			if mt.NumOut() == 0 {
-				msgType = message.Notify
-			} else {
-				msgType = message.Request
-			}
 			handler := &Handler{
-				Method:      method,
-				IsRawArg:    raw,
-				MessageType: msgType,
+				Method:   method,
+				IsRawArg: raw,
 			}
 			if mt.NumIn() == 3 {
 				handler.Type = mt.In(2)
