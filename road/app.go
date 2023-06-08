@@ -22,7 +22,7 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		// 下面这组参数，在session里都会用到
-		manager           *network.NetManager
+		manager           *network.Manager
 		wheelSecond       *loom.Wheel
 		rateLimitBySecond int
 
@@ -52,7 +52,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 	}
 
 	var app = &App{
-		manager:           network.NewNetManager(options.HeartbeatInterval),
+		manager:           network.NewManager(options.HeartbeatInterval),
 		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 

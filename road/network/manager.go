@@ -14,7 +14,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type NetManager struct {
+type Manager struct {
 	heartbeatInterval time.Duration
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
@@ -22,8 +22,8 @@ type NetManager struct {
 	serde             serde.Serde
 }
 
-func NewNetManager(heartbeatInterval time.Duration) *NetManager {
-	var my = &NetManager{
+func NewManager(heartbeatInterval time.Duration) *Manager {
+	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
 		serde:             &serde.JsonSerde{},
@@ -32,17 +32,17 @@ func NewNetManager(heartbeatInterval time.Duration) *NetManager {
 	return my
 }
 
-func (my *NetManager) NewSession(conn Connection) Session {
+func (my *Manager) NewSession(conn Connection) Session {
 	return newSession(my, conn)
 }
 
-func (my *NetManager) AddHandler(route string, handler *component.Handler) {
+func (my *Manager) AddHandler(route string, handler *component.Handler) {
 	if handler != nil {
 		my.routeHandlers[route] = handler
 	}
 }
 
-func (my *NetManager) RebuildHandlerKinds() {
+func (my *Manager) RebuildHandlerKinds() {
 	var size = len(my.routeHandlers)
 	if size == 0 {
 		return
@@ -64,16 +64,16 @@ func (my *NetManager) RebuildHandlerKinds() {
 	}
 }
 
-func (my *NetManager) GetKindByRoute(route string) (int32, bool) {
+func (my *Manager) GetKindByRoute(route string) (int32, bool) {
 	var kind, ok = my.routeKinds[route]
 	return kind, ok
 }
 
-func (my *NetManager) GetHandlerByKind(kind int32) *component.Handler {
+func (my *Manager) GetHandlerByKind(kind int32) *component.Handler {
 	var handler = my.kindHandlers[kind]
 	return handler
 }
 
-func (my *NetManager) GetSerde() serde.Serde {
+func (my *Manager) GetSerde() serde.Serde {
 	return my.serde
 }

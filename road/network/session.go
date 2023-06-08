@@ -37,7 +37,7 @@ type sessionWrapper struct {
 }
 
 type sessionImpl struct {
-	manger     *NetManager
+	manger     *Manager
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
@@ -48,7 +48,7 @@ type sessionImpl struct {
 	onClosed   delegate
 }
 
-func newSession(manager *NetManager, conn Connection) Session {
+func newSession(manager *Manager, conn Connection) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,
