@@ -20,7 +20,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) startGoLoop() {
-	go my.conn.GoLoop(my.manger.heartbeatInterval, func(reader *iox.OctetsReader, err error) {
+	go my.link.GoLoop(my.manger.heartbeatInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
@@ -36,23 +36,29 @@ func (my *sessionImpl) startGoLoop() {
 }
 
 func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
-	var packets, err = serde.Decode(reader)
-	if err != nil {
-		var err1 = fmt.Errorf("failed to decode message: %s", err.Error())
-		return err1
+	var packets, err1 = serde.Decode(reader)
+	if err1 != nil {
+		var err2 = fmt.Errorf("failed to decode message: %s", err1.Error())
+		return err2
 	}
 
+	var handler = my.onReceivingPacketHandler
 	for _, pack := range packets {
-		switch pack.Kind {
-		case serde.Heartbeat:
-			// 回复heartbeat是因为现在server只有一个goroutine，被用在了阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，转而采用client主动heartbeat而server回复的方案
-			var pack = serde.Packet{Kind: serde.HeartbeatAck}
-			if err2 := my.writePacket(pack); err2 != nil {
-				return err2
-			}
-		default:
-			if err3 := my.onReceivedOther(pack); err3 != nil {
+		if handler != nil {
+			if err3 := handler(pack); err3 != nil {
 				return err3
+			}
+		}
+
+		if pack.Kind >= serde.UserDefined {
+			if err4 := my.onReceivedOther(pack); err4 != nil {
+				return err4
+			}
+		} else if pack.Kind == serde.Heartbeat {
+			// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
+			var pack = serde.Packet{Kind: serde.HeartbeatAck}
+			if err5 := my.writePacket(pack); err5 != nil {
+				return err5
 			}
 		}
 	}

@@ -44,7 +44,7 @@ func newClient(session network.Session) *Client {
 //}
 
 func (client *Client) PushDefault(v interface{}) {
-	_ = client.session.Push(ifs.RouteDefault, v)
+	_ = client.session.PushByRoute(ifs.RouteDefault, v)
 }
 
 func (client *Client) OnClosed(callback func()) {

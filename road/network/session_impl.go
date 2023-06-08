@@ -1,6 +1,7 @@
 package network
 
 import (
+	"github.com/lixianmin/gonsole/road/serde"
 	"net"
 )
 
@@ -18,16 +19,25 @@ var (
 // Close 可以被多次调用，但只触发一次OnClosed事件
 func (my *sessionImpl) Close() error {
 	return my.wc.Close(func() error {
-		var err = my.conn.Close()
+		var err = my.link.Close()
 		my.attachment.dispose()
-		my.onClosed.Invoke()
+
+		var handler = my.onClosedHandler
+		if handler != nil {
+			handler()
+		}
+
 		return err
 	})
 }
 
+func (my *sessionImpl) OnReceivingPacket(handler func(pack serde.Packet) error) {
+	my.onReceivingPacketHandler = handler
+}
+
 // OnClosed 需要保证OnClosed事件在任何情况下都会有且仅有一次触发：无论是主动断开，还是意外断开链接；无论client端有没有因为网络问题收到回复消息
 func (my *sessionImpl) OnClosed(handler func()) {
-	my.onClosed.Add(handler)
+	my.onClosedHandler = handler
 }
 
 // 在session中加入SendCallback()的相关权衡？
@@ -56,7 +66,7 @@ func (my *sessionImpl) Id() int64 {
 }
 
 func (my *sessionImpl) RemoteAddr() net.Addr {
-	return my.conn.RemoteAddr()
+	return my.link.RemoteAddr()
 }
 
 func (my *sessionImpl) Attachment() *Attachment {

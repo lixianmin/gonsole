@@ -32,8 +32,8 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 	return my
 }
 
-func (my *Manager) NewSession(conn Link) Session {
-	return newSession(my, conn)
+func (my *Manager) NewSession(link Link) Session {
+	return newSession(my, link)
 }
 
 func (my *Manager) AddHandler(route string, handler *component.Handler) {

@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -21,10 +22,13 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Session interface {
-	Handshake() error                       // server主动向client发送服务器的配置信息
-	Kick() error                            // server主动踢client
-	Push(route string, v interface{}) error // 推送数据到对端
+	Handshake() error // server主动向client发送服务器的配置信息
+	Kick() error      // server主动踢client
+	PushByRoute(route string, v interface{}) error
+	PushByKind(kind int32, v interface{}) error
+	Close() error
 
+	OnReceivingPacket(handler func(pack serde.Packet) error)
 	OnClosed(handler func())
 
 	Id() int64
@@ -41,20 +45,22 @@ type sessionImpl struct {
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
-	conn       Link
+	link       Link
 	ctxValue   reflect.Value
 	attachment *Attachment
 	wc         loom.WaitClose
-	onClosed   delegate
+
+	onReceivingPacketHandler func(packet serde.Packet) error
+	onClosedHandler          func()
 }
 
-func newSession(manager *Manager, conn Link) Session {
+func newSession(manager *Manager, link Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,
 		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
 		id:         id,
-		conn:       conn,
+		link:       link,
 		attachment: &Attachment{},
 	}}
 

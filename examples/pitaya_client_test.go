@@ -50,7 +50,7 @@ func TestPitayaClient(t *testing.T) {
 		}
 
 		for i := 0; i < 100; i++ {
-			if err := session.Push("player.challenge", Challenge{
+			if err := session.PushByRoute("player.challenge", Challenge{
 				Nonce: i,
 			}); err != nil {
 				logo.JsonE("session", session.Id(), "err", err)

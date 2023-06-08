@@ -26,14 +26,18 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *sessionImpl) Push(route string, v interface{}) error {
-	if my.wc.IsClosed() {
-		return nil
-	}
-
+func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
 	var kind, ok = my.manger.GetKindByRoute(route)
 	if !ok {
 		return ErrInvalidRoute
+	}
+
+	return my.PushByKind(kind, v)
+}
+
+func (my *sessionImpl) PushByKind(kind int32, v interface{}) error {
+	if my.wc.IsClosed() {
+		return nil
 	}
 
 	var data, err1 = my.manger.GetSerde().Serialize(v)
@@ -94,6 +98,6 @@ func (my *sessionImpl) writePacket(pack serde.Packet) error {
 	serde.Encode(writer, pack)
 
 	var buffer = stream.Bytes()
-	var _, err = my.conn.Write(buffer)
+	var _, err = my.link.Write(buffer)
 	return err
 }

@@ -46,7 +46,7 @@ func (topic *Topic) start() {
 				var response = topic.BuildResponse()
 				var route = "console." + response.Operation
 				for client := range topic.clients.d {
-					_ = client.session.Push(route, response)
+					_ = client.session.PushByRoute(route, response)
 				}
 			}
 			topic.clients.RUnlock()
