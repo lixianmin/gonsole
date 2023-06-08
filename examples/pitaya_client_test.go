@@ -5,7 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/client"
 	"github.com/lixianmin/gonsole/road/epoll"
-	"github.com/lixianmin/got/convert"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/logo"
 	"sync"
 	"testing"
@@ -44,7 +44,7 @@ func TestPitayaClient(t *testing.T) {
 		road.WithSessionRateLimitBySecond(1000),
 	)
 
-	app.OnHandShaken(func(session road.Session) {
+	app.OnHandShaken(func(session network.Session) {
 		type Challenge struct {
 			Nonce int `json:"nonce"`
 		}
@@ -75,7 +75,7 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var pClient = client.NewClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
 		wg.Done()
-		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
+		return network.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
 	}
 
 	var timer = time.NewTimer(5 * time.Second)
@@ -83,23 +83,8 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 		defer wg.Done()
 		for {
 			select {
-			case msg := <-pClient.GetReceivedChan():
-				if msg != nil {
-					var bean struct {
-						Route string `json:"route"`
-						Data  string `json:"data"`
-						Err   bool   `json:"err"`
-					}
-
-					bean.Route = msg.Route
-					bean.Data = convert.String(msg.Data)
-					bean.Err = msg.Err
-
-					switch bean.Route {
-					default:
-						logo.JsonI("data", msg.Data)
-					}
-				}
+			case pack := <-pClient.GetReceivedChan():
+				logo.JsonI("pack", pack)
 				break
 			case <-timer.C:
 				return

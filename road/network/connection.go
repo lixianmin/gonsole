@@ -1,4 +1,4 @@
-package epoll
+package network
 
 import (
 	"github.com/lixianmin/got/iox"
@@ -14,7 +14,7 @@ Copyright (C) - All Rights Reserved
 
 type OnReadHandler func(reader *iox.OctetsReader, err error)
 
-type IConn interface {
+type Connection interface {
 	GoLoop(onReadHandler OnReadHandler)
 	Write(data []byte) (int, error)
 	Close() error

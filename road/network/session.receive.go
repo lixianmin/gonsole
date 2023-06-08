@@ -1,7 +1,8 @@
-package road
+package network
 
 import (
 	"fmt"
+	//"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/gonsole/road/util"

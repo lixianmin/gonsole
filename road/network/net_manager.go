@@ -1,4 +1,4 @@
-package road
+package network
 
 import (
 	"github.com/lixianmin/gonsole/road/component"

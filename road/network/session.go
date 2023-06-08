@@ -1,9 +1,8 @@
-package road
+package network
 
 import (
 	"context"
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -42,14 +41,14 @@ type sessionImpl struct {
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
-	conn       epoll.IConn
+	conn       Connection
 	ctxValue   reflect.Value
 	attachment *Attachment
 	wc         loom.WaitClose
 	onClosed   delegate
 }
 
-func NewSession(manager *NetManager, conn epoll.IConn) Session {
+func NewSession(manager *NetManager, conn Connection) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,

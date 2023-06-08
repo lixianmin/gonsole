@@ -2,6 +2,7 @@ package epoll
 
 import (
 	"github.com/gobwas/ws"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/logo"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	connChan          chan IConn
+	connChan          chan network.Connection
 	heartbeatInterval time.Duration
 	isClosed          int32
 }
@@ -27,7 +28,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		connChan:          make(chan IConn, options.ConnChanSize),
+		connChan:          make(chan network.Connection, options.ConnChanSize),
 		heartbeatInterval: options.HeartbeatInterval,
 	}
 
@@ -47,7 +48,7 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	my.connChan <- newWsConn(conn, my.heartbeatInterval)
 }
 
-func (my *WsAcceptor) GetConnChan() chan IConn {
+func (my *WsAcceptor) GetConnChan() chan network.Connection {
 	return my.connChan
 }
 

@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
@@ -87,7 +88,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		server.enablePProf(mux)
 	}
 
-	app.OnHandShaken(func(session road.Session) {
+	app.OnHandShaken(func(session network.Session) {
 		var client = newClient(session)
 		session.Attachment().Put(ifs.KeyClient, client)
 

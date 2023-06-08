@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -20,8 +21,8 @@ Copyright (C) - All Rights Reserved
 
 type (
 	App struct {
-		// 下面这组参数，有session里都会用到
-		manager           *NetManager
+		// 下面这组参数，在session里都会用到
+		manager           *network.NetManager
 		wheelSecond       *loom.Wheel
 		rateLimitBySecond int
 
@@ -34,7 +35,7 @@ type (
 	}
 
 	appFetus struct {
-		onHandShakenHandlers []func(session Session)
+		onHandShakenHandlers []func(session network.Session)
 	}
 )
 
@@ -51,7 +52,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 
 	var heartbeatInterval = accept.GetHeartbeatInterval()
 	var app = &App{
-		manager:           NewNetManager(heartbeatInterval),
+		manager:           network.NewNetManager(heartbeatInterval),
 		wheelSecond:       loom.NewWheel(time.Second, int(heartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 
@@ -85,8 +86,8 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(fetus *appFetus, conn epoll.IConn) {
-	var session = NewSession(my.manager, conn)
+func (my *App) onNewSession(fetus *appFetus, conn network.Connection) {
+	var session = network.NewSession(my.manager, conn)
 	var err = session.Handshake()
 	if err != nil {
 		return
@@ -109,7 +110,7 @@ func (my *App) onNewSession(fetus *appFetus, conn epoll.IConn) {
 
 // OnHandShaken 暴露一个OnConnected()事件暂时没有看到很大的意义，因为handshake必须是第一个消息
 // 如果需要接入握手事件的话, 可以自己注册OnHandShaken事件
-func (my *App) OnHandShaken(handler func(session Session)) {
+func (my *App) OnHandShaken(handler func(session network.Session)) {
 	if handler != nil {
 		my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
 			var fetus = args.(*appFetus)

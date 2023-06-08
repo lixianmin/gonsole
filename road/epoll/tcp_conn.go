@@ -1,6 +1,7 @@
 package epoll
 
 import (
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -30,7 +31,7 @@ func newTcpConn(conn net.Conn, heartbeatInterval time.Duration) *TcpConn {
 	return my
 }
 
-func (my *TcpConn) GoLoop(onReadHandler OnReadHandler) {
+func (my *TcpConn) GoLoop(onReadHandler network.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()

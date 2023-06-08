@@ -1,6 +1,9 @@
 package epoll
 
-import "time"
+import (
+	"github.com/lixianmin/gonsole/road/network"
+	"time"
+)
 
 /********************************************************************
 created:    2020-10-05
@@ -10,6 +13,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
-	GetConnChan() chan IConn
+	GetConnChan() chan network.Connection
 	GetHeartbeatInterval() time.Duration
 }

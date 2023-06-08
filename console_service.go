@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/lixianmin/gonsole/ifs"
-	"github.com/lixianmin/gonsole/road"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
 	"regexp"
@@ -56,7 +56,7 @@ func newConsoleService(server *Server) *ConsoleService {
 }
 
 func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Response, error) {
-	var session = road.GetSessionFromCtx(ctx)
+	var session = network.GetSessionFromCtx(ctx)
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
@@ -88,21 +88,21 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 }
 
 func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, error) {
-	var session = road.GetSessionFromCtx(ctx)
+	var session = network.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	if client == nil {
-		return nil, road.NewError("NilClient", "client=nil")
+		return nil, network.NewError("NilClient", "client=nil")
 	}
 
 	var name = request.Topic
 	var topic = my.server.getTopic(name)
 
 	if topic == nil || !(topic.IsPublic() || isAuthorized(session)) {
-		return nil, road.NewError("InvalidTopic", "尝试订阅非法topic")
+		return nil, network.NewError("InvalidTopic", "尝试订阅非法topic")
 	}
 
 	if _, ok := client.topics[name]; ok {
-		return nil, road.NewError("RepeatedSubscribe", "重复订阅同一个主题")
+		return nil, network.NewError("RepeatedSubscribe", "重复订阅同一个主题")
 	}
 
 	topic.addClient(client)
@@ -113,20 +113,20 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 }
 
 func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response, error) {
-	var session = road.GetSessionFromCtx(ctx)
+	var session = network.GetSessionFromCtx(ctx)
 	var client = getClient(session)
 	if client == nil {
-		return nil, road.NewError("NilClient", "client=nil")
+		return nil, network.NewError("NilClient", "client=nil")
 	}
 
 	var name = request.Topic
 	var topic = my.server.getTopic(name)
 	if topic == nil {
-		return nil, road.NewError("InvalidTopic", "尝试取消非法topic")
+		return nil, network.NewError("InvalidTopic", "尝试取消非法topic")
 	}
 
 	if _, ok := client.topics[name]; !ok {
-		return nil, road.NewError("RepeatedSubscribe", "尝试取消未订阅主题")
+		return nil, network.NewError("RepeatedSubscribe", "尝试取消未订阅主题")
 	}
 
 	topic.removeClient(client)
@@ -137,7 +137,7 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response
 }
 
 func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, error) {
-	var session = road.GetSessionFromCtx(ctx)
+	var session = network.GetSessionFromCtx(ctx)
 	var isAuthorized = isAuthorized(session)
 
 	var head = strings.TrimSpace(request.Head)
@@ -164,11 +164,11 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	return convert.ToJson(results), nil
 }
 
-func isAuthorized(session road.Session) bool {
+func isAuthorized(session network.Session) bool {
 	return session.Attachment().Bool(ifs.KeyIsAuthorized)
 }
 
-func getClient(session road.Session) *Client {
+func getClient(session network.Session) *Client {
 	var client, _ = session.Attachment().Get1(ifs.KeyClient).(*Client)
 	return client
 }

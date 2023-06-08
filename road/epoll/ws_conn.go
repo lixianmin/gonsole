@@ -3,6 +3,7 @@ package epoll
 import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -34,7 +35,7 @@ func newWsConn(conn net.Conn, heartbeatInterval time.Duration) *WsConn {
 	return my
 }
 
-func (my *WsConn) GoLoop(onReadHandler OnReadHandler) {
+func (my *WsConn) GoLoop(onReadHandler network.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()

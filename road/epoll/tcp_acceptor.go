@@ -1,6 +1,7 @@
 package epoll
 
 import (
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
@@ -16,7 +17,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	connChan          chan IConn
+	connChan          chan network.Connection
 	heartbeatInterval time.Duration
 	isClosed          int32
 }
@@ -28,7 +29,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
-		connChan:          make(chan IConn, options.ConnChanSize),
+		connChan:          make(chan network.Connection, options.ConnChanSize),
 		heartbeatInterval: options.HeartbeatInterval,
 	}
 
@@ -63,7 +64,7 @@ func (my *TcpAcceptor) Close() error {
 	return nil
 }
 
-func (my *TcpAcceptor) GetConnChan() chan IConn {
+func (my *TcpAcceptor) GetConnChan() chan network.Connection {
 	return my.connChan
 }
 
