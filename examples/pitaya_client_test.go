@@ -72,7 +72,7 @@ func TestPitayaClient(t *testing.T) {
 
 func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 
-	var pClient = client.NewPitayaClient()
+	var pClient = client.NewClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
 		wg.Done()
 		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)

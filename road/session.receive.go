@@ -26,15 +26,15 @@ func (my *sessionImpl) startGoLoop() {
 			return
 		}
 
-		if err1 := my.onReceivePackets(reader); err1 != nil {
-			logo.Info("close session(%d) by onReceivePackets(), err=%q", my.id, err1)
+		if err1 := my.onReceivedData(reader); err1 != nil {
+			logo.Info("close session(%d) by onReceivedData(), err=%q", my.id, err1)
 			_ = my.Close()
 			return
 		}
 	})
 }
 
-func (my *sessionImpl) onReceivePackets(reader *iox.OctetsReader) error {
+func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 	var packets, err = serde.Decode(reader)
 	if err != nil {
 		var err1 = fmt.Errorf("failed to decode message: %s", err.Error())
@@ -50,7 +50,7 @@ func (my *sessionImpl) onReceivePackets(reader *iox.OctetsReader) error {
 				return err2
 			}
 		default:
-			if err3 := my.onReceiveOther(pack); err3 != nil {
+			if err3 := my.onReceivedOther(pack); err3 != nil {
 				return err3
 			}
 		}
@@ -59,14 +59,14 @@ func (my *sessionImpl) onReceivePackets(reader *iox.OctetsReader) error {
 	return nil
 }
 
-func (my *sessionImpl) onReceiveOther(input serde.Packet) error {
+func (my *sessionImpl) onReceivedOther(input serde.Packet) error {
 	var handler = my.manger.GetHandlerByKind(input.Kind)
 	if handler == nil {
 		return ErrEmptyHandler
 	}
 
 	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
-	var payload, err = processReceivedData(input, my.ctxValue, handler, my.manger.GetSerde())
+	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.manger.GetSerde())
 	var output = serde.Packet{
 		Kind: input.Kind,
 	}
@@ -84,7 +84,7 @@ func (my *sessionImpl) onReceiveOther(input serde.Packet) error {
 	return my.writePacket(output)
 }
 
-func processReceivedData(pack serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {
+func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {
 	// First unmarshal the handler argument that will be passed to
 	// both handler and pipeline functions
 	var arg, err = unmarshalHandlerArg(handler, serde, pack.Data)

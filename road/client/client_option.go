@@ -14,9 +14,9 @@ type pitayaClientOptions struct {
 	receiverBufferSize int           // sender的发送缓冲区大小
 }
 
-type PitayaClientOption func(*pitayaClientOptions)
+type ClientOption func(*pitayaClientOptions)
 
-func WithRequestTimeout(timeout time.Duration) PitayaClientOption {
+func WithRequestTimeout(timeout time.Duration) ClientOption {
 	return func(options *pitayaClientOptions) {
 		if timeout > 0 {
 			options.requestTimeout = timeout
@@ -24,7 +24,7 @@ func WithRequestTimeout(timeout time.Duration) PitayaClientOption {
 	}
 }
 
-func WithReceiverBufferSize(size int) PitayaClientOption {
+func WithReceiverBufferSize(size int) ClientOption {
 	return func(options *pitayaClientOptions) {
 		if size > 0 {
 			options.receiverBufferSize = size

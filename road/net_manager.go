@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"sort"
+	"time"
 )
 
 /********************************************************************
@@ -14,16 +15,18 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type NetManager struct {
-	routeHandlers map[string]*component.Handler
-	routeKinds    map[string]int32
-	kindHandlers  map[int32]*component.Handler
-	serde         serde.Serde
+	heartbeatInterval time.Duration
+	routeHandlers     map[string]*component.Handler
+	routeKinds        map[string]int32
+	kindHandlers      map[int32]*component.Handler
+	serde             serde.Serde
 }
 
-func NewNetManager() *NetManager {
+func NewNetManager(heartbeatInterval time.Duration) *NetManager {
 	var my = &NetManager{
-		routeHandlers: map[string]*component.Handler{},
-		serde:         &serde.JsonSerde{},
+		heartbeatInterval: heartbeatInterval,
+		routeHandlers:     map[string]*component.Handler{},
+		serde:             &serde.JsonSerde{},
 	}
 
 	return my
@@ -51,7 +54,7 @@ func (my *NetManager) RebuildHandlerKinds() {
 	my.kindHandlers = make(map[int32]*component.Handler, size)
 
 	for i, route := range routes {
-		var kind = int32(i)
+		var kind = int32(i) + serde.UserDefined
 		my.routeKinds[route] = kind
 		my.kindHandlers[kind] = my.routeHandlers[route]
 	}

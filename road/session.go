@@ -22,7 +22,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Session interface {
-	ShakeHand(heartbeat float32) error // 心跳间隔. 单位: 秒
+	Handshake() error // 心跳间隔. 单位: 秒
 	Push(route string, v interface{}) error
 	Kick() error
 

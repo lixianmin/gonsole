@@ -23,7 +23,6 @@ type (
 		// 下面这组参数，有session里都会用到
 		manager           *NetManager
 		wheelSecond       *loom.Wheel
-		heartbeatInterval time.Duration
 		rateLimitBySecond int
 
 		accept   epoll.Acceptor
@@ -52,9 +51,8 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 
 	var heartbeatInterval = accept.GetHeartbeatInterval()
 	var app = &App{
-		manager:           NewNetManager(),
+		manager:           NewNetManager(heartbeatInterval),
 		wheelSecond:       loom.NewWheel(time.Second, int(heartbeatInterval/time.Second)+1),
-		heartbeatInterval: heartbeatInterval,
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 
 		accept:   accept,
@@ -89,7 +87,7 @@ func (my *App) goLoop(later loom.Later) {
 
 func (my *App) onNewSession(fetus *appFetus, conn epoll.IConn) {
 	var session = NewSession(my.manager, conn)
-	var err = session.ShakeHand(float32(my.heartbeatInterval.Seconds()))
+	var err = session.Handshake()
 	if err != nil {
 		return
 	}
@@ -140,6 +138,7 @@ func (my *App) Register(comp component.Component, opts ...component.Option) erro
 		logo.Debug("route=%s", route)
 	}
 
+	my.manager.RebuildHandlerKinds()
 	return nil
 }
 

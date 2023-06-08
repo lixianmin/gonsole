@@ -44,19 +44,19 @@ func (my *sessionImpl) Kick() error {
 	return err
 }
 
-func (my *sessionImpl) ShakeHand(heartbeat float32) error {
+func (my *sessionImpl) Handshake() error {
 	if my.wc.IsClosed() {
 		return nil
 	}
 
-	type Handshake struct {
-		Nonce     int32   `json:"nonce"`
-		Heartbeat float32 `json:"heartbeat"` // 心跳间隔. 单位: 秒
+	var nonce = rand.Int31()
+	var info = serde.HandshakeInfo{
+		Nonce:      nonce,
+		Heartbeat:  float32(my.manger.heartbeatInterval.Seconds()),
+		RouteKinds: my.manger.routeKinds,
 	}
 
-	var nonce = rand.Int31()
-	var item = Handshake{Nonce: nonce, Heartbeat: heartbeat}
-	var data, err1 = my.manger.GetSerde().Serialize(item)
+	var data, err1 = my.manger.GetSerde().Serialize(info)
 	if err1 != nil {
 		return err1
 	}
