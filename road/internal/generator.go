@@ -23,7 +23,6 @@ package internal
 import (
 	"encoding/json"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/route"
 	"reflect"
 	"strings"
 	"unicode"
@@ -49,7 +48,7 @@ func HandlersDocs(serverType string, services map[string]*component.Service, get
 
 	for serviceName, service := range services {
 		for name, handler := range service.Handlers {
-			routeName := route.NewRoute(serverType, serviceName, name)
+			routeName := NewRoute(serverType, serviceName, name)
 			docs.Handlers[routeName.String()] = docForMethod(handler.Method, getPtrNames)
 		}
 	}

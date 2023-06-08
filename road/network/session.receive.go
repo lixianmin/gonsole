@@ -5,7 +5,6 @@ import (
 	//"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
-	"github.com/lixianmin/gonsole/road/util"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/logo"
@@ -45,7 +44,10 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 	var handler = my.onReceivingPacketHandler
 	for _, pack := range packets {
 		if handler != nil {
-			if err3 := handler(pack); err3 != nil {
+			var err3 = handler(pack)
+			if err3 == ErrPacketProcessed {
+				continue
+			} else if err3 != nil {
 				return err3
 			}
 		}
@@ -56,7 +58,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 			}
 		} else if pack.Kind == serde.Heartbeat {
 			// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
-			var pack = serde.Packet{Kind: serde.HeartbeatAck}
+			var pack = serde.Packet{Kind: serde.Heartbeat}
 			if err5 := my.writePacket(pack); err5 != nil {
 				return err5
 			}
@@ -106,7 +108,7 @@ func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *c
 		args = []reflect.Value{handler.Receiver, ctxValue}
 	}
 
-	var response, err2 = util.PCall(handler.Method, args)
+	var response, err2 = PCall(handler.Method, args)
 	if err2 != nil {
 		return nil, err2
 	}

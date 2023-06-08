@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/lixianmin/gonsole"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/client"
+	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/logo"
@@ -34,6 +37,27 @@ func initLogo() {
 	theLogger.AddHook(rollingFile)
 }
 
+type PlayerGroup struct {
+}
+
+type GetPlayerInfo struct {
+	Id int32 `json:"rid"`
+}
+
+type GetPlayerInfoRe struct {
+	Id     int32 `json:"rid"`
+	UserId int64 `json:"uid"`
+}
+
+func (my *PlayerGroup) GetPlayerInfo(ctx context.Context, request *GetPlayerInfo) (*GetPlayerInfoRe, error) {
+	var response = &GetPlayerInfoRe{
+		Id:     request.Id,
+		UserId: 10,
+	}
+
+	return response, nil
+}
+
 func TestPitayaClient(t *testing.T) {
 	initLogo()
 
@@ -44,14 +68,13 @@ func TestPitayaClient(t *testing.T) {
 		road.WithSessionRateLimitBySecond(1000),
 	)
 
-	app.OnHandShaken(func(session network.Session) {
-		type Challenge struct {
-			Nonce int `json:"nonce"`
-		}
+	var group = &PlayerGroup{}
+	_ = app.Register(group, component.WithName("player"), component.WithNameFunc(gonsole.ToSnakeName))
 
+	app.OnHandShaken(func(session network.Session) {
 		for i := 0; i < 100; i++ {
-			if err := session.PushByRoute("player.challenge", Challenge{
-				Nonce: i,
+			if err := session.PushByRoute("player.get_player_info", GetPlayerInfo{
+				Id: int32(i),
 			}); err != nil {
 				logo.JsonE("session", session.Id(), "err", err)
 			}
@@ -71,7 +94,6 @@ func TestPitayaClient(t *testing.T) {
 }
 
 func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
-
 	var pClient = client.NewClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
 		wg.Done()

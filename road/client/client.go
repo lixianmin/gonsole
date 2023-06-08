@@ -149,6 +149,7 @@ func (my *Client) onReceivingPacket(pack serde.Packet) error {
 		return ErrKicked
 	default:
 		my.receivedPacketChan <- pack
+		return network.ErrPacketProcessed
 	}
 
 	return nil
