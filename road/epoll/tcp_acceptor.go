@@ -52,7 +52,7 @@ func (my *TcpAcceptor) goLoop(address string) {
 			continue
 		}
 
-		my.connChan <- newTcpConn(conn)
+		my.connChan <- network.NewTcpConn(conn)
 	}
 }
 

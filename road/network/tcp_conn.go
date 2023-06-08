@@ -1,7 +1,6 @@
-package epoll
+package network
 
 import (
-	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -20,7 +19,7 @@ type TcpConn struct {
 	commonConn
 }
 
-func newTcpConn(conn net.Conn) *TcpConn {
+func NewTcpConn(conn net.Conn) *TcpConn {
 	var my = &TcpConn{
 		commonConn: commonConn{
 			conn: conn,
@@ -30,7 +29,7 @@ func newTcpConn(conn net.Conn) *TcpConn {
 	return my
 }
 
-func (my *TcpConn) GoLoop(heartbeatInterval time.Duration, onReadHandler network.OnReadHandler) {
+func (my *TcpConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()

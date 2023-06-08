@@ -42,7 +42,7 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.connChan <- newWsConn(conn)
+	my.connChan <- network.NewWsConn(conn)
 }
 
 func (my *WsAcceptor) GetConnChan() chan network.Connection {

@@ -1,9 +1,8 @@
-package epoll
+package network
 
 import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -24,7 +23,7 @@ type WsConn struct {
 	writeLock sync.Mutex
 }
 
-func newWsConn(conn net.Conn) *WsConn {
+func NewWsConn(conn net.Conn) *WsConn {
 	var my = &WsConn{
 		commonConn: commonConn{
 			conn: conn,
@@ -34,7 +33,7 @@ func newWsConn(conn net.Conn) *WsConn {
 	return my
 }
 
-func (my *WsConn) GoLoop(heartbeatInterval time.Duration, onReadHandler network.OnReadHandler) {
+func (my *WsConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
