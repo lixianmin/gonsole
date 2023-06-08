@@ -4,8 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/gobwas/ws"
-	"github.com/lixianmin/gonsole/road/codec"
-	"github.com/lixianmin/gonsole/road/message"
 	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/loom"
@@ -24,20 +22,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	manager   *network.Manager
-	session   network.Session
-	handshake serde.HandshakeInfo
-
+	manager            *network.Manager
+	session            network.Session
+	handshake          serde.HandshakeInfo
 	receivedPacketChan chan serde.Packet
 	connectState       int32
-
-	packetEncoder    codec.PacketEncoder
-	packetDecoder    codec.PacketDecoder
-	requestTimeout   time.Duration
-	nextId           uint32
-	messageEncoder   message.Encoder
-	handshakeRequest *HandshakeRequest
-	wc               loom.WaitClose
+	wc                 loom.WaitClose
 }
 
 func NewClient(opts ...ClientOption) *Client {
@@ -55,11 +45,7 @@ func NewClient(opts ...ClientOption) *Client {
 	var client = &Client{
 		manager:            network.NewManager(2 * time.Second),
 		connectState:       StateHandshake,
-		packetEncoder:      codec.NewPomeloPacketEncoder(),
-		packetDecoder:      codec.NewPomeloPacketDecoder(),
 		receivedPacketChan: make(chan serde.Packet, options.receiverBufferSize),
-		requestTimeout:     options.requestTimeout,
-		messageEncoder:     message.NewMessagesEncoder(false),
 	}
 
 	return client
