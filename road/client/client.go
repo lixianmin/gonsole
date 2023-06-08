@@ -6,6 +6,7 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/codec"
 	"github.com/lixianmin/gonsole/road/message"
+	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
@@ -24,9 +25,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
+	manager   *network.Manager
+	session   network.Session
+	handshake serde.HandshakeInfo
+
 	conn               net.Conn
 	serde              serde.Serde
-	handshake          serde.HandshakeInfo
 	receivedPacketChan chan serde.Packet
 	connectState       int32
 
@@ -52,8 +56,9 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 
 	var client = &Client{
-		serde: &serde.JsonSerde{},
+		manager: network.NewManager(2 * time.Second),
 
+		serde:              &serde.JsonSerde{},
 		connectState:       StateHandshake,
 		packetEncoder:      codec.NewPomeloPacketEncoder(),
 		packetDecoder:      codec.NewPomeloPacketDecoder(),
@@ -170,7 +175,9 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 		return err
 	}
 
-	my.conn = conn
+	var link = network.NewTcpLink(conn)
+	my.session = my.manager.NewSession(link)
+
 	loom.Go(my.goLoop)        // goLoop需要从receivedPacketChan中取packets，因此必须在goReceiveData前启动, 否则可能导致block
 	loom.Go(my.goReceiveData) // goReceiveData需要放到最后, 否则可能导致receivedPacketChan收到的数据乱序
 

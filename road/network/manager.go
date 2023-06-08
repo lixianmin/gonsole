@@ -32,7 +32,7 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 	return my
 }
 
-func (my *Manager) NewSession(conn Connection) Session {
+func (my *Manager) NewSession(conn Link) Session {
 	return newSession(my, conn)
 }
 

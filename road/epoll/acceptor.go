@@ -12,5 +12,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
-	GetConnChan() chan network.Connection
+	GetLinkChan() chan network.Link
 }

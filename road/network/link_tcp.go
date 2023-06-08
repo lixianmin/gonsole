@@ -15,13 +15,13 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type TcpConn struct {
-	commonConn
+type TcpLink struct {
+	commonLink
 }
 
-func NewTcpConn(conn net.Conn) *TcpConn {
-	var my = &TcpConn{
-		commonConn: commonConn{
+func NewTcpLink(conn net.Conn) *TcpLink {
+	var my = &TcpLink{
+		commonLink: commonLink{
 			conn: conn,
 		},
 	}
@@ -29,7 +29,7 @@ func NewTcpConn(conn net.Conn) *TcpConn {
 	return my
 }
 
-func (my *TcpConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
+func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -54,7 +54,7 @@ func (my *TcpConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadH
 	}
 }
 
-func (my *TcpConn) Write(data []byte) (int, error) {
+func (my *TcpLink) Write(data []byte) (int, error) {
 	// net.TCPConn本身的是thread safe的，只要每次写入的都是完整的message，就不需要并发控制
 	var num, err = my.conn.Write(data)
 	return num, err

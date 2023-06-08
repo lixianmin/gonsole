@@ -73,7 +73,7 @@ func (my *App) goLoop(later loom.Later) {
 	var closeChan = my.wc.C()
 	for {
 		select {
-		case conn := <-my.accept.GetConnChan():
+		case conn := <-my.accept.GetLinkChan():
 			my.onNewSession(fetus, conn)
 		case task := <-my.tasks.C:
 			var err = task.Do(fetus)
@@ -86,7 +86,7 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(fetus *appFetus, conn network.Connection) {
+func (my *App) onNewSession(fetus *appFetus, conn network.Link) {
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {

@@ -10,6 +10,19 @@ import (
 created:    2020-08-31
 author:     lixianmin
 
+2022-11-26，
+1. 从下面死锁的描述来看，同一个connection在一个协程中read，在另一个协程中write是没问题的
+2. 但是，同一个connection在不同的协程中异步写是会导致panic的，因此才有了session_sender
+3. 但是，除了现在采用启动N协程的处理M个链接（N<M)外，还可以使用lock解决并发问题，修改之
+
+为什么要摘出这样一个类出来？
+同一个链接的read/write 不能放到同一个goroutine中。write很直接，但read的handler
+中写什么代码是不确定的，如果其中调用到conn.Write()，就有可能形成死锁：
+1. read的handler想结束返回就需要write成功
+2. 但现在sendingChan满了，所以write无法成功，因此read的handler也无法结束
+3. 因为read的handler无法结束，就导致同一个goroutine中的sendingChan的数据无法提取
+4. sendingChan中的数据无法提取出来，就一直是满的
+
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 

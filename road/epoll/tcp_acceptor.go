@@ -16,7 +16,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	connChan chan network.Connection
+	linkChan chan network.Link
 	isClosed int32
 }
 
@@ -27,7 +27,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
-		connChan: make(chan network.Connection, options.ConnChanSize),
+		linkChan: make(chan network.Link, options.LinkChanSize),
 	}
 
 	go my.goLoop(address)
@@ -52,7 +52,7 @@ func (my *TcpAcceptor) goLoop(address string) {
 			continue
 		}
 
-		my.connChan <- network.NewTcpConn(conn)
+		my.linkChan <- network.NewTcpLink(conn)
 	}
 }
 
@@ -61,6 +61,6 @@ func (my *TcpAcceptor) Close() error {
 	return nil
 }
 
-func (my *TcpAcceptor) GetConnChan() chan network.Connection {
-	return my.connChan
+func (my *TcpAcceptor) GetLinkChan() chan network.Link {
+	return my.linkChan
 }

@@ -15,7 +15,7 @@ Copyright (C) - All Rights Reserved
 
 type OnReadHandler func(reader *iox.OctetsReader, err error)
 
-type Connection interface {
+type Link interface {
 	GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler)
 	Write(data []byte) (int, error)
 	Close() error

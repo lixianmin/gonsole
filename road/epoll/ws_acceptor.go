@@ -15,7 +15,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	connChan chan network.Connection
+	linkChan chan network.Link
 	isClosed int32
 }
 
@@ -26,7 +26,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		connChan: make(chan network.Connection, options.ConnChanSize),
+		linkChan: make(chan network.Link, options.LinkChanSize),
 	}
 
 	// 这个相当于listener，每创建一个新的链接
@@ -42,9 +42,9 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.connChan <- network.NewWsConn(conn)
+	my.linkChan <- network.NewWsLink(conn)
 }
 
-func (my *WsAcceptor) GetConnChan() chan network.Connection {
-	return my.connChan
+func (my *WsAcceptor) GetLinkChan() chan network.Link {
+	return my.linkChan
 }

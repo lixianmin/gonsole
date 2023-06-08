@@ -13,23 +13,23 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type commonConn struct {
+type commonLink struct {
 	conn     net.Conn
 	isClosed int32
 }
 
-func (my *commonConn) resetReadDeadline(heartbeatInterval time.Duration) {
+func (my *commonLink) resetReadDeadline(heartbeatInterval time.Duration) {
 	_ = my.conn.SetReadDeadline(time.Now().Add(heartbeatInterval * 3))
 }
 
 // Close closes the connection.
 // Any blocked Read or Write operations will be unblocked and return errors.
-func (my *commonConn) Close() error {
+func (my *commonLink) Close() error {
 	atomic.StoreInt32(&my.isClosed, 1)
 	return nil
 }
 
 // RemoteAddr returns the remote address.
-func (my *commonConn) RemoteAddr() net.Addr {
+func (my *commonLink) RemoteAddr() net.Addr {
 	return my.conn.RemoteAddr()
 }

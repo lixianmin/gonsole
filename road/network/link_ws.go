@@ -18,14 +18,14 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type WsConn struct {
-	commonConn
+type WsLink struct {
+	commonLink
 	writeLock sync.Mutex
 }
 
-func NewWsConn(conn net.Conn) *WsConn {
-	var my = &WsConn{
-		commonConn: commonConn{
+func NewWsLink(conn net.Conn) *WsLink {
+	var my = &WsLink{
+		commonLink: commonLink{
 			conn: conn,
 		},
 	}
@@ -33,7 +33,7 @@ func NewWsConn(conn net.Conn) *WsConn {
 	return my
 }
 
-func (my *WsConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
+func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -62,7 +62,7 @@ func (my *WsConn) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHa
 	}
 }
 
-func (my *WsConn) Write(data []byte) (int, error) {
+func (my *WsLink) Write(data []byte) (int, error) {
 	// 同一个conn在不同的协程中异步write可能导致panic，原先采用N协程处理M个链接（N<M)的方案，现在改为lock处理并发问题
 	// 底层的net.TCPConn的Write()是thread safe的，但是因为写web socket数据的时候，是分多次调用的，所以必须使用lock控制并发
 	my.writeLock.Lock()

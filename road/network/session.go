@@ -41,14 +41,14 @@ type sessionImpl struct {
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
-	conn       Connection
+	conn       Link
 	ctxValue   reflect.Value
 	attachment *Attachment
 	wc         loom.WaitClose
 	onClosed   delegate
 }
 
-func newSession(manager *Manager, conn Connection) Session {
+func newSession(manager *Manager, conn Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,
