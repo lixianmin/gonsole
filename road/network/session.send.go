@@ -93,7 +93,7 @@ func (my *sessionImpl) writePacket(pack serde.Packet) error {
 	defer my.writeLock.Unlock()
 
 	var writer = my.writer
-	var stream = writer.GetStream()
+	var stream = writer.Stream()
 	stream.Reset()
 	serde.Encode(writer, pack)
 

@@ -20,7 +20,7 @@ func Encode(writer *iox.OctetsWriter, pack Packet) {
 
 func Decode(reader *iox.OctetsReader) ([]Packet, error) {
 	var packets []Packet = nil
-	var stream = reader.GetStream()
+	var stream = reader.Stream()
 
 	for {
 		var lastPosition = stream.Position()
