@@ -1,14 +1,21 @@
 import {defineConfig} from 'vite';
 import solidPlugin from 'vite-plugin-solid';
-import path, {resolve} from 'path'
+import {resolve} from 'path'
+
+const root = resolve(__dirname, "src");
 
 export default defineConfig({
     plugins: [solidPlugin()],
+    resolve: {
+        alias: {
+            "@src": root,
+        }
+    },
     server: {
         port: 3000,
         https: {
-            key: path.resolve(__dirname, '../res/ssl/localhost.key'),
-            cert: path.resolve(__dirname, '../res/ssl/localhost.crt'),
+            key: resolve(__dirname, '../res/ssl/localhost.key'),
+            cert: resolve(__dirname, '../res/ssl/localhost.crt'),
         }
     },
     css: {  // 阻止vite在编译时把css选择器的名字改掉
