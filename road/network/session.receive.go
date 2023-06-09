@@ -59,7 +59,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 		} else if pack.Kind == serde.Heartbeat {
 			// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
 			var pack = serde.Packet{Kind: serde.Heartbeat}
-			if err5 := my.writePacket(pack); err5 != nil {
+			if err5 := my.sendPacket(pack); err5 != nil {
 				return err5
 			}
 		}
@@ -90,7 +90,7 @@ func (my *sessionImpl) onReceivedOther(input serde.Packet) error {
 		output.Data = convert.Bytes(err.Error())
 	}
 
-	return my.writePacket(output)
+	return my.sendPacket(output)
 }
 
 func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {

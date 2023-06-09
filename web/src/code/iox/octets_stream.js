@@ -1,3 +1,5 @@
+'use strict'
+
 /********************************************************************
  created:    2023-06-08
  author:     lixianmin
@@ -136,6 +138,10 @@ export function newOctetsStream(capacity = 8) {
     }
 
     function write(buffer, offset, count) {
+        if (!buffer) {
+            return
+        }
+
         if (offset < 0 || count < 0) {
             throw new Error(`offset=${offset}, count=${count}`)
         }
@@ -215,8 +221,8 @@ export function newOctetsStream(capacity = 8) {
         get position() {
             return _position
         },
-        get buffer() {
-            return _buffer
+        get bytes() {
+            return _buffer.slice(_position, _length)
         }
     }
 }

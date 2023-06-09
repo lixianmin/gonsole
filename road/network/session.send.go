@@ -46,7 +46,7 @@ func (my *sessionImpl) PushByKind(kind int32, v interface{}) error {
 	}
 
 	var pack = serde.Packet{Kind: kind, Data: data}
-	var err2 = my.writePacket(pack)
+	var err2 = my.sendPacket(pack)
 	return err2
 }
 
@@ -57,7 +57,7 @@ func (my *sessionImpl) Kick() error {
 	}
 
 	var pack = serde.Packet{Kind: serde.Kick}
-	var err = my.writePacket(pack)
+	var err = my.sendPacket(pack)
 	return err
 }
 
@@ -80,7 +80,7 @@ func (my *sessionImpl) Handshake() error {
 
 	my.Attachment().Put(ifs.KeyNonce, nonce)
 	var pack = serde.Packet{Kind: serde.Handshake, Data: data}
-	var err2 = my.writePacket(pack)
+	var err2 = my.sendPacket(pack)
 
 	if err2 != nil {
 		_ = my.Close()
@@ -88,7 +88,7 @@ func (my *sessionImpl) Handshake() error {
 	return err2
 }
 
-func (my *sessionImpl) writePacket(pack serde.Packet) error {
+func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 	my.writeLock.Lock()
 	defer my.writeLock.Unlock()
 

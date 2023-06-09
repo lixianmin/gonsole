@@ -1,3 +1,5 @@
+'use strict'
+
 /********************************************************************
  created:    2023-06-08
  author:     lixianmin
@@ -28,7 +30,7 @@ export function newOctetsWriter(stream) {
     }
 
     function writeBytes(data) {
-        const size = data.length
+        const size = data?.length ?? 0
         write7BitEncodedInt(size)
         stream.write(data, 0, size)
     }

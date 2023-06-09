@@ -42,7 +42,7 @@ type (
 func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
-		HeartbeatInterval:        5 * time.Second,
+		HeartbeatInterval:        3 * time.Second,
 		SessionRateLimitBySecond: 2,
 	}
 
