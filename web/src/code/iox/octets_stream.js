@@ -60,14 +60,11 @@ export function newOctetsStream(capacity = 8) {
                 num = capacity << 1
             }
 
-            if (_length > 0) {
-                const array = new Uint8Array(num)
-                for (let i = 0; i < _length; i++) {
-                    array[i] = _buffer[i]
-                }
-
-                _buffer = array
+            const array = new Uint8Array(num)
+            for (let i = 0; i < _length; i++) {
+                array[i] = _buffer[i]
             }
+            _buffer = array
         }
     }
 
@@ -99,7 +96,7 @@ export function newOctetsStream(capacity = 8) {
         }
 
         if (_buffer.length - offset < count) {
-            throw new Error("the size of buffer is less than offset + count")
+            throw new Error(`the size of the buffer is less than offset + count, _buffer.length=${_buffer.length}, offset=${offset}, count=${count}`)
         }
 
         if (_position >= _length || count === 0) {
@@ -144,11 +141,12 @@ export function newOctetsStream(capacity = 8) {
         }
 
         if (buffer.length - offset < count) {
-            throw new Error("the size of the buffer is less than offset + count")
+            throw new Error(`the size of the buffer is less than offset + count, buffer.length=${buffer.length}, offset=${offset}, count=${count}`)
         }
 
-        if (_position > _length - count) {
-            expand(_position + count)
+        const needSize = _position + count
+        if (needSize > _length) {
+            expand(needSize)
         }
 
         Buffers.blockCopy(buffer, offset, _buffer, _position, count)
@@ -214,6 +212,9 @@ export function newOctetsStream(capacity = 8) {
         seek: seek,
         tidy: tidy,
         reset: reset,
+        get position() {
+            return _position
+        },
         get buffer() {
             return _buffer
         }
