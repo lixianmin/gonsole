@@ -69,7 +69,7 @@ export function newSession() {
 
     function onclose(evt) {
         stopSendingHeartbeat()
-        console.log('onclose:', evt)
+        // console.log('onclose:', evt)
         _reconnect()
     }
 

@@ -12,7 +12,7 @@ export default function LogList(props) {
     // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/
     const logFiles = props.logFiles
     const count = logFiles.length
-    const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current))
+    const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current, 0))
 
     function fetchNameHtml(fi) {
         return `<a href="${props.rootUrl}/${fi.path}">${fi.path}</a>
