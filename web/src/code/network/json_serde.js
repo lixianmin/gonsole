@@ -21,8 +21,13 @@ export function newJsonSerde() {
         return JSON.parse(text)
     }
 
+    function bytes2String(bytes) {
+        return decoder.decode(bytes)
+    }
+
     return {
         serialize: serialize,
         deserialize: deserialize,
+        bytes2String: bytes2String,
     }
 }

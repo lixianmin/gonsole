@@ -89,9 +89,8 @@ const App = () => {
         printHtml(() => <JsonTable tableData={response}/>)
     }
 
-    function onDefault(response) {
-        // console.log('onDefault', response)
-        const text = JSON.stringify(response)
+    function onDefault(response, err) {
+        const text = JSON.stringify(err ?? response)
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
     }
@@ -114,24 +113,28 @@ const App = () => {
         sendBean("console.command", bean, onCommand)
     }
 
-    function onCommand(response) {
-        switch (response.op) {
-            case "log.list":
-                printHtml(() => <LogList logFiles={response.data.logFiles} rootUrl={rootUrl}/>)
-                break
-            case "history":
-                printHtml(() => <History/>)
-                break
-            case "html":
-                onHtml(response.data)
-                break
-            case "table":
-                onTable(response.data)
-                break
-            case "empty":
-                break
-            default:
-                onDefault(response)
+    function onCommand(response, err) {
+        if (response && response.op) {
+            switch (response.op) {
+                case "log.list":
+                    printHtml(() => <LogList logFiles={response.data.logFiles} rootUrl={rootUrl}/>)
+                    break
+                case "history":
+                    printHtml(() => <History/>)
+                    break
+                case "html":
+                    onHtml(response.data)
+                    break
+                case "table":
+                    onTable(response.data)
+                    break
+                case "empty":
+                    break
+                default:
+                    onDefault(response, err)
+            }
+        } else {
+            onDefault(response, err)
         }
     }
 

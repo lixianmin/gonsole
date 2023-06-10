@@ -24,18 +24,30 @@ export function newSession() {
 
     let _onConnected = undefined
     let _socket = undefined
+    let _heartbeatIntervalId = 0
+    let _reconnect = undefined
 
     function connect(url, onConnected) {
-        _onConnected = onConnected
-        _socket = new WebSocket(url)
-        _socket.binaryType = 'arraybuffer'
-        _socket.onopen = onopen
-        _socket.onmessage = onmessage
-        _socket.onerror = onerror
-        _socket.onclose = onclose
+        _reconnect = function () {
+            _reader.stream.reset()
+            _writer.stream.reset()
+            _kindRoutes.clear()
+            _routeKinds.clear()
+            _routeHandlers.clear()
+            _onConnected = onConnected
+
+            _socket = new WebSocket(url)
+            _socket.binaryType = 'arraybuffer'
+            _socket.onopen = onopen
+            _socket.onmessage = onmessage
+            _socket.onerror = onerror
+            _socket.onclose = onclose
+        }
+
+        _reconnect()
     }
 
-    function onopen() {
+    function onopen(evt) {
 
     }
 
@@ -50,12 +62,15 @@ export function newSession() {
         stream.tidy()
     }
 
-    function onerror() {
-
+    function onerror(evt) {
+        stopSendingHeartbeat()
+        console.error('onerror:', evt)
     }
 
-    function onclose() {
-
+    function onclose(evt) {
+        stopSendingHeartbeat()
+        console.log('onclose:', evt)
+        _reconnect()
     }
 
     function onReceivedData(reader) {
@@ -104,7 +119,7 @@ export function newSession() {
         function startHeartbeat() {
             const interval = handshake.heartbeat * 1000 // unit: ms
             const pack = {kind: PacketKind.Heartbeat}
-            setInterval(() => {
+            _heartbeatIntervalId = setInterval(() => {
                 sendPacket(pack)
             }, interval)
         }
@@ -112,27 +127,39 @@ export function newSession() {
         console.log('handshake', handshake)
     }
 
-    function onReceivedUserdata(pack) {
-        if (pack.kind >= PacketKind.Userdata) {
-            const route = _kindRoutes.get(pack.kind)
-            const handler = _routeHandlers.get(route)
-            if (handler) {
-                const item = _serde.deserialize(pack.data)
-                let response = undefined
-                let err = undefined
-                if (pack.code) {
-                    err = {
-                        code: _serde.deserialize(pack.code),
-                        message: item
-                    }
-                } else {
-                    response = item
-                }
-
-                // console.log(response, err)
-                handler(response, err)
-            }
+    function stopSendingHeartbeat() {
+        if (_heartbeatIntervalId > 0) {
+            clearInterval(_heartbeatIntervalId)
+            _heartbeatIntervalId = 0
         }
+    }
+
+    function onReceivedUserdata(pack) {
+        if (pack.kind < PacketKind.Userdata) {
+            return
+        }
+
+        const route = _kindRoutes.get(pack.kind)
+        const handler = _routeHandlers.get(route)
+        if (!handler) {
+            console.error(`invalid kind with no route or handler, kind=${pack.kind}, route=${route}`)
+            return
+        }
+
+        let response = undefined
+        let err = undefined
+        const hasError = pack.code
+        if (hasError) {
+            err = {
+                code: _serde.bytes2String(pack.code),
+                message: _serde.bytes2String(pack.data)
+            }
+        } else {
+            response = _serde.deserialize(pack.data)
+        }
+
+        // console.log(response, err)
+        handler(response, err)
     }
 
     function sendPacket(pack) {

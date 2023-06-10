@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/gobwas/ws v1.1.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/lixianmin/got v0.0.0-20230608230954-fce95d87e0ee
+	github.com/lixianmin/got v0.0.0-20230610020739-8dcd39bc1d9d
 	github.com/lixianmin/logo v0.0.0-20220519032357-f73455888a56
 	github.com/shirou/gopsutil v3.21.11+incompatible
 )
