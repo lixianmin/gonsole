@@ -145,10 +145,10 @@ export function newSession() {
         _socket.send(bytes.buffer)
     }
 
-    function request(route, request, callback = undefined) {
+    function request(route, bean, callback = undefined) {
         const kind = _routeKinds.get(route)
         if (kind) {
-            const data = _serde.serialize(request)
+            const data = _serde.serialize(bean)
             const pack = {kind: kind, data: data}
             sendPacket(pack)
 

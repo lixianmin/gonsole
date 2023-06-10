@@ -51,9 +51,9 @@ const App = () => {
         const bean = {command: `${cmd} ${username} ${digestOrToken} ${fingerprint}`}
         return new Promise(resolve => {
             // 把callback改为promise
-            session.request("console.command", bean, obj => {
-                const cloned = {...obj.data}  // shadow clone
-                resolve(obj.data)
+            session.request("console.command", bean, response => {
+                const cloned = {...response.data}  // shadow clone
+                resolve(response.data)
 
                 delete cloned.token
                 const text = JSON.stringify(cloned)
@@ -80,6 +80,7 @@ const App = () => {
     session.on("console.default", onDefault)
 
     function onHtml(response, err) {
+        // console.log('onHtml:', response)
         printWithTimestamp("<b>server响应：</b>" + response)
         println()
     }
@@ -88,9 +89,9 @@ const App = () => {
         printHtml(() => <JsonTable tableData={response}/>)
     }
 
-    function onDefault(response, err) {
-        const operation = response
-        const text = JSON.stringify(operation)
+    function onDefault(response) {
+        // console.log('onDefault', response)
+        const text = JSON.stringify(response)
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
     }
@@ -113,24 +114,24 @@ const App = () => {
         sendBean("console.command", bean, onCommand)
     }
 
-    function onCommand(obj) {
-        switch (obj.op) {
+    function onCommand(response) {
+        switch (response.op) {
             case "log.list":
-                printHtml(() => <LogList logFiles={obj.data.logFiles} rootUrl={rootUrl}/>)
+                printHtml(() => <LogList logFiles={response.data.logFiles} rootUrl={rootUrl}/>)
                 break
             case "history":
                 printHtml(() => <History/>)
                 break
             case "html":
-                onHtml(obj.data)
+                onHtml(response.data)
                 break
             case "table":
-                onTable(obj.data)
+                onTable(response.data)
                 break
             case "empty":
                 break
             default:
-                onDefault(obj)
+                onDefault(response)
         }
     }
 
