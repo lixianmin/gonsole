@@ -84,7 +84,6 @@ func (my *Client) onReceiveHandshake(pack serde.Packet) error {
 	return nil
 }
 
-// Close disconnects the client
 func (my *Client) Close() error {
 	return my.wc.Close(func() error {
 		if my.IsConnected() {
@@ -116,9 +115,9 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 	return nil
 }
 
-// todo 这个方法可能有问题，因为websocket的读数据逻辑跟tcp的不一样，但ws_client_conn是单独写的，是不是也能还需要仔细过一遍
 // ConnectToWS connects using web socket protocol
 func (my *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config) error {
+	// todo 这个方法可能有问题，因为websocket的读数据逻辑跟tcp的不一样，但ws_client_conn是单独写的，是不是也能还需要仔细过一遍
 	var uri = url.URL{Scheme: "ws", Host: addr, Path: path}
 	var dialer = ws.DefaultDialer
 
