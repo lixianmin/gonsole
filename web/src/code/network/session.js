@@ -8,9 +8,9 @@
  *********************************************************************/
 import {newOctetsStream, SeekOrigin} from "@src/code/iox/octets_stream";
 import {newOctetsReader} from "@src/code/iox/octets_reader";
-import {decode, encode} from "@src/code/serde/tools";
-import {PacketKind} from "@src/code/serde/consts";
-import {newJsonSerde} from "@src/code/serde/json_serde";
+import {decode, encode} from "@src/code/network/tools";
+import {PacketKind} from "@src/code/network/consts";
+import {newJsonSerde} from "@src/code/network/json_serde";
 import {newOctetsWriter} from "@src/code/iox/octets_writer";
 
 export function newSession() {
