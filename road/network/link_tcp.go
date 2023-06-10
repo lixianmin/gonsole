@@ -47,7 +47,7 @@ func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadH
 			return
 		}
 
-		my.resetReadDeadline(heartbeatInterval)
+		my.resetReadDeadline(heartbeatInterval * 3)
 		_ = stream.Write(buffer[:num])
 		onReadHandler(reader, nil)
 		stream.Tidy()

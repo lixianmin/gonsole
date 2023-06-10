@@ -55,7 +55,7 @@ func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHa
 			return
 		}
 
-		my.resetReadDeadline(heartbeatInterval)
+		my.resetReadDeadline(heartbeatInterval * 3)
 		_ = stream.Write(data)
 		onReadHandler(reader, nil)
 		stream.Tidy()
