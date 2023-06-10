@@ -39,16 +39,15 @@ func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadH
 	var buffer = make([]byte, 1024)
 	var stream = &iox.OctetsStream{}
 	var reader = iox.NewOctetsReader(stream)
-	var deadline = heartbeatInterval * 3
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
+		my.resetReadDeadline(heartbeatInterval)
 		var num, err1 = my.conn.Read(buffer)
 		if err1 != nil {
 			onReadHandler(nil, err1)
 			return
 		}
 
-		my.resetReadDeadline(deadline)
 		_ = stream.Write(buffer[:num])
 		onReadHandler(reader, nil)
 		stream.Tidy()

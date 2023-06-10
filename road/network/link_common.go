@@ -19,6 +19,9 @@ type commonLink struct {
 }
 
 func (my *commonLink) resetReadDeadline(heartbeatInterval time.Duration) {
+	// 不知道为什么经常报:  close session(27) by err="read tcp 192.168.31.96:8888->192.168.31.96:59562: i/o timeout"
+	// 1. 改为SetDeadline(),即同时改写read/write的deadline也是无效的
+	// 2. 时间已经设置为3倍的heartbeat时间了
 	_ = my.conn.SetReadDeadline(time.Now().Add(heartbeatInterval * 3))
 }
 
