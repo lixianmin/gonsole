@@ -18,9 +18,12 @@ export function newSession() {
     const _reader = newOctetsReader(newOctetsStream())
     const _writer = newOctetsWriter(newOctetsStream())
 
+    const _kindRoutes = new Map()
+    const _routeKinds = new Map()
+    const _routeHandlers = new Map()
+
     let _onConnected = undefined
     let _socket = undefined
-    let _kindRoutes = new Map()
 
     function connect(url, onConnected) {
         _onConnected = onConnected
@@ -75,9 +78,7 @@ export function newSession() {
                 _socket.close(0, 'kicked')
                 break
             default:
-                if (pack.kind >= PacketKind.UserDefined) {
-
-                }
+                onReceivedUserdata(pack)
                 break
         }
     }
@@ -93,8 +94,10 @@ export function newSession() {
 
         function buildKindRoutes() {
             _kindRoutes.clear()
+            _routeKinds.clear()
             for (let [route, kind] of Object.entries(handshake.route_kinds)) {
                 _kindRoutes.set(kind, route)
+                _routeKinds.set(route, kind)
             }
         }
 
@@ -109,6 +112,29 @@ export function newSession() {
         console.log('handshake', handshake)
     }
 
+    function onReceivedUserdata(pack) {
+        if (pack.kind >= PacketKind.Userdata) {
+            const route = _kindRoutes.get(pack.kind)
+            const handler = _routeHandlers.get(route)
+            if (handler) {
+                const item = _serde.deserialize(pack.data)
+                let response = undefined
+                let err = undefined
+                if (pack.code) {
+                    err = {
+                        code: _serde.deserialize(pack.code),
+                        message: item
+                    }
+                } else {
+                    response = item
+                }
+
+                // console.log(response, err)
+                handler(response, err)
+            }
+        }
+    }
+
     function sendPacket(pack) {
         const stream = _writer.stream
         stream.reset()
@@ -119,8 +145,26 @@ export function newSession() {
         _socket.send(bytes.buffer)
     }
 
+    function request(route, request, callback = undefined) {
+        const kind = _routeKinds.get(route)
+        if (kind) {
+            const data = _serde.serialize(request)
+            const pack = {kind: kind, data: data}
+            sendPacket(pack)
+
+            if (callback) {
+                _routeHandlers.set(route, callback)
+            }
+        }
+    }
+
+    function on(route, handler) {
+        _routeHandlers.set(route, handler)
+    }
+
     return {
         connect: connect,
-        sendPacket: sendPacket,
+        request: request,
+        on: on,
     }
 }

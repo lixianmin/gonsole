@@ -52,8 +52,8 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 			}
 		}
 
-		if pack.Kind >= serde.UserDefined {
-			if err4 := my.onReceivedOther(pack); err4 != nil {
+		if pack.Kind >= serde.Userdata {
+			if err4 := my.onReceivedUserdata(pack); err4 != nil {
 				return err4
 			}
 		} else if pack.Kind == serde.Heartbeat {
@@ -68,7 +68,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 	return nil
 }
 
-func (my *sessionImpl) onReceivedOther(input serde.Packet) error {
+func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	var handler = my.manger.GetHandlerByKind(input.Kind)
 	if handler == nil {
 		return ErrEmptyHandler

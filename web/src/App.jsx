@@ -21,6 +21,7 @@ import {onMount} from "solid-js";
 import InputBox from "./widgets/InputBox";
 import MainPanel, {printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
 import LogList from "./widgets/LogList";
+import {newSession} from "@src/code/network/session";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -38,7 +39,7 @@ const App = () => {
     const config = createWebConfig()
     const historyStore = useHistoryStore()
 
-    const star = new StartX()
+    const session = newSession()
     const rootUrl = config.getRootUrl()
 
     // 开放sendCommand方法, 使client端写js代码的时候用websocket跟server交互
@@ -52,7 +53,7 @@ const App = () => {
         const bean = {command: `${cmd} ${username} ${digestOrToken} ${fingerprint}`}
         return new Promise(resolve => {
             // 把callback改为promise
-            star.request("console.command", bean, obj => {
+            session.request("console.command", bean, obj => {
                 const cloned = {...obj.data}  // shadow clone
                 resolve(obj.data)
 
@@ -64,7 +65,7 @@ const App = () => {
         })
     })
 
-    star.connect({url: config.getWebsocketUrl()}, (nonce) => {
+    session.connect(config.getWebsocketUrl(), (nonce) => {
         console.log("websocket connected")
         printHtml(config.body)
         println()
@@ -72,24 +73,25 @@ const App = () => {
     })
 
     const uptime = new Date()
-    star.on("disconnect", () => {
+    session.on("disconnect", (response, err) => {
         const onlineTime = moment.duration(new Date().getTime() - uptime.getTime(), "milliseconds").humanize()
         printWithTimestamp(`<b> disconnected from server after ${onlineTime} </b>`)
     })
 
-    star.on("console.html", onHtml)
-    star.on("console.default", onDefault)
+    session.on("console.html", onHtml)
+    session.on("console.default", onDefault)
 
-    function onHtml(data) {
-        printWithTimestamp("<b>server响应：</b>" + data)
+    function onHtml(response, err) {
+        printWithTimestamp("<b>server响应：</b>" + response)
         println()
     }
 
-    function onTable(data) {
-        printHtml(() => <JsonTable tableData={data}/>)
+    function onTable(response, err) {
+        printHtml(() => <JsonTable tableData={response}/>)
     }
 
-    function onDefault(operation) {
+    function onDefault(response, err) {
+        const operation = response
         const text = JSON.stringify(operation)
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
@@ -100,7 +102,7 @@ const App = () => {
         printWithTimestamp("<b>client请求：</b>")
         printHtml(json)
         println()
-        star.request(route, bean, callback)
+        session.request(route, bean, callback)
     }
 
     // args是可变参数列表
@@ -201,7 +203,7 @@ const App = () => {
                     head: text,
                 }
 
-                star.request("console.hint", bean, (list) => {
+                session.request("console.hint", bean, (list) => {
                     const size = list.length
                     if (size > 0) {
                         const names = list.map(v => v.Name)

@@ -58,7 +58,7 @@ func (my *Manager) RebuildHandlerKinds() {
 	my.kindHandlers = make(map[int32]*component.Handler, size)
 
 	for i, route := range routes {
-		var kind = int32(i) + serde.UserDefined
+		var kind = int32(i) + serde.Userdata
 		my.routeKinds[route] = kind
 		my.kindHandlers[kind] = my.routeHandlers[route]
 	}
