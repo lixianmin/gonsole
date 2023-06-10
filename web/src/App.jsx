@@ -24,8 +24,6 @@ import {newSession} from "@src/code/network/session";
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
 /**
- * todo 需要在readme中加入npm的开发和使用流程
- * todo 各种js中的any需要调整一下
  * todo 打包后生成的assets的根目录是否需要修改
  */
 

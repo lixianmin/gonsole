@@ -46,7 +46,6 @@ export function printHtml(html) {
     return item
 }
 
-// todo 这个方法也许可以优化, 不应该每次都生成一个<div>吧?
 export function println() {
     printHtml("<br>")
 }
