@@ -7,8 +7,6 @@
  *********************************************************************/
 
 import './App.module.css';
-
-import {StartX} from "./code/starx";
 import {createWebConfig} from "./code/web_config.js";
 import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
