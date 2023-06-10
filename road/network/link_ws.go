@@ -42,6 +42,7 @@ func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHa
 
 	var stream = &iox.OctetsStream{}
 	var reader = iox.NewOctetsReader(stream)
+	var deadline = heartbeatInterval * 3
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
@@ -55,7 +56,7 @@ func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHa
 			return
 		}
 
-		my.resetReadDeadline(heartbeatInterval * 3)
+		my.resetReadDeadline(deadline)
 		_ = stream.Write(data)
 		onReadHandler(reader, nil)
 		stream.Tidy()
