@@ -1,7 +1,6 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/network"
 )
 
@@ -44,7 +43,7 @@ func newClient(session network.Session) *Client {
 //}
 
 func (client *Client) PushDefault(v interface{}) {
-	_ = client.session.PushByRoute(ifs.RouteDefault, v)
+	_ = client.session.PushByRoute("console.default", v)
 }
 
 func (client *Client) OnClosed(callback func()) {

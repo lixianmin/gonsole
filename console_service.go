@@ -164,6 +164,14 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	return convert.ToJson(results), nil
 }
 
+func (my *ConsoleService) Default(ctx context.Context, request []byte) ([]byte, error) {
+	return nil, nil // 为了推送 console.default
+}
+
+func (my *ConsoleService) Html(ctx context.Context, request []byte) ([]byte, error) {
+	return nil, nil // 为了推送 console.html
+}
+
 func isAuthorized(session network.Session) bool {
 	return session.Attachment().Bool(ifs.KeyIsAuthorized)
 }

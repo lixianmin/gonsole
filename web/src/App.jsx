@@ -64,7 +64,9 @@ const App = () => {
     })
 
     session.connect(config.getWebsocketUrl(), (nonce) => {
-        console.log("websocket connected")
+        const time = moment(new Date()).format("HH:mm:ss.S")
+        console.log(`[${time}] websocket connected`)
+
         printHtml(config.body)
         println()
         login.tryAutoLogin(nonce).then()
@@ -76,20 +78,19 @@ const App = () => {
         printWithTimestamp(`<b> disconnected from server after ${onlineTime} </b>`)
     })
 
-    session.on("console.html", onHtml)
-    session.on("console.default", onDefault)
+    session.on("console.html", onHtmlHandler)
+    session.on("console.default", onDefaultHandler)
 
-    function onHtml(response, err) {
-        // console.log('onHtml:', response)
-        printWithTimestamp("<b>server响应：</b>" + response)
+    function onHtmlHandler(response, err) {
+        printWithTimestamp("<b>server响应：</b>" + response.data)
         println()
     }
 
-    function onTable(response, err) {
-        printHtml(() => <JsonTable tableData={response}/>)
+    function onTableData(data) {
+        printHtml(() => <JsonTable tableData={data}/>)
     }
 
-    function onDefault(response, err) {
+    function onDefaultHandler(response, err) {
         const text = JSON.stringify(err ?? response)
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
@@ -123,18 +124,18 @@ const App = () => {
                     printHtml(() => <History/>)
                     break
                 case "html":
-                    onHtml(response.data)
+                    onHtmlHandler(response)
                     break
                 case "table":
-                    onTable(response.data)
+                    onTableData(response.data)
                     break
                 case "empty":
                     break
                 default:
-                    onDefault(response, err)
+                    onDefaultHandler(response, err)
             }
         } else {
-            onDefault(response, err)
+            onDefaultHandler(response, err)
         }
     }
 
@@ -211,7 +212,7 @@ const App = () => {
                         const names = list.map(v => v.Name)
                         inputBox.value = longestCommonPrefix(names)
                         if (size > 1) {
-                            onTable(JSON.stringify(list))
+                            onTableData(JSON.stringify(list))
                         }
                     }
                 })

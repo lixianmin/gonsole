@@ -124,7 +124,7 @@ export function newSession() {
             }, interval)
         }
 
-        console.log('handshake', handshake)
+        // console.log('handshake', handshake)
     }
 
     function stopSendingHeartbeat() {
