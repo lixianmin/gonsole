@@ -12,13 +12,13 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func Encode(writer *iox.OctetsWriter, pack Packet) {
+func EncodePacket(writer *iox.OctetsWriter, pack Packet) {
 	_ = writer.Write7BitEncodedInt(pack.Kind)
 	_ = writer.WriteBytes(pack.Code)
 	_ = writer.WriteBytes(pack.Data)
 }
 
-func Decode(reader *iox.OctetsReader) ([]Packet, error) {
+func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 	var packets []Packet = nil
 	var stream = reader.Stream()
 

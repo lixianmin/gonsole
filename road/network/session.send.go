@@ -95,7 +95,7 @@ func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 	var writer = my.writer
 	var stream = writer.Stream()
 	stream.Reset()
-	serde.Encode(writer, pack)
+	serde.EncodePacket(writer, pack)
 
 	var buffer = stream.Bytes()
 	var _, err = my.link.Write(buffer)

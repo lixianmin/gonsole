@@ -26,6 +26,7 @@ export function newSession() {
     let _socket = undefined
     let _heartbeatIntervalId = 0
     let _reconnect = undefined
+    let _isVisible = true
 
     function connect(url, onConnected) {
         _reconnect = function () {
@@ -69,9 +70,22 @@ export function newSession() {
 
     function onclose(evt) {
         stopSendingHeartbeat()
+        if (_isVisible) {
+            _reconnect()
+        }
+
         // console.log('onclose:', evt)
-        _reconnect()
     }
+
+    document.addEventListener("visibilitychange", function () {
+        _isVisible = document.visibilityState === 'visible'
+        const readState = _socket.readyState
+        if (_isVisible && (readState === WebSocket.CLOSING || readState === WebSocket.CLOSED)) {
+            stopSendingHeartbeat()
+            _reconnect()
+        }
+        // console.log('visibilitychange', document.visibilityState)
+    });
 
     function onReceivedData(reader) {
         const packets = decode(reader)

@@ -35,7 +35,7 @@ func (my *sessionImpl) startGoLoop() {
 }
 
 func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
-	var packets, err1 = serde.Decode(reader)
+	var packets, err1 = serde.DecodePacket(reader)
 	if err1 != nil {
 		var err2 = fmt.Errorf("failed to decode message: %s", err1.Error())
 		return err2
