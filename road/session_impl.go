@@ -43,7 +43,7 @@ type sessionImpl struct {
 	onClosedHandler          func()
 }
 
-func NewSession(manager *Manager, link Link) Session {
+func newSession(manager *Manager, link Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,
