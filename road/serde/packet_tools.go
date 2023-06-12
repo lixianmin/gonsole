@@ -14,6 +14,7 @@ Copyright (C) - All Rights Reserved
 
 func EncodePacket(writer *iox.OctetsWriter, pack Packet) {
 	_ = writer.Write7BitEncodedInt(pack.Kind)
+	_ = writer.Write7BitEncodedInt(pack.RequestId)
 	_ = writer.WriteBytes(pack.Code)
 	_ = writer.WriteBytes(pack.Data)
 }
@@ -31,6 +32,12 @@ func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 			return packets, nil
 		}
 
+		requestId, err := reader.Read7BitEncodedInt()
+		if err == iox.ErrNotEnoughData {
+			rewindStream(stream, lastPosition)
+			return packets, nil
+		}
+
 		code, err := reader.ReadBytes()
 		if err == iox.ErrNotEnoughData {
 			rewindStream(stream, lastPosition)
@@ -43,7 +50,7 @@ func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 			return packets, nil
 		}
 
-		var pack = Packet{Kind: kind, Code: code, Data: data}
+		var pack = Packet{Kind: kind, RequestId: requestId, Code: code, Data: data}
 		packets = append(packets, pack)
 	}
 }

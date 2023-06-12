@@ -77,7 +77,8 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
 	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.manger.GetSerde())
 	var output = serde.Packet{
-		Kind: input.Kind,
+		Kind:      input.Kind,
+		RequestId: input.RequestId,
 	}
 
 	if err == nil {

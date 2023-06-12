@@ -10,6 +10,7 @@ import {SeekOrigin} from "@src/code/iox/octets_stream";
 
 export function encode(writer, pack) {
     writer.write7BitEncodedInt(pack.kind)
+    writer.write7BitEncodedInt(pack.requestId)
     writer.writeBytes(pack.code)
     writer.writeBytes(pack.data)
 }
@@ -22,10 +23,11 @@ export function decode(reader) {
         const lastPosition = stream.position
         try {
             const kind = reader.read7BitEncodedInt()
+            const requestId = reader.read7BitEncodedInt()
             const code = reader.readBytes()
             const data = reader.readBytes()
 
-            const pack = {kind, code, data}
+            const pack = {kind, requestId, code, data}
             packets.push(pack)
         } catch (ex) {
             // console.log(ex, stream)

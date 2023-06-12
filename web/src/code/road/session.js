@@ -8,7 +8,7 @@
  *********************************************************************/
 import {newOctetsStream, SeekOrigin} from "@src/code/iox/octets_stream";
 import {newOctetsReader} from "@src/code/iox/octets_reader";
-import {decode, encode} from "@src/code/road/tools";
+import {decode, encode} from "@src/code/road/packet_tools";
 import {PacketKind} from "@src/code/road/consts";
 import {newJsonSerde} from "@src/code/road/json_serde";
 import {newOctetsWriter} from "@src/code/iox/octets_writer";
@@ -20,13 +20,14 @@ export function newSession() {
 
     const _kindRoutes = new Map()
     const _routeKinds = new Map()
-    const _routeHandlers = new Map()
+    const _requestHandlers = new Map()
 
     let _onConnected = undefined
     let _socket = undefined
     let _heartbeatIntervalId = 0
     let _reconnect = undefined
     let _isVisible = true
+    let _requestIdGenerator = 0
 
     function connect(url, onConnected) {
         _reconnect = function () {
@@ -34,7 +35,7 @@ export function newSession() {
             _writer.stream.reset()
             _kindRoutes.clear()
             _routeKinds.clear()
-            _routeHandlers.clear()
+            _requestHandlers.clear()
             _onConnected = onConnected
 
             _socket = new WebSocket(url)
@@ -154,16 +155,19 @@ export function newSession() {
     }
 
     function onReceivedUserdata(pack) {
-        if (pack.kind < PacketKind.Userdata) {
+        const requestId = pack.requestId
+        if (pack.kind < PacketKind.Userdata || requestId === 0) {
             return
         }
 
-        const route = _kindRoutes.get(pack.kind)
-        const handler = _routeHandlers.get(route)
+        const handler = _requestHandlers.get(requestId)
         if (!handler) {
-            console.error(`invalid kind with no route or handler, kind=${pack.kind}, route=${route}`)
+            console.error(`invalid kind with no handler, kind=${pack.kind}, requestId=${requestId}`)
             return
         }
+
+        console.log('requestId', requestId)
+        _requestHandlers.delete(requestId)
 
         let response = undefined
         let err = undefined
@@ -191,21 +195,22 @@ export function newSession() {
         _socket.send(bytes.buffer)
     }
 
-    function request(route, bean, callback = undefined) {
+    function request(route, request, handler = undefined) {
         const kind = _routeKinds.get(route)
         if (kind) {
-            const data = _serde.serialize(bean)
-            const pack = {kind: kind, data: data}
-            sendPacket(pack)
-
-            if (callback) {
-                _routeHandlers.set(route, callback)
+            const data = _serde.serialize(request)
+            const requestId = ++_requestIdGenerator
+            const pack = {kind: kind, requestId: requestId, data: data}
+            if (handler) {
+                _requestHandlers.set(requestId, handler)
             }
+
+            sendPacket(pack)
         }
     }
 
     function on(route, handler) {
-        _routeHandlers.set(route, handler)
+        _requestHandlers.set(route, handler)
     }
 
     return {

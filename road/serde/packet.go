@@ -8,9 +8,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Packet struct {
-	Kind int32  // 自定义的类型从UserDefined开始
-	Code []byte // error code
-	Data []byte // 如果有error code, 则Data是error message; 否则Data是数据payload
+	Kind      int32  // 自定义的类型从UserDefined开始
+	RequestId int32  // 请求的rid, 用于client请求时定位response的handler
+	Code      []byte // error code
+	Data      []byte // 如果有error code, 则Data是error message; 否则Data是数据payload
 }
 
 type HandshakeInfo struct {
