@@ -1,7 +1,7 @@
 package epoll
 
 import (
-	"github.com/lixianmin/gonsole/road/network"
+	"github.com/lixianmin/gonsole/road"
 )
 
 /********************************************************************
@@ -12,5 +12,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
-	GetLinkChan() chan network.Link
+	GetLinkChan() chan road.Link
 }

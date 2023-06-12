@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/jwtx"
-	"github.com/lixianmin/gonsole/road/network"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/logo"
 	"strings"
@@ -27,7 +27,7 @@ type CommandAuth struct {
 	ClientAddress string `json:"client,omitempty"`
 }
 
-func NewCommandAuth(session network.Session, args []string, userPasswords map[string]string, autoLoginTime time.Duration, port int) *CommandAuth {
+func NewCommandAuth(session road.Session, args []string, userPasswords map[string]string, autoLoginTime time.Duration, port int) *CommandAuth {
 	var bean = &CommandAuth{}
 
 	if len(args) < 4 {
@@ -122,7 +122,7 @@ func NewCommandAuth(session network.Session, args []string, userPasswords map[st
 	return bean
 }
 
-func extractIpAddress(session network.Session) string {
+func extractIpAddress(session road.Session) string {
 	var ipWithPort = session.RemoteAddr().String()
 	var lastIndex = strings.LastIndex(ipWithPort, ":")
 	var result = ipWithPort

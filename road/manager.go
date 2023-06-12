@@ -1,4 +1,4 @@
-package network
+package road
 
 import (
 	"github.com/lixianmin/gonsole/road/component"
@@ -33,7 +33,7 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 }
 
 func (my *Manager) NewSession(link Link) Session {
-	return newSession(my, link)
+	return NewSession(my, link)
 }
 
 func (my *Manager) AddHandler(route string, handler *component.Handler) {

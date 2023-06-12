@@ -1,4 +1,4 @@
-package network
+package road
 
 import (
 	"github.com/lixianmin/gonsole/ifs"

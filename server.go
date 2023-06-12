@@ -6,7 +6,6 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
-	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
@@ -28,7 +27,7 @@ Copyright (C) - All Rights Reserved
 
 type Server struct {
 	options serverOptions
-	app     *road.App
+	app     *epoll.App
 
 	gpid         string
 	consoleUrl   string
@@ -66,8 +65,8 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
-	var app = road.NewApp(acceptor,
-		road.WithSessionRateLimitBySecond(5),
+	var app = epoll.NewApp(acceptor,
+		epoll.WithSessionRateLimitBySecond(5),
 	)
 
 	var server = &Server{
@@ -88,7 +87,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		server.enablePProf(mux)
 	}
 
-	app.OnHandShaken(func(session network.Session) {
+	app.OnHandShaken(func(session road.Session) {
 		var client = newClient(session)
 		session.Attachment().Put(ifs.KeyClient, client)
 
@@ -192,7 +191,7 @@ func (server *Server) ConsoleUrl() string {
 	return server.consoleUrl
 }
 
-func (server *Server) App() *road.App {
+func (server *Server) App() *epoll.App {
 	return server.app
 }
 

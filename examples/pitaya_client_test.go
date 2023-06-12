@@ -8,7 +8,6 @@ import (
 	"github.com/lixianmin/gonsole/road/client"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
-	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/logo"
 	"sync"
 	"testing"
@@ -64,14 +63,14 @@ func TestPitayaClient(t *testing.T) {
 	var tcpPort = 6666
 	var tcpAddress = fmt.Sprintf("127.0.0.1:%d", tcpPort)
 	var acceptor = epoll.NewTcpAcceptor(tcpAddress)
-	var app = road.NewApp(acceptor,
-		road.WithSessionRateLimitBySecond(1000),
+	var app = epoll.NewApp(acceptor,
+		epoll.WithSessionRateLimitBySecond(1000),
 	)
 
 	var group = &PlayerGroup{}
 	_ = app.Register(group, component.WithName("player"), component.WithNameFunc(gonsole.ToSnakeName))
 
-	app.OnHandShaken(func(session network.Session) {
+	app.OnHandShaken(func(session road.Session) {
 		for i := 0; i < 100; i++ {
 			if err := session.PushByRoute("player.get_player_info", GetPlayerInfo{
 				Id: int32(i),
@@ -97,7 +96,7 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var pClient = client.NewClient()
 	if err := pClient.ConnectTo(serverAddress); err != nil {
 		wg.Done()
-		return network.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
+		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
 	}
 
 	var timer = time.NewTimer(5 * time.Second)

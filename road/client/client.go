@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/gobwas/ws"
-	"github.com/lixianmin/gonsole/road/network"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -22,8 +22,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	manager            *network.Manager
-	session            network.Session
+	manager            *road.Manager
+	session            road.Session
 	handshake          serde.HandshakeInfo
 	receivedPacketChan chan serde.Packet
 	connectState       int32
@@ -43,7 +43,7 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 
 	var client = &Client{
-		manager:            network.NewManager(2 * time.Second),
+		manager:            road.NewManager(2 * time.Second),
 		connectState:       StateHandshake,
 		receivedPacketChan: make(chan serde.Packet, options.receiverBufferSize),
 	}
@@ -109,7 +109,7 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 		return err
 	}
 
-	var link = network.NewTcpLink(conn)
+	var link = road.NewTcpLink(conn)
 	my.session = my.manager.NewSession(link)
 	my.session.OnReceivingPacket(my.onReceivingPacket)
 	return nil
@@ -131,7 +131,7 @@ func (my *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config
 		return err
 	}
 
-	var link = network.NewWsLink(conn)
+	var link = road.NewWsLink(conn)
 	my.session = my.manager.NewSession(link)
 	my.session.OnReceivingPacket(my.onReceivingPacket)
 
@@ -149,7 +149,7 @@ func (my *Client) onReceivingPacket(pack serde.Packet) error {
 		return ErrKicked
 	default:
 		my.receivedPacketChan <- pack
-		return network.ErrPacketProcessed
+		return road.ErrPacketProcessed
 	}
 
 	return nil

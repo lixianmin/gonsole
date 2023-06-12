@@ -2,7 +2,7 @@ package epoll
 
 import (
 	"github.com/gobwas/ws"
-	"github.com/lixianmin/gonsole/road/network"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/logo"
 	"net/http"
 )
@@ -15,7 +15,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	linkChan chan network.Link
+	linkChan chan road.Link
 	isClosed int32
 }
 
@@ -26,7 +26,7 @@ func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption)
 	}
 
 	var my = &WsAcceptor{
-		linkChan: make(chan network.Link, options.LinkChanSize),
+		linkChan: make(chan road.Link, options.LinkChanSize),
 	}
 
 	// 这个相当于listener，每创建一个新的链接
@@ -42,9 +42,9 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.linkChan <- network.NewWsLink(conn)
+	my.linkChan <- road.NewWsLink(conn)
 }
 
-func (my *WsAcceptor) GetLinkChan() chan network.Link {
+func (my *WsAcceptor) GetLinkChan() chan road.Link {
 	return my.linkChan
 }

@@ -1,8 +1,17 @@
-package network
+package road
 
 import (
+	"context"
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/iox"
+	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/logo"
 	"net"
+	"reflect"
+	"runtime"
+	"sync"
+	"sync/atomic"
 )
 
 /********************************************************************
@@ -15,6 +24,46 @@ Copyright (C) - All Rights Reserved
 var (
 	globalIdGenerator int64 = 0
 )
+
+type sessionWrapper struct {
+	*sessionImpl
+}
+
+type sessionImpl struct {
+	manger     *Manager
+	writer     *iox.OctetsWriter
+	writeLock  sync.Mutex
+	id         int64
+	link       Link
+	ctxValue   reflect.Value
+	attachment *AttachmentImpl
+	wc         loom.WaitClose
+
+	onReceivingPacketHandler func(packet serde.Packet) error
+	onClosedHandler          func()
+}
+
+func NewSession(manager *Manager, link Link) Session {
+	var id = atomic.AddInt64(&globalIdGenerator, 1)
+	var my = &sessionWrapper{&sessionImpl{
+		manger:     manager,
+		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
+		id:         id,
+		link:       link,
+		attachment: &AttachmentImpl{},
+	}}
+
+	logo.Info("create session(%d)", my.id)
+	my.ctxValue = reflect.ValueOf(context.WithValue(context.Background(), ifs.CtxKeySession, my))
+	my.startGoLoop()
+
+	// 参考: https://zhuanlan.zhihu.com/p/76504936
+	runtime.SetFinalizer(my, func(w *sessionWrapper) {
+		_ = w.Close()
+	})
+
+	return my
+}
 
 // Close 可以被多次调用，但只触发一次OnClosed事件
 func (my *sessionImpl) Close() error {
@@ -69,6 +118,6 @@ func (my *sessionImpl) RemoteAddr() net.Addr {
 	return my.link.RemoteAddr()
 }
 
-func (my *sessionImpl) Attachment() *Attachment {
+func (my *sessionImpl) Attachment() Attachment {
 	return my.attachment
 }

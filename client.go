@@ -1,7 +1,7 @@
 package gonsole
 
 import (
-	"github.com/lixianmin/gonsole/road/network"
+	"github.com/lixianmin/gonsole/road"
 )
 
 /********************************************************************
@@ -12,12 +12,12 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Client struct {
-	session network.Session
+	session road.Session
 	topics  map[string]struct{}
 }
 
 // newClient 创建一个新的client对象
-func newClient(session network.Session) *Client {
+func newClient(session road.Session) *Client {
 	var client = &Client{
 		session: session,
 		topics:  make(map[string]struct{}),
@@ -50,10 +50,10 @@ func (client *Client) OnClosed(callback func()) {
 	client.session.OnClosed(callback)
 }
 
-func (client *Client) Session() network.Session {
+func (client *Client) Session() road.Session {
 	return client.session
 }
 
-func (client *Client) Attachment() *network.Attachment {
+func (client *Client) Attachment() road.Attachment {
 	return client.session.Attachment()
 }

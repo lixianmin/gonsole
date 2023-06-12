@@ -1,11 +1,10 @@
-package road
+package epoll
 
 import (
 	"fmt"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/epoll"
 	"github.com/lixianmin/gonsole/road/internal"
-	"github.com/lixianmin/gonsole/road/network"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -22,11 +21,11 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		// 下面这组参数，在session里都会用到
-		manager           *network.Manager
+		manager           *road.Manager
 		wheelSecond       *loom.Wheel
 		rateLimitBySecond int
 
-		accept   epoll.Acceptor
+		accept   Acceptor
 		sessions loom.Map
 		tasks    *taskx.Queue
 		wc       loom.WaitClose
@@ -35,11 +34,11 @@ type (
 	}
 
 	appFetus struct {
-		onHandShakenHandlers []func(session network.Session)
+		onHandShakenHandlers []func(session road.Session)
 	}
 )
 
-func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
+func NewApp(accept Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
 		HeartbeatInterval:        3 * time.Second,
@@ -52,7 +51,7 @@ func NewApp(accept epoll.Acceptor, opts ...AppOption) *App {
 	}
 
 	var app = &App{
-		manager:           network.NewManager(options.HeartbeatInterval),
+		manager:           road.NewManager(options.HeartbeatInterval),
 		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 
@@ -86,7 +85,7 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(fetus *appFetus, conn network.Link) {
+func (my *App) onNewSession(fetus *appFetus, conn road.Link) {
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
@@ -110,7 +109,7 @@ func (my *App) onNewSession(fetus *appFetus, conn network.Link) {
 
 // OnHandShaken 暴露一个OnConnected()事件暂时没有看到很大的意义，因为handshake必须是第一个消息
 // 如果需要接入握手事件的话, 可以自己注册OnHandShaken事件
-func (my *App) OnHandShaken(handler func(session network.Session)) {
+func (my *App) OnHandShaken(handler func(session road.Session)) {
 	if handler != nil {
 		my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
 			var fetus = args.(*appFetus)
