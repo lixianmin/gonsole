@@ -166,7 +166,7 @@ export function newSession() {
             return
         }
 
-        console.log('requestId', requestId)
+        // console.log('requestId', requestId)
         _requestHandlers.delete(requestId)
 
         let response = undefined
