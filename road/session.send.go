@@ -29,7 +29,7 @@ Copyright (C) - All Rights Reserved
 func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
 	var kind, ok = my.manger.GetKindByRoute(route)
 	if !ok {
-		return NewError("InvalidRoute", "route=%q is not registered")
+		return NewError("InvalidRoute", "route=%q is not registered", route)
 	}
 
 	return my.PushByKind(kind, v)
