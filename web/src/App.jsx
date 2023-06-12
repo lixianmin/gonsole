@@ -19,7 +19,7 @@ import {onMount} from "solid-js";
 import InputBox from "./widgets/InputBox";
 import MainPanel, {printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
 import LogList from "./widgets/LogList";
-import {newSession} from "@src/code/network/session";
+import {newSession} from "@src/code/road/session";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time

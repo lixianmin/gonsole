@@ -8,9 +8,9 @@
  *********************************************************************/
 import {newOctetsStream, SeekOrigin} from "@src/code/iox/octets_stream";
 import {newOctetsReader} from "@src/code/iox/octets_reader";
-import {decode, encode} from "@src/code/network/tools";
-import {PacketKind} from "@src/code/network/consts";
-import {newJsonSerde} from "@src/code/network/json_serde";
+import {decode, encode} from "@src/code/road/tools";
+import {PacketKind} from "@src/code/road/consts";
+import {newJsonSerde} from "@src/code/road/json_serde";
 import {newOctetsWriter} from "@src/code/iox/octets_writer";
 
 export function newSession() {
@@ -124,7 +124,12 @@ export function newSession() {
         function buildKindRoutes() {
             _kindRoutes.clear()
             _routeKinds.clear()
-            for (let [route, kind] of Object.entries(handshake.route_kinds)) {
+
+            const routes = handshake.routes
+            const size = routes.length
+            for (let i = 0; i < size; i++) {
+                const kind = PacketKind.Userdata + i;
+                const route = routes[i];
                 _kindRoutes.set(kind, route)
                 _routeKinds.set(route, kind)
             }

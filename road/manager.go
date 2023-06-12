@@ -19,6 +19,7 @@ type Manager struct {
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
+	routes            []string
 	serde             serde.Serde
 }
 
@@ -56,6 +57,7 @@ func (my *Manager) RebuildHandlerKinds() {
 	sort.Strings(routes)
 	my.routeKinds = make(map[string]int32, size)
 	my.kindHandlers = make(map[int32]*component.Handler, size)
+	my.routes = routes
 
 	for i, route := range routes {
 		var kind = int32(i) + serde.Userdata

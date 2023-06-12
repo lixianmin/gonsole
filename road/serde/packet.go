@@ -14,7 +14,7 @@ type Packet struct {
 }
 
 type HandshakeInfo struct {
-	Nonce      int32            `json:"nonce"`
-	Heartbeat  float32          `json:"heartbeat"` // 心跳间隔. 单位: 秒
-	RouteKinds map[string]int32 `json:"route_kinds"`
+	Nonce     int32    `json:"nonce"`
+	Heartbeat float32  `json:"heartbeat"` // 心跳间隔. 单位: 秒
+	Routes    []string `json:"routes"`    // 有序的routes, 其kinds值从Userdata(1000)有序增加; 只所以这么做并不是为了省流量, 而是unity3d的JsonUtility不支持反序列化Dictionary
 }

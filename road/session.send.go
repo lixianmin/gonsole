@@ -68,9 +68,9 @@ func (my *sessionImpl) Handshake() error {
 
 	var nonce = rand.Int31()
 	var info = serde.HandshakeInfo{
-		Nonce:      nonce,
-		Heartbeat:  float32(my.manger.heartbeatInterval.Seconds()),
-		RouteKinds: my.manger.routeKinds,
+		Nonce:     nonce,
+		Heartbeat: float32(my.manger.heartbeatInterval.Seconds()),
+		Routes:    my.manger.routes,
 	}
 
 	var data, err1 = my.manger.GetSerde().Serialize(info)
