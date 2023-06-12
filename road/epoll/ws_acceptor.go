@@ -3,6 +3,7 @@ package epoll
 import (
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road"
+	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/logo"
 	"net/http"
 )
@@ -42,7 +43,7 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	my.linkChan <- road.NewWsLink(conn)
+	my.linkChan <- internal.NewWsLink(conn)
 }
 
 func (my *WsAcceptor) GetLinkChan() chan road.Link {

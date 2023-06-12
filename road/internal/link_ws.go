@@ -1,8 +1,9 @@
-package road
+package internal
 
 import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -33,7 +34,7 @@ func NewWsLink(conn net.Conn) *WsLink {
 	return my
 }
 
-func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
+func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()

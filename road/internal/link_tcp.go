@@ -1,6 +1,7 @@
-package road
+package internal
 
 import (
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"net"
@@ -29,7 +30,7 @@ func NewTcpLink(conn net.Conn) *TcpLink {
 	return my
 }
 
-func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler) {
+func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
