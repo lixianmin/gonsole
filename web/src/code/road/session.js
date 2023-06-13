@@ -129,8 +129,8 @@ export function newSession() {
             const routes = handshake.routes
             const size = routes.length
             for (let i = 0; i < size; i++) {
-                const kind = PacketKind.Userdata + i;
-                const route = routes[i];
+                const kind = PacketKind.UserBase + i
+                const route = routes[i]
                 _kindRoutes.set(kind, route)
                 _routeKinds.set(route, kind)
             }
@@ -155,19 +155,15 @@ export function newSession() {
     }
 
     function onReceivedUserdata(pack) {
-        const requestId = pack.requestId
-        if (pack.kind < PacketKind.Userdata || requestId === 0) {
+        if (pack.kind < PacketKind.UserBase) {
             return
         }
 
-        const handler = _requestHandlers.get(requestId)
+        const handler = fetchHandler(pack)
         if (!handler) {
-            console.error(`invalid kind with no handler, kind=${pack.kind}, requestId=${requestId}`)
+            console.error(`can not find handler, kind=${pack.kind}, requestId=${pack.requestId}, route=${_serde.bytes2String(pack.route)}`)
             return
         }
-
-        // console.log('requestId', requestId)
-        _requestHandlers.delete(requestId)
 
         let response = undefined
         let err = undefined
@@ -185,6 +181,18 @@ export function newSession() {
         handler(response, err)
     }
 
+    function fetchHandler(pack) {
+        const requestId = pack.requestId
+        if (requestId !== 0) {
+            const handler = _requestHandlers.get(requestId)
+            _requestHandlers.delete(requestId)
+            return handler
+        } else {
+            const route = _serde.bytes2String(pack.route)
+            return _requestHandlers.get(route)
+        }
+    }
+
     function sendPacket(pack) {
         const stream = _writer.stream
         stream.reset()
@@ -196,17 +204,23 @@ export function newSession() {
     }
 
     function request(route, request, handler = undefined) {
-        const kind = _routeKinds.get(route)
-        if (kind) {
-            const data = _serde.serialize(request)
-            const requestId = ++_requestIdGenerator
-            const pack = {kind: kind, requestId: requestId, data: data}
-            if (handler) {
-                _requestHandlers.set(requestId, handler)
-            }
+        const data = _serde.serialize(request)
+        const requestId = ++_requestIdGenerator
 
-            sendPacket(pack)
+        const kind = _routeKinds.get(route)
+        const pack = {kind: kind, requestId: requestId, data: data}
+        // console.log('route', route, 'kind', kind)
+        if (!kind) {
+            const routeData = _serde.string2bytes(route)
+            pack.kind = PacketKind.RouteBase + routeData.length
+            pack.route = routeData
         }
+
+        if (handler) {
+            _requestHandlers.set(requestId, handler)
+        }
+
+        sendPacket(pack)
     }
 
     function on(route, handler) {

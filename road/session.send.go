@@ -3,6 +3,7 @@ package road
 import (
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/convert"
 	"math/rand"
 )
 
@@ -27,12 +28,25 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
-	var kind, ok = my.manger.GetKindByRoute(route)
-	if !ok {
-		return NewError("InvalidRoute", "route=%q is not registered", route)
+	if my.wc.IsClosed() {
+		return nil
 	}
 
-	return my.PushByKind(kind, v)
+	var data, err1 = my.manger.GetSerde().Serialize(v)
+	if err1 != nil {
+		return err1
+	}
+
+	var kind, ok = my.manger.GetKindByRoute(route)
+	var pack = serde.Packet{Kind: kind, Data: data}
+	if !ok {
+		var routeData = convert.Bytes(route)
+		pack.Kind = serde.RouteBase + int32(len(routeData))
+		pack.Route = routeData
+	}
+
+	var err2 = my.sendPacket(pack)
+	return err2
 }
 
 func (my *sessionImpl) PushByKind(kind int32, v interface{}) error {

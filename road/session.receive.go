@@ -52,7 +52,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 			}
 		}
 
-		if pack.Kind >= serde.Userdata {
+		if pack.Kind >= serde.UserBase {
 			if err4 := my.onReceivedUserdata(pack); err4 != nil {
 				return err4
 			}
@@ -69,6 +69,7 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 }
 
 func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
+	// client发来的消息, 必须有handler, 因此一定有kind才是合理的. server推送的消息可以没有kind
 	var handler = my.manger.GetHandlerByKind(input.Kind)
 	if handler == nil {
 		return ErrEmptyHandler

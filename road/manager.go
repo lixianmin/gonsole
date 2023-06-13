@@ -60,7 +60,7 @@ func (my *Manager) RebuildHandlerKinds() {
 	my.routes = routes
 
 	for i, route := range routes {
-		var kind = int32(i) + serde.Userdata
+		var kind = int32(i) + serde.UserBase
 		my.routeKinds[route] = kind
 		my.kindHandlers[kind] = my.routeHandlers[route]
 	}

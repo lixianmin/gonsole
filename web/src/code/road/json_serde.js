@@ -25,9 +25,14 @@ export function newJsonSerde() {
         return decoder.decode(bytes)
     }
 
+    function string2bytes(s) {
+        return encoder.encode(s)
+    }
+
     return {
         serialize: serialize,
         deserialize: deserialize,
         bytes2String: bytes2String,
+        string2bytes: string2bytes,
     }
 }
