@@ -44,7 +44,7 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 
 	var client = &Client{
-		manager:            road.NewManager(2 * time.Second),
+		manager:            road.NewManager(2*time.Second, &serde.JsonSerde{}),
 		connectState:       StateHandshake,
 		receivedPacketChan: make(chan serde.Packet, options.receiverBufferSize),
 	}
