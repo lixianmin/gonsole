@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -43,6 +44,7 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	var options = appOptions{
 		HeartbeatInterval:        3 * time.Second,
 		SessionRateLimitBySecond: 2,
+		Serde:                    &serde.JsonSerde{},
 	}
 
 	// 初始化
@@ -51,7 +53,7 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	}
 
 	var app = &App{
-		manager:           road.NewManager(options.HeartbeatInterval),
+		manager:           road.NewManager(options.HeartbeatInterval, options.Serde),
 		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 

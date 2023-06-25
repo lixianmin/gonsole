@@ -1,6 +1,9 @@
 package epoll
 
-import "time"
+import (
+	"github.com/lixianmin/gonsole/road/serde"
+	"time"
+)
 
 /********************************************************************
 created:    2020-09-30
@@ -12,6 +15,7 @@ Copyright (C) - All Rights Reserved
 type appOptions struct {
 	HeartbeatInterval        time.Duration
 	SessionRateLimitBySecond int // session每秒限流
+	Serde                    serde.Serde
 }
 
 type AppOption func(*appOptions)
@@ -28,6 +32,14 @@ func WithHeartbeatInterval(interval time.Duration) AppOption {
 	return func(options *appOptions) {
 		if interval > 0 {
 			options.HeartbeatInterval = interval
+		}
+	}
+}
+
+func WithSerde(serde serde.Serde) AppOption {
+	return func(options *appOptions) {
+		if serde != nil {
+			options.Serde = serde
 		}
 	}
 }

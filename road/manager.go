@@ -23,11 +23,11 @@ type Manager struct {
 	serde             serde.Serde
 }
 
-func NewManager(heartbeatInterval time.Duration) *Manager {
+func NewManager(heartbeatInterval time.Duration, serde serde.Serde) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
-		serde:             &serde.JsonSerde{},
+		serde:             serde,
 	}
 
 	return my
