@@ -16,8 +16,8 @@ type Session interface {
 	Handshake() error                   // server主动向client发送服务器的配置信息
 	HandshakeRe(serdeName string) error // client回复server的handshake协议
 	Kick() error                        // server主动踢client
-	PushByRoute(route string, v interface{}) error
-	PushByKind(kind int32, v interface{}) error
+	SendByRoute(route string, v interface{}) error
+	SendByKind(kind int32, v interface{}) error
 	Close() error
 
 	OnReceivingPacket(handler func(pack serde.Packet) error)

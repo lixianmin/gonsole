@@ -46,7 +46,7 @@ func (topic *Topic) start() {
 				var response = topic.BuildResponse()
 				var route = "console." + response.Operation
 				for client := range topic.clients.d {
-					if err := client.session.PushByRoute(route, response); err != nil {
+					if err := client.session.SendByRoute(route, response); err != nil {
 						logo.JsonW("route", route, "err", err)
 					}
 				}

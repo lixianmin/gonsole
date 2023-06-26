@@ -117,6 +117,7 @@ export function newSession() {
         const handshake = _serde.deserialize(pack.data)
         buildKindRoutes()
         startHeartbeat()
+        handshakeRe()
 
         if (_onConnected) {
             _onConnected(handshake.nonce)
@@ -144,7 +145,14 @@ export function newSession() {
             }, interval)
         }
 
-        // console.log('handshake', handshake)
+        function handshakeRe() {
+            const reply = {'serde': 'json'}
+            const data = _serde.serialize(reply)
+            const pack = {kind: PacketKind.HandshakeRe, data: data}
+            sendPacket(pack)
+        }
+
+        console.log('handshake', handshake)
     }
 
     function stopSendingHeartbeat() {

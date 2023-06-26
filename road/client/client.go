@@ -61,7 +61,7 @@ func (my *Client) goLoop(later loom.Later) {
 	for {
 		select {
 		case <-heartbeatTicker.C:
-			if err := my.session.PushByKind(serde.Heartbeat, nil); err != nil {
+			if err := my.session.SendByKind(serde.Heartbeat, nil); err != nil {
 				logo.Info("error sending heartbeat to server: %s", err.Error())
 				return
 			}
@@ -161,8 +161,8 @@ func (my *Client) onReceivingPacket(pack serde.Packet) error {
 	return nil
 }
 
-func (my *Client) PushByRoute(route string, v interface{}) error {
-	return my.session.PushByRoute(route, v)
+func (my *Client) SendByRoute(route string, v interface{}) error {
+	return my.session.SendByRoute(route, v)
 }
 
 // GetReceivedChan return the incoming message channel

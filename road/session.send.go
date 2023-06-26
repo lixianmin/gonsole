@@ -27,7 +27,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
+func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
 	if my.wc.IsClosed() {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
 	return err2
 }
 
-func (my *sessionImpl) PushByKind(kind int32, v interface{}) error {
+func (my *sessionImpl) SendByKind(kind int32, v interface{}) error {
 	if my.wc.IsClosed() {
 		return nil
 	}

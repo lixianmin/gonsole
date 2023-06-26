@@ -72,7 +72,7 @@ func TestPitayaClient(t *testing.T) {
 
 	app.OnHandShaken(func(session road.Session) {
 		for i := 0; i < 100; i++ {
-			if err := session.PushByRoute("player.get_player_info", GetPlayerInfo{
+			if err := session.SendByRoute("player.get_player_info", GetPlayerInfo{
 				Id: int32(i),
 			}); err != nil {
 				logo.JsonE("session", session.Id(), "err", err)
