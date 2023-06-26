@@ -117,7 +117,7 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 
 	var link = internal.NewTcpLink(conn)
 	my.session = my.manager.NewSession(link)
-	my.session.OnReceivingPacket(my.onReceivingPacket)
+	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 	return nil
 }
 
@@ -139,12 +139,12 @@ func (my *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config
 
 	var link = internal.NewWsLink(conn)
 	my.session = my.manager.NewSession(link)
-	my.session.OnReceivingPacket(my.onReceivingPacket)
+	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 
 	return nil
 }
 
-func (my *Client) onReceivingPacket(pack serde.Packet) error {
+func (my *Client) onReceivedPacketAtClient(pack serde.Packet) error {
 	switch pack.Kind {
 	case serde.Handshake:
 		if err := my.onReceiveHandshake(pack); err != nil {

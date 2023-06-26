@@ -22,9 +22,10 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		// 下面这组参数，在session里都会用到
-		manager           *road.Manager
-		wheelSecond       *loom.Wheel
-		rateLimitBySecond int
+		manager              *road.Manager
+		wheelSecond          *loom.Wheel
+		rateLimitBySecond    int
+		onHandShakenHandlers []func(session road.Session)
 
 		accept   Acceptor
 		sessions loom.Map
@@ -32,10 +33,6 @@ type (
 		wc       loom.WaitClose
 
 		services map[string]*component.Service // all registered service
-	}
-
-	appFetus struct {
-		onHandShakenHandlers []func(session road.Session)
 	}
 )
 
@@ -68,15 +65,13 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 }
 
 func (my *App) goLoop(later loom.Later) {
-	var fetus = &appFetus{}
-
 	var closeChan = my.wc.C()
 	for {
 		select {
 		case conn := <-my.accept.GetLinkChan():
-			my.onNewSession(fetus, conn)
+			my.onNewSession(conn)
 		case task := <-my.tasks.C:
-			var err = task.Do(fetus)
+			var err = task.Do(nil)
 			if err != nil {
 				logo.JsonI("err", err)
 			}
@@ -86,7 +81,7 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(fetus *appFetus, conn road.Link) {
+func (my *App) onNewSession(conn road.Link) {
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
@@ -100,23 +95,22 @@ func (my *App) onNewSession(fetus *appFetus, conn road.Link) {
 		my.sessions.Remove(id)
 	})
 
-	// for循环中小心closure的问题
-	var handlers = fetus.onHandShakenHandlers
-	for i := range handlers {
-		var handler = handlers[i]
-		handler(session)
-	}
+	// 这个在session的go loop中回调, 因此onHandShakenHandlers放在
+	session.OnHandShaken(func() {
+		// 不能直接使用for循环, 小心closure的问题
+		var handlers = my.onHandShakenHandlers
+		for i := range handlers {
+			var handler = handlers[i]
+			handler(session)
+		}
+	})
 }
 
 // OnHandShaken 暴露一个OnConnected()事件暂时没有看到很大的意义，因为handshake必须是第一个消息
 // 如果需要接入握手事件的话, 可以自己注册OnHandShaken事件
 func (my *App) OnHandShaken(handler func(session road.Session)) {
 	if handler != nil {
-		my.tasks.SendCallback(func(args interface{}) (result interface{}, err error) {
-			var fetus = args.(*appFetus)
-			fetus.onHandShakenHandlers = append(fetus.onHandShakenHandlers, handler)
-			return nil, nil
-		})
+		my.onHandShakenHandlers = append(my.onHandShakenHandlers, handler)
 	}
 }
 

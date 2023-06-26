@@ -40,8 +40,9 @@ type sessionImpl struct {
 	wc         loom.WaitClose
 	serde      serde.Serde
 
-	onReceivingPacketHandler func(packet serde.Packet) error
-	onClosedHandler          func()
+	onReceivedPacketHandler func(packet serde.Packet) error
+	onHandShakenHandler     func()
+	onClosedHandler         func()
 }
 
 func newSession(manager *Manager, link Link) Session {
@@ -56,6 +57,7 @@ func newSession(manager *Manager, link Link) Session {
 
 	logo.Info("create session(%d)", my.id)
 	my.ctxValue = reflect.ValueOf(context.WithValue(context.Background(), ifs.CtxKeySession, my))
+	my.onReceivedPacketHandler = my.onReceivedPacketAtServer
 	my.startGoLoop()
 
 	// 参考: https://zhuanlan.zhihu.com/p/76504936
@@ -81,8 +83,12 @@ func (my *sessionImpl) Close() error {
 	})
 }
 
-func (my *sessionImpl) OnReceivingPacket(handler func(pack serde.Packet) error) {
-	my.onReceivingPacketHandler = handler
+func (my *sessionImpl) OnReceivedPacket(handler func(pack serde.Packet) error) {
+	my.onReceivedPacketHandler = handler
+}
+
+func (my *sessionImpl) OnHandShaken(handler func()) {
+	my.onHandShakenHandler = handler
 }
 
 // OnClosed 需要保证OnClosed事件在任何情况下都会有且仅有一次触发：无论是主动断开，还是意外断开链接；无论client端有没有因为网络问题收到回复消息

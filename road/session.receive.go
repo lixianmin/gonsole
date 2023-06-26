@@ -41,31 +41,32 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 		return err2
 	}
 
-	var handler = my.onReceivingPacketHandler
-	for _, pack := range packets {
-		if handler != nil {
-			var err3 = handler(pack)
-			if err3 == ErrPacketProcessed {
-				continue
-			} else if err3 != nil {
+	var handler = my.onReceivedPacketHandler
+	if handler != nil {
+		for _, pack := range packets {
+			if err3 := handler(pack); err3 != nil {
 				return err3
 			}
 		}
+	}
 
-		if pack.Kind >= serde.UserBase {
-			if err4 := my.onReceivedUserdata(pack); err4 != nil {
-				return err4
-			}
-		} else if pack.Kind == serde.HandshakeRe {
-			if err5 := my.onReceivedHandshakeRe(pack); err5 != nil {
-				return err5
-			}
-		} else if pack.Kind == serde.Heartbeat {
-			// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
-			var pack = serde.Packet{Kind: serde.Heartbeat}
-			if err6 := my.sendPacket(pack); err6 != nil {
-				return err6
-			}
+	return nil
+}
+
+func (my *sessionImpl) onReceivedPacketAtServer(pack serde.Packet) error {
+	if pack.Kind >= serde.UserBase {
+		if err4 := my.onReceivedUserdata(pack); err4 != nil {
+			return err4
+		}
+	} else if pack.Kind == serde.HandshakeRe {
+		if err5 := my.onReceivedHandshakeRe(pack); err5 != nil {
+			return err5
+		}
+	} else if pack.Kind == serde.Heartbeat {
+		// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
+		var pack = serde.Packet{Kind: serde.Heartbeat}
+		if err6 := my.sendPacket(pack); err6 != nil {
+			return err6
 		}
 	}
 
@@ -85,6 +86,11 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 	}
 
 	my.setSerde(s)
+
+	var handler = my.onHandShakenHandler
+	if handler != nil {
+		handler()
+	}
 	return nil
 }
 
