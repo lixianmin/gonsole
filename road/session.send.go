@@ -87,7 +87,8 @@ func (my *sessionImpl) Handshake() error {
 		Routes:    my.manger.routes,
 	}
 
-	var data, err1 = my.manger.GetSerde().Serialize(info)
+	// handshake这个协议一定使用json去发, 后续的协议则可以替换为其它serde方法
+	var data, err1 = convert.ToJsonE(info)
 	if err1 != nil {
 		return err1
 	}
