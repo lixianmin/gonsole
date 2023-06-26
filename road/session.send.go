@@ -32,6 +32,10 @@ func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
 		return nil
 	}
 
+	if my.serde == nil {
+		return ErrInvalidSerde
+	}
+
 	var data, err1 = my.serde.Serialize(v)
 	if err1 != nil {
 		return err1
@@ -52,6 +56,10 @@ func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
 func (my *sessionImpl) SendByKind(kind int32, v interface{}) error {
 	if my.wc.IsClosed() {
 		return nil
+	}
+
+	if my.serde == nil {
+		return ErrInvalidSerde
 	}
 
 	var data, err1 = my.serde.Serialize(v)

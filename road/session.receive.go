@@ -95,6 +95,10 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 		return ErrEmptyHandler
 	}
 
+	if my.serde == nil {
+		return ErrInvalidSerde
+	}
+
 	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
 	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.serde)
 	var output = serde.Packet{
