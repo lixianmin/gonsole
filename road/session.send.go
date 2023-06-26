@@ -32,7 +32,7 @@ func (my *sessionImpl) PushByRoute(route string, v interface{}) error {
 		return nil
 	}
 
-	var data, err1 = my.manger.GetSerde().Serialize(v)
+	var data, err1 = my.serde.Serialize(v)
 	if err1 != nil {
 		return err1
 	}
@@ -54,7 +54,7 @@ func (my *sessionImpl) PushByKind(kind int32, v interface{}) error {
 		return nil
 	}
 
-	var data, err1 = my.manger.GetSerde().Serialize(v)
+	var data, err1 = my.serde.Serialize(v)
 	if err1 != nil {
 		return err1
 	}
@@ -81,7 +81,7 @@ func (my *sessionImpl) Handshake() error {
 	}
 
 	var nonce = rand.Int31()
-	var info = serde.HandshakeInfo{
+	var info = serde.JsonHandshake{
 		Nonce:     nonce,
 		Heartbeat: float32(my.manger.heartbeatInterval.Seconds()),
 		Routes:    my.manger.routes,
@@ -103,6 +103,25 @@ func (my *sessionImpl) Handshake() error {
 	return err2
 }
 
+func (my *sessionImpl) HandshakeRe(serdeName string) error {
+	var s = my.manger.GetSerde(serdeName)
+	if s == nil {
+		return ErrInvalidSerde
+	}
+	my.setSerde(s)
+
+	var reply = serde.JsonHandshakeRe{Serde: serdeName}
+	var data = convert.ToJson(reply)
+
+	var pack = serde.Packet{Kind: serde.Handshake, Data: data}
+	var err2 = my.sendPacket(pack)
+
+	if err2 != nil {
+		_ = my.Close()
+	}
+	return err2
+}
+
 func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 	my.writeLock.Lock()
 	defer my.writeLock.Unlock()
@@ -115,4 +134,8 @@ func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 	var buffer = stream.Bytes()
 	var _, err = my.link.Write(buffer)
 	return err
+}
+
+func (my *sessionImpl) setSerde(serde serde.Serde) {
+	my.serde = serde
 }

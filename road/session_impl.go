@@ -38,6 +38,7 @@ type sessionImpl struct {
 	ctxValue   reflect.Value
 	attachment *AttachmentImpl
 	wc         loom.WaitClose
+	serde      serde.Serde
 
 	onReceivingPacketHandler func(packet serde.Packet) error
 	onClosedHandler          func()

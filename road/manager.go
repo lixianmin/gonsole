@@ -20,14 +20,14 @@ type Manager struct {
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
 	routes            []string
-	serde             serde.Serde
+	serdes            []serde.Serde
 }
 
-func NewManager(heartbeatInterval time.Duration, serde serde.Serde) *Manager {
+func NewManager(heartbeatInterval time.Duration) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
-		serde:             serde,
+		serdes:            []serde.Serde{&serde.JsonSerde{}},
 	}
 
 	return my
@@ -76,6 +76,18 @@ func (my *Manager) GetHandlerByKind(kind int32) *component.Handler {
 	return handler
 }
 
-func (my *Manager) GetSerde() serde.Serde {
-	return my.serde
+func (my *Manager) AddSerde(serde serde.Serde) {
+	if serde != nil {
+		my.serdes = append(my.serdes, serde)
+	}
+}
+
+func (my *Manager) GetSerde(name string) serde.Serde {
+	for _, s := range my.serdes {
+		if s.GetName() == name {
+			return s
+		}
+	}
+
+	return nil
 }

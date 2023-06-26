@@ -56,15 +56,35 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 			if err4 := my.onReceivedUserdata(pack); err4 != nil {
 				return err4
 			}
+		} else if pack.Kind == serde.HandshakeRe {
+			if err5 := my.onReceivedHandshakeRe(pack); err5 != nil {
+				return err5
+			}
 		} else if pack.Kind == serde.Heartbeat {
 			// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
 			var pack = serde.Packet{Kind: serde.Heartbeat}
-			if err5 := my.sendPacket(pack); err5 != nil {
-				return err5
+			if err6 := my.sendPacket(pack); err6 != nil {
+				return err6
 			}
 		}
 	}
 
+	return nil
+}
+
+func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
+	var info serde.JsonHandshakeRe
+	var err = convert.FromJsonE(input.Data, &info)
+	if err != nil {
+		return err
+	}
+
+	var s = my.manger.GetSerde(info.Serde)
+	if s == nil {
+		return ErrInvalidSerde
+	}
+
+	my.setSerde(s)
 	return nil
 }
 
@@ -76,7 +96,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
-	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.manger.GetSerde())
+	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.serde)
 	var output = serde.Packet{
 		Kind:      input.Kind,
 		RequestId: input.RequestId,

@@ -7,6 +7,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/internal"
 	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
@@ -25,7 +26,7 @@ Copyright (C) - All Rights Reserved
 type Client struct {
 	manager            *road.Manager
 	session            road.Session
-	handshake          serde.HandshakeInfo
+	handshake          serde.JsonHandshake
 	receivedPacketChan chan serde.Packet
 	connectState       int32
 	wc                 loom.WaitClose
@@ -44,7 +45,7 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 
 	var client = &Client{
-		manager:            road.NewManager(2*time.Second, &serde.JsonSerde{}),
+		manager:            road.NewManager(2 * time.Second),
 		connectState:       StateHandshake,
 		receivedPacketChan: make(chan serde.Packet, options.receiverBufferSize),
 	}
@@ -71,8 +72,8 @@ func (my *Client) goLoop(later loom.Later) {
 }
 
 func (my *Client) onReceiveHandshake(pack serde.Packet) error {
-	var info = serde.HandshakeInfo{}
-	if err := my.manager.GetSerde().Deserialize(pack.Data, &info); err != nil {
+	var info = serde.JsonHandshake{}
+	if err := convert.FromJsonE(pack.Data, &info); err != nil {
 		return err
 	}
 
@@ -80,6 +81,10 @@ func (my *Client) onReceiveHandshake(pack serde.Packet) error {
 	logo.Debug("got handshake from server, data: %v", info)
 	my.handshake = info
 	atomic.StoreInt32(&my.connectState, StateConnected)
+
+	if err2 := my.session.HandshakeRe("json"); err2 != nil {
+		return err2
+	}
 
 	loom.Go(my.goLoop)
 	return nil
