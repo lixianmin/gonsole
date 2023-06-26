@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -150,4 +151,8 @@ func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
 	}
 
 	return map[string]interface{}{"handlers": handlerDocs}, nil
+}
+
+func (my *App) AddSerde(serde serde.Serde) {
+	my.manager.AddSerde(serde)
 }
