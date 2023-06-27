@@ -95,6 +95,11 @@ func (my *sessionImpl) Handshake() error {
 		Routes:    my.manger.routes,
 	}
 
+	// all supported serde names
+	for _, s := range my.manger.serdes {
+		info.Serdes = append(info.Serdes, s.GetName())
+	}
+
 	// handshake这个协议一定使用json去发, 后续的协议则可以替换为其它serde方法
 	var data, err1 = convert.ToJsonE(info)
 	if err1 != nil {
