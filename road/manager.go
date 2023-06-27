@@ -27,7 +27,7 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
-		serdes:            []serde.Serde{&serde.JsonSerde{}},
+		serdes:            []serde.Serde{&serde.JsonSerde{}}, // 默认支持json序列化
 	}
 
 	return my

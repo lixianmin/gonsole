@@ -5,7 +5,6 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/internal"
-	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -55,6 +54,11 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 
 		accept:   accept,
 		services: make(map[string]*component.Service),
+	}
+
+	// 除默认支持JsonSerde外, 可额外添加ProtoSerde等支持
+	for _, s := range options.Serdes {
+		app.manager.AddSerde(s)
 	}
 
 	// 这个tasks，只是内部用一下，不公开
@@ -145,8 +149,4 @@ func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
 	}
 
 	return map[string]interface{}{"handlers": handlerDocs}, nil
-}
-
-func (my *App) AddSerde(serde serde.Serde) {
-	my.manager.AddSerde(serde)
 }
