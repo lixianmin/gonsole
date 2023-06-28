@@ -128,3 +128,7 @@ func (my *sessionImpl) RemoteAddr() net.Addr {
 func (my *sessionImpl) Attachment() Attachment {
 	return my.attachment
 }
+
+func (my *sessionImpl) Nonce() int32 {
+	return my.attachment.Int32(ifs.KeyNonce)
+}

@@ -61,7 +61,7 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 	if isDigest {
 		// 当是digest的时候, 判断digest是否正确
 		var digest = digestOrToken
-		var nonce = session.Attachment().Int32(ifs.KeyNonce)
+		var nonce = session.Nonce()
 		var targetDigest = sumPasswordDigest(password, nonce)
 		if targetDigest != digest {
 			bean.Code = invalidUsernameOrPassword

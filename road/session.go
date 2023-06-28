@@ -27,4 +27,5 @@ type Session interface {
 	Id() int64
 	RemoteAddr() net.Addr
 	Attachment() Attachment
+	Nonce() int32
 }
