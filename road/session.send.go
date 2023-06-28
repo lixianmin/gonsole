@@ -88,7 +88,12 @@ func (my *sessionImpl) Handshake() error {
 		return nil
 	}
 
+	// nonce一定不为0
 	var nonce = rand.Int31()
+	for nonce == 0 {
+		nonce = rand.Int31()
+	}
+
 	var info = serde.JsonHandshake{
 		Nonce:     nonce,
 		Heartbeat: float32(my.manger.heartbeatInterval.Seconds()),
