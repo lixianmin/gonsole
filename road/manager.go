@@ -3,6 +3,7 @@ package road
 import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/iox"
 	"sort"
 	"time"
 )
@@ -21,6 +22,9 @@ type Manager struct {
 	kindHandlers      map[int32]*component.Handler
 	routes            []string
 	serdes            []serde.Serde
+
+	heartbeatBuffer []byte
+	kickBuffer      []byte
 }
 
 func NewManager(heartbeatInterval time.Duration) *Manager {
@@ -28,6 +32,8 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
 		serdes:            []serde.Serde{&serde.JsonSerde{}}, // 默认支持json序列化
+		heartbeatBuffer:   createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
+		kickBuffer:        createCommonPackBuffer(serde.Packet{Kind: serde.Kick}),
 	}
 
 	return my
@@ -90,4 +96,16 @@ func (my *Manager) GetSerde(name string) serde.Serde {
 	}
 
 	return nil
+}
+
+func createCommonPackBuffer(pack serde.Packet) []byte {
+	var stream = &iox.OctetsStream{}
+	var writer = iox.NewOctetsWriter(stream)
+	serde.EncodePacket(writer, pack)
+
+	var buffer = stream.Bytes()
+	var result = make([]byte, len(buffer))
+	copy(result, buffer)
+
+	return result
 }

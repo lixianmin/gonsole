@@ -78,8 +78,7 @@ func (my *sessionImpl) Kick() error {
 		return nil
 	}
 
-	var pack = serde.Packet{Kind: serde.Kick}
-	var err = my.sendPacket(pack)
+	var _, err = my.link.Write(my.manger.kickBuffer)
 	return err
 }
 
