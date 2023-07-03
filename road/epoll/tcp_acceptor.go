@@ -53,6 +53,10 @@ func (my *TcpAcceptor) goLoop(address string) {
 			continue
 		}
 
+		// tcp链接对no delay的默认值就是true, 因此不需要设置
+		//tcpConn, ok := conn.(*net.TCPConn)
+		//_ = tcpConn.SetNoDelay(true)
+
 		my.linkChan <- internal.NewTcpLink(conn)
 	}
 }
