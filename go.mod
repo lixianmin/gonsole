@@ -1,11 +1,11 @@
 module github.com/lixianmin/gonsole
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gobwas/ws v1.1.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/lixianmin/got v0.0.0-20230628072550-bad341f8fd28
+	github.com/lixianmin/got v0.0.0-20230912022447-6949b60d2dd2
 	github.com/lixianmin/logo v0.0.0-20220519032357-f73455888a56
 	github.com/shirou/gopsutil v3.21.11+incompatible
 )
