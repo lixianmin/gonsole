@@ -1,6 +1,7 @@
 package serde
 
 import (
+	"errors"
 	"github.com/lixianmin/got/iox"
 	"io"
 )
@@ -33,7 +34,7 @@ func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 		var lastPosition = stream.Position()
 
 		var kind, err = reader.Read7BitEncodedInt()
-		if err == iox.ErrNotEnoughData {
+		if errors.Is(err, iox.ErrNotEnoughData) {
 			rewindStream(stream, lastPosition)
 			return packets, nil
 		}
@@ -43,7 +44,7 @@ func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 			var size = kind - RouteBase
 			var data = make([]byte, size)
 			var num, err2 = stream.Read(data)
-			if err2 == iox.ErrNotEnoughData || num != int(size) {
+			if errors.Is(err2, iox.ErrNotEnoughData) || num != int(size) {
 				rewindStream(stream, lastPosition)
 				return packets, nil
 			}
@@ -52,19 +53,19 @@ func DecodePacket(reader *iox.OctetsReader) ([]Packet, error) {
 		}
 
 		requestId, err := reader.Read7BitEncodedInt()
-		if err == iox.ErrNotEnoughData {
+		if errors.Is(err, iox.ErrNotEnoughData) {
 			rewindStream(stream, lastPosition)
 			return packets, nil
 		}
 
 		code, err := reader.ReadBytes()
-		if err == iox.ErrNotEnoughData {
+		if errors.Is(err, iox.ErrNotEnoughData) {
 			rewindStream(stream, lastPosition)
 			return packets, nil
 		}
 
 		data, err := reader.ReadBytes()
-		if err == iox.ErrNotEnoughData {
+		if errors.Is(err, iox.ErrNotEnoughData) {
 			rewindStream(stream, lastPosition)
 			return packets, nil
 		}
