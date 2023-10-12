@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
+	"slices"
 	"sort"
 	"time"
 )
@@ -104,8 +105,7 @@ func createCommonPackBuffer(pack serde.Packet) []byte {
 	serde.EncodePacket(writer, pack)
 
 	var buffer = stream.Bytes()
-	var result = make([]byte, len(buffer))
-	copy(result, buffer)
+	var result = slices.Clone(buffer)
 
 	return result
 }

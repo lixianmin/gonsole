@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/lixianmin/logo"
+	"slices"
 	"sync"
 )
 
@@ -31,8 +32,7 @@ func (my *delegate) Invoke() {
 	// 2022-09-03 对循环调用导致死循环这事, clone一份出来真的能解决问题嘛? 存疑!
 	// 通常, 我们copy一份出来是为了减少临界区占用的时间
 	my.lock.Lock()
-	var cloned = make([]func(), len(my.handlers))
-	copy(cloned, my.handlers)
+	var cloned = slices.Clone(my.handlers)
 	my.lock.Unlock()
 
 	defer func() {
