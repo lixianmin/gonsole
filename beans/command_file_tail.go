@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/lixianmin/gonsole/tools"
-	"github.com/lixianmin/got/mathx"
 	"strings"
 )
 
@@ -49,7 +48,7 @@ func parseReadFileArgs(texts []string, maxNum int) (args ReadFileArgs, err error
 	}
 
 	args.FullPath = fs.Arg(0)
-	args.Num = mathx.MinI(args.Num, maxNum)
-	args.StartLine = mathx.MaxI(1, args.StartLine)
+	args.Num = min(args.Num, maxNum)
+	args.StartLine = max(1, args.StartLine)
 	return
 }
