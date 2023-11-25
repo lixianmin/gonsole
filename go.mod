@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.3
 
 require (
-	github.com/gobwas/ws v1.3.0
+	github.com/gobwas/ws v1.3.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/lixianmin/got v0.0.0-20231012030652-01aecfeb9919
 	github.com/lixianmin/logo v0.0.0-20220519032357-f73455888a56
