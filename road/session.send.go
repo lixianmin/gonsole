@@ -45,6 +45,7 @@ func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
 	var pack = serde.Packet{Kind: kind, Data: data}
 	if !ok {
 		var routeData = convert.Bytes(route)
+		// 此时, kind起到了指定route长度的作用, 因此要求所有的client都需要处理这一点
 		pack.Kind = serde.RouteBase + int32(len(routeData))
 		pack.Route = routeData
 	}
