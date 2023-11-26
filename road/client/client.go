@@ -172,5 +172,5 @@ func (my *Client) GetReceivedChan() chan serde.Packet {
 
 // IsConnected return the connection status
 func (my *Client) IsConnected() bool {
-	return atomic.LoadInt32(&my.connectState) > StateNone
+	return atomic.LoadInt32(&my.connectState) == StateConnected
 }
