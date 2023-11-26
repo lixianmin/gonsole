@@ -57,7 +57,7 @@ func (my *Client) goLoop(later loom.Later) {
 	var closeChan = my.wc.C()
 	defer my.Close()
 
-	var heartbeatTicker = later.NewTicker(5 * time.Second)
+	var heartbeatTicker = later.NewTicker(time.Duration(my.handshake.Heartbeat) * time.Second)
 	for {
 		select {
 		case <-heartbeatTicker.C:
@@ -77,7 +77,6 @@ func (my *Client) onReceiveHandshake(pack serde.Packet) error {
 		return err
 	}
 
-	// todo 这里应该覆盖client创建manger时传入的heartbeat, 但目前还没有进行设计
 	logo.Debug("got handshake from server, data: %v", info)
 	my.handshake = info
 
