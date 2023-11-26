@@ -34,9 +34,14 @@ func NewManager(heartbeatInterval time.Duration) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		routeHandlers:     map[string]*component.Handler{},
+		routeKinds:        map[string]int32{}, // 这些默认不能为nil, 否则一旦有客户端不调用RebuildHandlerKinds(), 那么这些将一直为nil, 并影响后续的操作
+		kindHandlers:      map[int32]*component.Handler{},
+		maxKind:           0,
+		routes:            make([]string, 0),
 		serdes:            []serde.Serde{&serde.JsonSerde{}}, // 默认支持json序列化
-		heartbeatBuffer:   createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
-		kickBuffer:        createCommonPackBuffer(serde.Packet{Kind: serde.Kick}),
+
+		heartbeatBuffer: createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
+		kickBuffer:      createCommonPackBuffer(serde.Packet{Kind: serde.Kick}),
 	}
 
 	return my
