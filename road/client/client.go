@@ -25,7 +25,7 @@ Copyright (C) - All Rights Reserved
 
 type Client struct {
 	manager            *road.Manager
-	session            road.Session
+	session            road.ClientSession
 	handshake          serde.JsonHandshake
 	receivedPacketChan chan serde.Packet
 	connectState       int32
@@ -80,7 +80,7 @@ func (my *Client) onReceiveHandshake(pack serde.Packet) error {
 	logo.Debug("got handshake from server, data: %v", info)
 	my.handshake = info
 
-	if err2 := my.session.HandshakeRe("json"); err2 != nil {
+	if err2 := my.session.HandshakeRe("json", info); err2 != nil {
 		return err2
 	}
 
@@ -115,7 +115,7 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 	}
 
 	var link = internal.NewTcpLink(conn)
-	my.session = my.manager.NewSession(link)
+	my.session = my.manager.NewSession(link).(road.ClientSession)
 	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 	return nil
 }
@@ -137,7 +137,7 @@ func (my *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config
 	}
 
 	var link = internal.NewWsLink(conn)
-	my.session = my.manager.NewSession(link)
+	my.session = my.manager.NewSession(link).(road.ClientSession)
 	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 
 	return nil

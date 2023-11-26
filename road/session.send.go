@@ -161,12 +161,19 @@ func (my *sessionImpl) Handshake() error {
 	return err2
 }
 
-func (my *sessionImpl) HandshakeRe(serdeName string) error {
+func (my *sessionImpl) HandshakeRe(serdeName string, handshake serde.JsonHandshake) error {
 	var s = my.manger.GetSerde(serdeName)
 	if s == nil {
 		return ErrInvalidSerde
 	}
 	my.setSerde(s)
+
+	// 该方法专用于client的session, 因此需要根据服务器数据建立route kinds映射
+	for i := 0; i < len(handshake.Routes); i++ {
+		var kind = int32(serde.UserBase + i)
+		var route = handshake.Routes[i]
+		my.routeKinds[route] = kind
+	}
 
 	var reply = serde.JsonHandshakeRe{Serde: serdeName}
 	var data = convert.ToJson(reply)
