@@ -76,12 +76,7 @@ func (my *sessionImpl) sendRouteKind(route string) error {
 	my.writeLock.Unlock()
 
 	if kind > 0 {
-		type RouteKind struct {
-			Kind  int32  `json:"kind"`
-			Route string `json:"route"`
-		}
-
-		var v = &RouteKind{
+		var v = &serde.JsonRouteKind{
 			Kind:  kind,
 			Route: route,
 		}

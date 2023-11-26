@@ -116,12 +116,6 @@ export function newSession() {
         }
     }
 
-    function onReceivedRouteKind(pack) {
-        const bean = _serde.deserialize(pack.data)
-        _kindRoutes.set(bean.kind, bean.route)
-        _routeKinds.set(bean.route, bean.kind)
-    }
-
     function onReceivedHandshake(pack) {
         const handshake = _serde.deserialize(pack.data)
         buildKindRoutes()
@@ -171,6 +165,12 @@ export function newSession() {
         }
     }
 
+    function onReceivedRouteKind(pack) {
+        const bean = _serde.deserialize(pack.data)
+        _kindRoutes.set(bean.kind, bean.route)
+        _routeKinds.set(bean.route, bean.kind)
+    }
+
     function onReceivedUserdata(pack) {
         if (pack.kind < PacketKind.UserBase) {
             return
@@ -178,7 +178,7 @@ export function newSession() {
 
         const handler = fetchHandler(pack)
         if (!handler) {
-            console.error(`can not find handler, kind=${pack.kind}, requestId=${pack.requestId}, route=${_serde.bytes2String(pack.route)}`)
+            console.error(`can not find handler, kind=${pack.kind}, requestId=${pack.requestId}`)
             return
         }
 
@@ -205,7 +205,7 @@ export function newSession() {
             _requestHandlers.delete(requestId)
             return handler
         } else {
-            const route = _serde.bytes2String(pack.route)
+            const route = _kindRoutes.get(pack.kind)
             return _requestHandlers.get(route)
         }
     }

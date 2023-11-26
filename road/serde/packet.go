@@ -26,3 +26,8 @@ type JsonHandshake struct {
 type JsonHandshakeRe struct {
 	Serde string `json:"serde"`
 }
+
+type JsonRouteKind struct {
+	Kind  int32  `json:"kind"`
+	Route string `json:"route"`
+}
