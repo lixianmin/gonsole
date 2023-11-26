@@ -12,7 +12,8 @@ export const PacketKind = {
     HandshakeRe: 2,     // 链接建立后, client回复server发送的handshake
     Heartbeat: 3,       // client定期发送心跳
     Kick: 4,            // server踢人
+    RouteKind: 5,       // 推送route与kind到client
     UserBase: 10,       // 用户自定义的类型, 从这里开始
-    RouteBase: 5000     // 当kind值 >= RouteBase时, 就意味着存储的是route字符串, route字符器长度=(kind - RouteBase)
+    // RouteBase: 5000     // 当kind值 >= RouteBase时, 就意味着存储的是route字符串, route字符器长度=(kind - RouteBase)
 }
 

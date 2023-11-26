@@ -107,10 +107,19 @@ export function newSession() {
             case PacketKind.Kick:
                 _socket.close(0, 'kicked')
                 break
+            case PacketKind.RouteKind:
+                onReceivedRouteKind(pack)
+                break
             default:
                 onReceivedUserdata(pack)
                 break
         }
+    }
+
+    function onReceivedRouteKind(pack) {
+        const bean = _serde.deserialize(pack.data)
+        _kindRoutes.set(bean.kind, bean.route)
+        _routeKinds.set(bean.route, bean.kind)
     }
 
     function onReceivedHandshake(pack) {
@@ -218,11 +227,11 @@ export function newSession() {
         const kind = _routeKinds.get(route)
         const pack = {kind: kind, requestId: requestId, data: data}
         // console.log('route', route, 'kind', kind)
-        if (!kind) {
-            const routeData = _serde.string2bytes(route)
-            pack.kind = PacketKind.RouteBase + routeData.length
-            pack.route = routeData
-        }
+        // if (!kind) {
+        //     const routeData = _serde.string2bytes(route)
+        //     pack.kind = PacketKind.RouteBase + routeData.length
+        //     pack.route = routeData
+        // }
 
         if (handler) {
             _requestHandlers.set(requestId, handler)

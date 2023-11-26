@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
+	"maps"
 	"slices"
 	"sort"
 	"time"
@@ -21,6 +22,7 @@ type Manager struct {
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
+	maxKind           int32
 	routes            []string
 	serdes            []serde.Serde
 
@@ -70,12 +72,17 @@ func (my *Manager) RebuildHandlerKinds() {
 		var kind = int32(i) + serde.UserBase
 		my.routeKinds[route] = kind
 		my.kindHandlers[kind] = my.routeHandlers[route]
+		my.maxKind = kind
 	}
 }
 
-func (my *Manager) GetKindByRoute(route string) (int32, bool) {
-	var kind, ok = my.routeKinds[route]
-	return kind, ok
+//func (my *Manager) GetKindByRoute(route string) (int32, bool) {
+//	var kind, ok = my.routeKinds[route]
+//	return kind, ok
+//}
+
+func (my *Manager) CloneRouteKinds() (map[string]int32, int32) {
+	return maps.Clone(my.routeKinds), my.maxKind
 }
 
 func (my *Manager) GetHandlerByKind(kind int32) *component.Handler {

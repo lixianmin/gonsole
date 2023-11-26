@@ -8,8 +8,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Packet struct {
-	Kind      int32  // 自定义的类型从UserBase开始. 服务器push的消息是不需要handler的, 只需要route就可以 (当然, 为了优化也可以通过加一个handler引入一个kind)
-	Route     []byte // kind >= RouteBase <=> Route有值; route需要是一个[]byte而不能是string, 因为需要在外围计算route的长度, 并赋值到kind, 计算前我们就已经拿到[]byte了
+	Kind int32 // 自定义的类型从UserBase开始. 服务器push的消息是不需要handler的, 只需要route就可以 (当然, 为了优化也可以通过加一个handler引入一个kind)
+	//Route     []byte // kind >= RouteBase <=> Route有值; route需要是一个[]byte而不能是string, 因为需要在外围计算route的长度, 并赋值到kind, 计算前我们就已经拿到[]byte了
 	RequestId int32  // 请求的rid, 用于client请求时定位response的handler
 	Code      []byte // error code
 	Data      []byte // 如果有error code, 则Data是error message; 否则Data是数据payload

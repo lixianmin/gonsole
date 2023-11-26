@@ -39,6 +39,8 @@ type sessionImpl struct {
 	attachment *AttachmentImpl
 	wc         loom.WaitClose
 	serde      serde.Serde
+	routeKinds map[string]int32
+	maxKind    int32
 
 	onReceivedPacketHandler func(packet serde.Packet) error
 	onHandShakenHandler     func()
@@ -47,12 +49,15 @@ type sessionImpl struct {
 
 func newSession(manager *Manager, link Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
+	var routeKinds, maxKind = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
 		manger:     manager,
 		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
 		id:         id,
 		link:       link,
 		attachment: &AttachmentImpl{},
+		routeKinds: routeKinds,
+		maxKind:    maxKind,
 	}}
 
 	logo.Info("create session(%d)", my.id)
