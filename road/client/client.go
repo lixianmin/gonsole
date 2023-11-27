@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road"
-	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/loom"
@@ -114,7 +114,7 @@ func (my *Client) ConnectTo(addr string, tlsConfig ...*tls.Config) error {
 		return err
 	}
 
-	var link = internal.NewTcpLink(conn)
+	var link = intern.NewTcpLink(conn)
 	my.session = my.manager.NewSession(link).(road.ClientSession)
 	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 	return nil
@@ -136,7 +136,7 @@ func (my *Client) ConnectToWS(addr string, path string, tlsConfig ...*tls.Config
 		return err
 	}
 
-	var link = internal.NewWsLink(conn)
+	var link = intern.NewWsLink(conn)
 	my.session = my.manager.NewSession(link).(road.ClientSession)
 	my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 

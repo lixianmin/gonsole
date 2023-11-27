@@ -1,4 +1,4 @@
-package internal
+package intern
 
 import (
 	"github.com/gobwas/ws"

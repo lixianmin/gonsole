@@ -36,7 +36,7 @@ Copyright (C) - All Rights Reserved
 //			return err
 //		}
 //
-//		var link = internal.NewTcpLink(conn)
+//		var link = intern.NewTcpLink(conn)
 //		my.session = my.manager.NewSession(link).(road.ClientSession)
 //		my.session.OnReceivedPacket(my.onReceivedPacketAtClient)
 //	}

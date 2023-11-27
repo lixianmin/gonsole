@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
-	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
@@ -143,7 +143,7 @@ func (my *App) Register(comp component.Component, opts ...component.Option) erro
 
 // Documentation returns handler and remotes docum/7entacion
 func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
-	handlerDocs, err := internal.HandlersDocs("game", my.services, getPtrNames)
+	handlerDocs, err := intern.HandlersDocs("game", my.services, getPtrNames)
 	if err != nil {
 		return nil, err
 	}

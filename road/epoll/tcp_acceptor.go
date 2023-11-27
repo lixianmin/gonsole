@@ -2,7 +2,7 @@ package epoll
 
 import (
 	"github.com/lixianmin/gonsole/road"
-	"github.com/lixianmin/gonsole/road/internal"
+	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
@@ -57,7 +57,7 @@ func (my *TcpAcceptor) goLoop(address string) {
 		//tcpConn, ok := conn.(*net.TCPConn)
 		//_ = tcpConn.SetNoDelay(true)
 
-		my.linkChan <- internal.NewTcpLink(conn)
+		my.linkChan <- intern.NewTcpLink(conn)
 	}
 }
 
