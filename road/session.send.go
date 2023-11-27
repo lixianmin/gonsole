@@ -53,21 +53,25 @@ func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
 		//// 3. 考虑每个session单独计算并各自保存route kind, 看起来似乎可行
 		//pack.Kind = serde.RouteBase + int32(len(routeData))
 		//pack.Route = routeData
-		var err2 = my.sendRouteKind(route)
+		var kind2, err2 = my.sendRouteKind(route)
 		if err2 != nil {
 			return err2
 		}
+
+		pack.Kind = kind2
 	}
 
 	var err3 = my.sendPacket(pack)
 	return err3
 }
 
-func (my *sessionImpl) sendRouteKind(route string) error {
+func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
 	var kind int32 = 0
+	var isFind = false
 	my.writeLock.Lock()
 	{
-		if _, ok := my.routeKinds[route]; !ok {
+		// double check lock
+		if kind, isFind = my.routeKinds[route]; !isFind {
 			my.maxKind++
 			my.routeKinds[route] = my.maxKind
 			kind = my.maxKind
@@ -75,7 +79,7 @@ func (my *sessionImpl) sendRouteKind(route string) error {
 	}
 	my.writeLock.Unlock()
 
-	if kind > 0 {
+	if !isFind {
 		var v = &serde.JsonRouteKind{
 			Kind:  kind,
 			Route: route,
@@ -83,15 +87,17 @@ func (my *sessionImpl) sendRouteKind(route string) error {
 
 		var data, err1 = convert.ToJsonE(v)
 		if err1 != nil {
-			return err1
+			return 0, err1
 		}
 
 		var pack = serde.Packet{Kind: serde.RouteKind, Data: data}
 		var err2 = my.sendPacket(pack)
-		return err2
+		if err2 != nil {
+			return 0, err2
+		}
 	}
 
-	return nil
+	return kind, nil
 }
 
 func (my *sessionImpl) SendByKind(kind int32, v interface{}) error {
