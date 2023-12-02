@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/lixianmin/gonsole/road"
-	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/iox"
@@ -29,17 +28,15 @@ type ClientSession1 struct {
 	id        int64
 	writeLock sync.Mutex
 	writer    *iox.OctetsWriter
-	link      *intern.TcpLink
 	wc        loom.WaitClose
 	serde     serde.Serde
 	nonce     int32
-
-	onHandShaken func(bean serde.JsonHandshake)
-
-	reconnectAction    func() error
-	requestIdGenerator int32
+	conn      net.Conn
 
 	heartbeatInterval  time.Duration
+	onHandShaken       func(bean serde.JsonHandshake)
+	requestIdGenerator int32
+
 	routeKinds         map[string]int32
 	kindRoutes         map[int32]string
 	requestHandlers    map[int32]func([]byte, *road.Error)
@@ -50,7 +47,9 @@ func NewClientSession() *ClientSession1 {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &ClientSession1{
 		id:                 id,
+		serde:              &serde.JsonSerde{},
 		writer:             iox.NewOctetsWriter(&iox.OctetsStream{}),
+		heartbeatInterval:  time.Minute, // 初始给一个大一些的值, 防止client自己超时, 回头server会重置该值
 		routeKinds:         map[string]int32{},
 		kindRoutes:         map[int32]string{},
 		requestHandlers:    map[int32]func([]byte, *road.Error){},
@@ -60,9 +59,14 @@ func NewClientSession() *ClientSession1 {
 	return my
 }
 
-func (my *ClientSession1) Connect(address string, serde serde.Serde, onHandeShaken func(bean *serde.JsonHandshake), tlsConfig ...*tls.Config) error {
-	_ = my.Close()
+func (my *ClientSession1) Close() error {
+	return my.wc.Close(func() error {
+		var err = my.conn.Close()
+		return err
+	})
+}
 
+func (my *ClientSession1) Connect(address string, onHandeShaken func(bean *serde.JsonHandshake), tlsConfig ...*tls.Config) error {
 	var conn net.Conn
 	var err error
 	if len(tlsConfig) > 0 {
@@ -75,32 +79,45 @@ func (my *ClientSession1) Connect(address string, serde serde.Serde, onHandeShak
 		return err
 	}
 
-	my.link = intern.NewTcpLink(conn)
+	my.conn = conn
+	go my.goLoop()
 	return nil
 }
 
-func (my *ClientSession1) Close() error {
-	return my.wc.Close(func() error {
-		var err = my.link.Close()
-		return err
-	})
+func (my *ClientSession1) goLoop() {
+	defer loom.DumpIfPanic()
+	defer my.Close()
+
+	var buffer = make([]byte, 1024)
+	var stream = &iox.OctetsStream{}
+	var reader = iox.NewOctetsReader(stream)
+
+	for !my.wc.IsClosed() {
+		_ = my.conn.SetReadDeadline(time.Now().Add(my.heartbeatInterval * 3))
+		var num, err1 = my.conn.Read(buffer)
+		if err1 != nil {
+			my.onReadHandler(nil, err1)
+			return
+		}
+
+		_ = stream.Write(buffer[:num])
+		my.onReadHandler(reader, nil)
+		stream.Tidy()
+	}
 }
 
-func (my *ClientSession1) startGoLoop() {
-	var heartbeatInterval = time.Second
-	go my.link.GoLoop(heartbeatInterval, func(reader *iox.OctetsReader, err error) {
-		if err != nil {
-			logo.Info("close session(%d) by err=%q", my.id, err)
-			_ = my.Close()
-			return
-		}
+func (my *ClientSession1) onReadHandler(reader *iox.OctetsReader, err error) {
+	if err != nil {
+		logo.Info("close session(%d) by err=%q", my.id, err)
+		_ = my.Close()
+		return
+	}
 
-		if err1 := my.onReceivedData(reader); err1 != nil {
-			logo.Info("close session(%d) by onReceivedData(), err=%q", my.id, err1)
-			_ = my.Close()
-			return
-		}
-	})
+	if err1 := my.onReceivedData(reader); err1 != nil {
+		logo.Info("close session(%d) by onReceivedData(), err=%q", my.id, err1)
+		_ = my.Close()
+		return
+	}
 }
 
 func (my *ClientSession1) onReceivedData(reader *iox.OctetsReader) error {
@@ -157,8 +174,8 @@ func (my *ClientSession1) onReceivedHandshake(pack serde.Packet) error {
 		my.kindRoutes[kind] = route
 	}
 
-	my.handshakeRe()
 	my.nonce = handshake.Nonce
+	my.handshakeRe()
 
 	if my.onHandShaken != nil {
 		my.onHandShaken(handshake)
@@ -316,6 +333,6 @@ func (my *ClientSession1) sendPacket(pack serde.Packet) error {
 	serde.EncodePacket(writer, pack)
 
 	var buffer = stream.Bytes()
-	var _, err = my.link.Write(buffer)
+	var _, err = my.conn.Write(buffer)
 	return err
 }
