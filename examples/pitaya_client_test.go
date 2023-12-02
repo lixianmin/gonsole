@@ -8,6 +8,7 @@ import (
 	"github.com/lixianmin/gonsole/road/client"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/logo"
 	"sync"
 	"testing"
@@ -51,7 +52,7 @@ type GetPlayerInfoRe struct {
 func (my *PlayerGroup) GetPlayerInfo(ctx context.Context, request *GetPlayerInfo) (*GetPlayerInfoRe, error) {
 	var response = &GetPlayerInfoRe{
 		Id:     request.Id,
-		UserId: 10,
+		UserId: 123,
 	}
 
 	return response, nil
@@ -72,11 +73,11 @@ func TestPitayaClient(t *testing.T) {
 
 	app.OnHandShaken(func(session road.Session) {
 		for i := 0; i < 100; i++ {
-			if err := session.SendByRoute("player.get_player_info", GetPlayerInfo{
-				Id: int32(i),
-			}); err != nil {
-				logo.JsonE("session", session.Id(), "err", err)
-			}
+			//if err := session.SendByRoute("player.get_player_info", GetPlayerInfo{
+			//	Id: int32(i),
+			//}); err != nil {
+			//	logo.JsonE("session", session.Id(), "err", err)
+			//}
 		}
 	})
 
@@ -93,8 +94,18 @@ func TestPitayaClient(t *testing.T) {
 }
 
 func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
-	var pClient = client.NewClient()
-	if err := pClient.ConnectTo(serverAddress); err != nil {
+	var pClient = client.NewClientSession()
+	if err := pClient.Connect(serverAddress, func(bean *serde.JsonHandshake) {
+		var request = &GetPlayerInfo{
+			Id: 100,
+		}
+
+		var response GetPlayerInfoRe
+
+		_ = pClient.Request("player.get_player_info", request, &response, func(res any, err *road.Error) {
+			logo.JsonI("response", response, "res", res, "err", err)
+		})
+	}); err != nil {
 		wg.Done()
 		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
 	}
@@ -104,9 +115,6 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 		defer wg.Done()
 		for {
 			select {
-			case pack := <-pClient.GetReceivedChan():
-				logo.JsonI("pack", pack)
-				break
 			case <-timer.C:
 				return
 			}

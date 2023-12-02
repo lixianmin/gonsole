@@ -34,7 +34,7 @@ type ClientSession1 struct {
 	conn      net.Conn
 
 	heartbeatInterval  time.Duration
-	onHandShaken       func(bean serde.JsonHandshake)
+	onHandShaken       func(bean *serde.JsonHandshake)
 	requestIdGenerator int32
 
 	routeKinds         map[string]int32
@@ -80,6 +80,7 @@ func (my *ClientSession1) Connect(address string, onHandeShaken func(bean *serde
 	}
 
 	my.conn = conn
+	my.onHandShaken = onHandeShaken
 	go my.goLoop()
 	return nil
 }
@@ -178,7 +179,7 @@ func (my *ClientSession1) onReceivedHandshake(pack serde.Packet) error {
 	my.handshakeRe()
 
 	if my.onHandShaken != nil {
-		my.onHandShaken(handshake)
+		my.onHandShaken(&handshake)
 	}
 
 	return nil
@@ -220,7 +221,7 @@ func (my *ClientSession1) onReceivedUserdata(pack serde.Packet) error {
 	if handler == nil {
 		// 有些协议, 真不想处理, 就不设置handlers了. 通常只要有requestId, 就是故意不处理的
 		if pack.RequestId == 0 {
-			logo.Warn("no handler, kind=%d, requestId=0")
+			logo.Warn("no handler, kind=%d, requestId=0", kind)
 		}
 
 		return nil
