@@ -12,6 +12,8 @@ Copyright (C) - All Rights Reserved
 // var ErrKickedByRateLimit = NewError("KickedByRateLimit", "cost too many tokens in a rate limit window")
 var ErrPacketProcessed = NewError("PacketProcessed", "packet has been processed, no need to process any more")
 var ErrEmptyHandler = NewError("EmptyHandler", "handler is empty")
+var ErrInvalidArgument = NewError("InvalidArgument", "argument is not valid")
+var ErrInvalidRoute = NewError("InvalidRoute", "route is not valid")
 var ErrInvalidSerde = NewError("InvalidSerde", "serde is not valid")
 
 type Error struct {
