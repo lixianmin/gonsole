@@ -41,19 +41,16 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 		return err2
 	}
 
-	var handler = my.onReceivedPacketHandler
-	if handler != nil {
-		for _, pack := range packets {
-			if err3 := handler(pack); err3 != nil {
-				return err3
-			}
+	for _, pack := range packets {
+		if err3 := my.onReceivedPacket(pack); err3 != nil {
+			return err3
 		}
 	}
 
 	return nil
 }
 
-func (my *sessionImpl) onReceivedPacketAtServer(pack serde.Packet) error {
+func (my *sessionImpl) onReceivedPacket(pack serde.Packet) error {
 	if pack.Kind >= serde.UserBase {
 		if err4 := my.onReceivedUserdata(pack); err4 != nil {
 			return err4

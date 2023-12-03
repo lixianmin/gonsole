@@ -42,9 +42,8 @@ type sessionImpl struct {
 	routeKinds map[string]int32
 	maxKind    int32
 
-	onReceivedPacketHandler func(packet serde.Packet) error
-	onHandShakenHandler     func()
-	onClosedHandler         func()
+	onHandShakenHandler func()
+	onClosedHandler     func()
 }
 
 func newSession(manager *Manager, link Link) Session {
@@ -62,7 +61,6 @@ func newSession(manager *Manager, link Link) Session {
 
 	logo.Info("create session(%d)", my.id)
 	my.ctxValue = reflect.ValueOf(context.WithValue(context.Background(), ifs.CtxKeySession, my))
-	my.onReceivedPacketHandler = my.onReceivedPacketAtServer
 	my.startGoLoop()
 
 	// 参考: https://zhuanlan.zhihu.com/p/76504936
@@ -86,10 +84,6 @@ func (my *sessionImpl) Close() error {
 
 		return err
 	})
-}
-
-func (my *sessionImpl) OnReceivedPacket(handler func(pack serde.Packet) error) {
-	my.onReceivedPacketHandler = handler
 }
 
 func (my *sessionImpl) OnHandShaken(handler func()) {

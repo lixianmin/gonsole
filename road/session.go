@@ -1,7 +1,6 @@
 package road
 
 import (
-	"github.com/lixianmin/gonsole/road/serde"
 	"net"
 )
 
@@ -25,12 +24,4 @@ type Session interface {
 	RemoteAddr() net.Addr
 	Attachment() Attachment
 	Nonce() int32
-}
-
-type ClientSession interface {
-	Session
-	HandshakeRe(serdeName string, handshake serde.JsonHandshake) error // client回复server的handshake协议
-	Close() error
-
-	OnReceivedPacket(handler func(pack serde.Packet) error) // 通过该回调用, client使用session对象时自定义自己的处理方法
 }

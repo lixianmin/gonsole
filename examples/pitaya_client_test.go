@@ -94,7 +94,7 @@ func TestPitayaClient(t *testing.T) {
 }
 
 func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
-	var pClient = client.NewClientSession()
+	var pClient = client.NewClient()
 	if err := pClient.Connect(serverAddress, func(bean *serde.JsonHandshake) {
 		var request = &GetPlayerInfo{
 			Id: 100,
