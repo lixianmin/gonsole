@@ -81,8 +81,25 @@ func (my *Client) Connect(address string, onHandeShaken func(bean *serde.JsonHan
 
 	my.conn = conn
 	my.onHandShaken = onHandeShaken
+
+	go my.goHeartbeat()
 	go my.goLoop()
+
 	return nil
+}
+
+func (my *Client) goHeartbeat() {
+	defer loom.DumpIfPanic()
+	defer my.Close()
+
+	var pack = serde.Packet{
+		Kind: serde.Heartbeat,
+	}
+
+	for !my.wc.IsClosed() {
+		_ = my.sendPacket(pack)
+		time.Sleep(my.heartbeatInterval)
+	}
 }
 
 func (my *Client) goLoop() {
