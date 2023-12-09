@@ -12,6 +12,7 @@ export function newJsonSerde() {
     const decoder = new TextDecoder()
 
     function serialize(v) {
+        // todo 如果收到的是[]byte, 则应该直接返回才对
         const text = JSON.stringify(v)
         return encoder.encode(text)
     }

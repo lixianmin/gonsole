@@ -357,6 +357,10 @@ func (my *Client) On(route string, response any, handler func(any, *road.Error))
 	return nil
 }
 
+func (my *Client) Serde(serde serde.Serde) {
+	my.serde = serde
+}
+
 func (my *Client) Nonce() int32 {
 	return my.nonce
 }

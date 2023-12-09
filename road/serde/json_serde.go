@@ -13,6 +13,10 @@ type JsonSerde struct {
 }
 
 func (s *JsonSerde) Serialize(v interface{}) ([]byte, error) {
+	if bytes, ok := v.([]byte); ok {
+		return bytes, nil
+	}
+
 	if v != nil {
 		return convert.ToJsonE(v)
 	}
