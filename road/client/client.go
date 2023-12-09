@@ -275,6 +275,26 @@ func (my *Client) fetchHandler(pack serde.Packet) func([]byte, *road.Error) {
 	return nil
 }
 
+func (my *Client) SendByRoute(route string, v interface{}) error {
+	if my.wc.IsClosed() {
+		return nil
+	}
+
+	var data, err1 = my.serde.Serialize(v)
+	if err1 != nil {
+		return err1
+	}
+
+	var kind, ok = my.routeKinds[route]
+	var pack = serde.Packet{Kind: kind, Data: data}
+	if !ok {
+		return road.NewError("ErrInvalidRoute", "route=%q is invalid", route)
+	}
+
+	var err3 = my.sendPacket(pack)
+	return err3
+}
+
 func (my *Client) Request(route string, request any, response any, handler func(any, *road.Error)) error {
 	if my.serde == nil {
 		return road.ErrInvalidSerde
