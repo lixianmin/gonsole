@@ -81,8 +81,6 @@ func (my *Client) Connect(address string, onHandeShaken func(bean *serde.JsonHan
 
 	my.conn = conn
 	my.onHandShaken = onHandeShaken
-
-	go my.goHeartbeat()
 	go my.goLoop()
 
 	return nil
@@ -199,6 +197,8 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 		my.onHandShaken(&handshake)
 	}
 
+	// 启动heartbeat
+	go my.goHeartbeat()
 	return nil
 }
 
