@@ -204,7 +204,8 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 
 func (my *Client) handshakeRe() {
 	var reply = serde.JsonHandshakeRe{
-		Serde: my.serde.GetName(),
+		// todo 启动的时候, 应该指定一下使用什么样的序列化协议, 不过这事也许真就可以使用json, 回头试试
+		Serde: "proto",
 	}
 
 	var replyData = convert.ToJson(reply)
@@ -288,19 +289,19 @@ func (my *Client) SendByRoute(route string, v interface{}) error {
 	var kind, ok = my.routeKinds[route]
 	var pack = serde.Packet{Kind: kind, Data: data}
 	if !ok {
-		return road.NewError("ErrInvalidRoute", "route=%q is invalid", route)
+		return road.ErrInvalidRoute
 	}
 
 	var err3 = my.sendPacket(pack)
 	return err3
 }
 
-func (my *Client) Request(route string, request any, response any, handler func(any, *road.Error)) error {
+func (my *Client) Request(route string, request any, pResponse any, handler func(*road.Error)) error {
 	if my.serde == nil {
 		return road.ErrInvalidSerde
 	}
 
-	if route == "" || request == nil || response == nil {
+	if route == "" || request == nil || pResponse == nil {
 		return road.ErrInvalidArgument
 	}
 
@@ -325,10 +326,15 @@ func (my *Client) Request(route string, request any, response any, handler func(
 	if handler != nil {
 		my.requestHandlers[requestId] = func(data1 []byte, err *road.Error) {
 			if data1 != nil {
-				_ = my.serde.Deserialize(data1, &response)
-				handler(response, nil)
+				var err2 = my.serde.Deserialize(data1, pResponse)
+				var err3 *road.Error
+				if err2 != nil {
+					err3 = road.NewError("ErrDeserialize", "err2=%q", err2)
+				}
+
+				handler(err3)
 			} else {
-				handler(nil, err)
+				handler(err)
 			}
 		}
 	}
@@ -336,7 +342,7 @@ func (my *Client) Request(route string, request any, response any, handler func(
 	return my.sendPacket(pack)
 }
 
-func (my *Client) On(route string, response any, handler func(any, *road.Error)) error {
+func (my *Client) On(route string, pResponse any, handler func(*road.Error)) error {
 	if route == "" {
 		return road.ErrInvalidRoute
 	}
@@ -347,10 +353,15 @@ func (my *Client) On(route string, response any, handler func(any, *road.Error))
 
 	my.registeredHandlers[route] = func(data1 []byte, err *road.Error) {
 		if data1 != nil {
-			_ = my.serde.Deserialize(data1, &response)
-			handler(response, nil)
+			var err2 = my.serde.Deserialize(data1, pResponse)
+			var err3 *road.Error
+			if err2 != nil {
+				err3 = road.NewError("ErrDeserialize", "err2=%q", err2)
+			}
+
+			handler(err3)
 		} else {
-			handler(nil, err)
+			handler(err)
 		}
 	}
 
