@@ -27,7 +27,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *sessionImpl) SendByRoute(route string, v interface{}) error {
+func (my *sessionImpl) Send(route string, v interface{}) error {
 	if my.wc.IsClosed() {
 		return nil
 	}
@@ -100,24 +100,24 @@ func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
 	return kind, nil
 }
 
-func (my *sessionImpl) SendByKind(kind int32, v interface{}) error {
-	if my.wc.IsClosed() {
-		return nil
-	}
-
-	if my.serde == nil {
-		return ErrInvalidSerde
-	}
-
-	var data, err1 = my.serde.Serialize(v)
-	if err1 != nil {
-		return err1
-	}
-
-	var pack = serde.Packet{Kind: kind, Data: data}
-	var err2 = my.sendPacket(pack)
-	return err2
-}
+//func (my *sessionImpl) SendByKind(kind int32, v interface{}) error {
+//	if my.wc.IsClosed() {
+//		return nil
+//	}
+//
+//	if my.serde == nil {
+//		return ErrInvalidSerde
+//	}
+//
+//	var data, err1 = my.serde.Serialize(v)
+//	if err1 != nil {
+//		return err1
+//	}
+//
+//	var pack = serde.Packet{Kind: kind, Data: data}
+//	var err2 = my.sendPacket(pack)
+//	return err2
+//}
 
 // Kick 强踢下线
 func (my *sessionImpl) Kick() error {

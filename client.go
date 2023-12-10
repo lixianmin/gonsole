@@ -43,7 +43,7 @@ func newClient(session road.Session) *Client {
 //}
 
 func (client *Client) PushDefault(v interface{}) {
-	_ = client.session.SendByRoute("console.default", v)
+	_ = client.session.Send("console.default", v)
 }
 
 func (client *Client) OnClosed(callback func()) {

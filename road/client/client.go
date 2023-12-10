@@ -276,7 +276,7 @@ func (my *Client) fetchHandler(pack serde.Packet) func([]byte, *road.Error) {
 	return nil
 }
 
-func (my *Client) SendByRoute(route string, v interface{}) error {
+func (my *Client) Send(route string, v any) error {
 	if my.wc.IsClosed() {
 		return nil
 	}

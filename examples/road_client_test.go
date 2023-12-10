@@ -58,7 +58,7 @@ func (my *PlayerGroup) GetPlayerInfo(ctx context.Context, request *GetPlayerInfo
 	return response, nil
 }
 
-func TestPitayaClient(t *testing.T) {
+func TestRoadClient(t *testing.T) {
 	initLogo()
 
 	var tcpPort = 6666
@@ -73,7 +73,7 @@ func TestPitayaClient(t *testing.T) {
 
 	app.OnHandShaken(func(session road.Session) {
 		for i := 0; i < 100; i++ {
-			//if err := session.SendByRoute("player.get_player_info", GetPlayerInfo{
+			//if err := session.Send("player.get_player_info", GetPlayerInfo{
 			//	Id: int32(i),
 			//}); err != nil {
 			//	logo.JsonE("session", session.Id(), "err", err)
@@ -84,7 +84,7 @@ func TestPitayaClient(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		if err := pitayaConnect(fmt.Sprintf("127.0.0.1:%d", tcpPort), &wg); err != nil {
+		if err := roadConnect(fmt.Sprintf("127.0.0.1:%d", tcpPort), &wg); err != nil {
 			logo.JsonE("err", err)
 		}
 	}
@@ -93,7 +93,7 @@ func TestPitayaClient(t *testing.T) {
 	wg.Wait()
 }
 
-func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
+func roadConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var pClient = client.NewClient()
 	if err := pClient.Connect(serverAddress, func(bean *serde.JsonHandshake) {
 		var request = &GetPlayerInfo{
@@ -102,8 +102,8 @@ func pitayaConnect(serverAddress string, wg *sync.WaitGroup) error {
 
 		var response GetPlayerInfoRe
 
-		_ = pClient.Request("player.get_player_info", request, &response, func(res any, err *road.Error) {
-			logo.JsonI("response", response, "res", res, "err", err)
+		_ = pClient.Request("player.get_player_info", request, &response, func(err *road.Error) {
+			logo.JsonI("response", response, "err", err)
 		})
 	}); err != nil {
 		wg.Done()
