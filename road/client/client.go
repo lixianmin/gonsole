@@ -47,7 +47,6 @@ func NewClient() *Client {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var my = &Client{
 		id:                 id,
-		serde:              &serde.JsonSerde{},
 		writer:             iox.NewOctetsWriter(&iox.OctetsStream{}),
 		heartbeatInterval:  time.Minute, // 初始给一个大一些的值, 防止client自己超时, 回头server会重置该值
 		routeKinds:         map[string]int32{},
@@ -66,11 +65,23 @@ func (my *Client) Close() error {
 	})
 }
 
-func (my *Client) Connect(address string, onHandeShaken func(bean *serde.JsonHandshake), tlsConfig ...*tls.Config) error {
+func (my *Client) Connect(address string, opts ...ConnectOption) error {
+	var options = &connectOptions{
+		serde:        &serde.JsonSerde{},
+		tlsConfig:    nil,
+		onHandShaken: nil,
+	}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	my.serde = options.serde
+
 	var conn net.Conn
 	var err error
-	if len(tlsConfig) > 0 {
-		conn, err = tls.Dial("tcp", address, tlsConfig[0])
+	if options.tlsConfig != nil {
+		conn, err = tls.Dial("tcp", address, options.tlsConfig)
 	} else {
 		conn, err = net.Dial("tcp", address)
 	}
@@ -80,7 +91,7 @@ func (my *Client) Connect(address string, onHandeShaken func(bean *serde.JsonHan
 	}
 
 	my.conn = conn
-	my.onHandShaken = onHandeShaken
+	my.onHandShaken = options.onHandShaken
 	go my.goLoop()
 
 	return nil
@@ -366,10 +377,6 @@ func (my *Client) On(route string, pResponse any, handler func(*road.Error)) err
 	}
 
 	return nil
-}
-
-func (my *Client) Serde(serde serde.Serde) {
-	my.serde = serde
 }
 
 func (my *Client) Nonce() int32 {
