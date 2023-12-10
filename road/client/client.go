@@ -215,8 +215,7 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 
 func (my *Client) handshakeRe() {
 	var reply = serde.JsonHandshakeRe{
-		// todo 启动的时候, 应该指定一下使用什么样的序列化协议, 不过这事也许真就可以使用json, 回头试试
-		Serde: "proto",
+		Serde: my.serde.GetName(),
 	}
 
 	var replyData = convert.ToJson(reply)
