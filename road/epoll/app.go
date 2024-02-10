@@ -39,6 +39,7 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
 		HeartbeatInterval:        3 * time.Second,
+		KickInterval:             time.Minute,
 		SessionRateLimitBySecond: 2,
 	}
 
@@ -48,7 +49,7 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	}
 
 	var app = &App{
-		manager:           road.NewManager(options.HeartbeatInterval),
+		manager:           road.NewManager(options.HeartbeatInterval, options.KickInterval),
 		wheelSecond:       loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		rateLimitBySecond: options.SessionRateLimitBySecond,
 

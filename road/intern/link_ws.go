@@ -34,7 +34,7 @@ func NewWsLink(conn net.Conn) *WsLink {
 	return my
 }
 
-func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.OnReadHandler) {
+func (my *WsLink) GoLoop(kickInterval time.Duration, onReadHandler road.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -45,7 +45,7 @@ func (my *WsLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.OnR
 	var reader = iox.NewOctetsReader(stream)
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
-		my.resetReadDeadline(heartbeatInterval)
+		my.resetReadDeadline(kickInterval)
 		data, _, err := wsutil.ReadData(my.conn, ws.StateServerSide)
 		if err != nil {
 			//if err == io.EOF || err == io.ErrUnexpectedEOF {

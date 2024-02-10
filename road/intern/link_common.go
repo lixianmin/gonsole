@@ -18,13 +18,13 @@ type commonLink struct {
 	isClosed int32
 }
 
-func (my *commonLink) resetReadDeadline(heartbeatInterval time.Duration) {
+func (my *commonLink) resetReadDeadline(kickInterval time.Duration) {
 	// 不知道为什么经常报:  close session(27) by err="read tcp 192.168.31.96:8888->192.168.31.96:59562: i/o timeout"
 	// 1. 改为SetDeadline(),即同时改写read/write的deadline也是无效的
 	// 2. 时间已经设置为3倍的heartbeat时间了
 	//
 	// i/o timeout有可能是chrome的throttling mechanism导致的, 当chrome tab在background的时候, setInterval()的调用间隔可能会放大到1min, 就很容易超时了
-	_ = my.conn.SetReadDeadline(time.Now().Add(heartbeatInterval * 3))
+	_ = my.conn.SetReadDeadline(time.Now().Add(kickInterval))
 }
 
 // Close closes the connection.

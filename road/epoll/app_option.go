@@ -15,6 +15,7 @@ Copyright (C) - All Rights Reserved
 type appOptions struct {
 	Serdes                   []serde.Serde // 支持的serde列表
 	HeartbeatInterval        time.Duration // heartbeat间隔
+	KickInterval             time.Duration // 因为玩家可能切游戏到后台很久去做其它的事情, 因此这个值必须要大一些, 太短很容易被服务器踢的
 	SessionRateLimitBySecond int           // session每秒限流
 }
 
@@ -32,6 +33,14 @@ func WithHeartbeatInterval(interval time.Duration) AppOption {
 	return func(options *appOptions) {
 		if interval > 0 {
 			options.HeartbeatInterval = interval
+		}
+	}
+}
+
+func WithKickInterval(interval time.Duration) AppOption {
+	return func(options *appOptions) {
+		if interval > 0 {
+			options.KickInterval = interval
 		}
 	}
 }

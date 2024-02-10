@@ -19,7 +19,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) startGoLoop() {
-	go my.link.GoLoop(my.manger.heartbeatInterval, func(reader *iox.OctetsReader, err error) {
+	go my.link.GoLoop(my.manger.kickInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()

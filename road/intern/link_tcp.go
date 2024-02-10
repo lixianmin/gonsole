@@ -30,7 +30,7 @@ func NewTcpLink(conn net.Conn) *TcpLink {
 	return my
 }
 
-func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.OnReadHandler) {
+func (my *TcpLink) GoLoop(kickInterval time.Duration, onReadHandler road.OnReadHandler) {
 	defer loom.DumpIfPanic()
 	defer func() {
 		_ = my.conn.Close()
@@ -42,7 +42,7 @@ func (my *TcpLink) GoLoop(heartbeatInterval time.Duration, onReadHandler road.On
 	var reader = iox.NewOctetsReader(stream)
 
 	for atomic.LoadInt32(&my.isClosed) == 0 {
-		my.resetReadDeadline(heartbeatInterval)
+		my.resetReadDeadline(kickInterval)
 		var num, err1 = my.conn.Read(buffer)
 		if err1 != nil {
 			onReadHandler(nil, err1)

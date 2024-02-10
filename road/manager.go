@@ -19,6 +19,7 @@ Copyright (C) - All Rights Reserved
 
 type Manager struct {
 	heartbeatInterval time.Duration
+	kickInterval      time.Duration
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
@@ -30,9 +31,10 @@ type Manager struct {
 	kickBuffer      []byte
 }
 
-func NewManager(heartbeatInterval time.Duration) *Manager {
+func NewManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
+		kickInterval:      kickInterval,
 		routeHandlers:     map[string]*component.Handler{},
 		routeKinds:        map[string]int32{}, // 这些默认不能为nil, 否则一旦有客户端不调用RebuildHandlerKinds(), 那么这些将一直为nil, 并影响后续的操作
 		kindHandlers:      map[int32]*component.Handler{},

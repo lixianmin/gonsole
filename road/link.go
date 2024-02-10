@@ -16,7 +16,7 @@ Copyright (C) - All Rights Reserved
 type OnReadHandler func(reader *iox.OctetsReader, err error)
 
 type Link interface {
-	GoLoop(heartbeatInterval time.Duration, onReadHandler OnReadHandler)
+	GoLoop(kickInterval time.Duration, onReadHandler OnReadHandler)
 	Write(data []byte) (int, error)
 	Close() error
 	RemoteAddr() net.Addr
