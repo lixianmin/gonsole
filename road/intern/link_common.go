@@ -24,6 +24,7 @@ func (my *commonLink) resetReadDeadline(kickInterval time.Duration) {
 	// 2. 时间已经设置为3倍的heartbeat时间了
 	//
 	// i/o timeout有可能是chrome的throttling mechanism导致的, 当chrome tab在background的时候, setInterval()的调用间隔可能会放大到1min, 就很容易超时了
+	// 因为玩家可能切游戏到后台很久去做其它的事情, 因此这个值必须要大一些, 太短很容易被服务器踢的
 	_ = my.conn.SetReadDeadline(time.Now().Add(kickInterval))
 }
 
