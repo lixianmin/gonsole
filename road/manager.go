@@ -4,6 +4,7 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
+	"github.com/lixianmin/got/osx"
 	"maps"
 	"slices"
 	"sort"
@@ -26,6 +27,7 @@ type Manager struct {
 	maxKind           int32
 	routes            []string
 	serdes            []serde.Serde
+	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 
 	heartbeatBuffer []byte
 	kickBuffer      []byte
@@ -41,6 +43,7 @@ func NewManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 		maxKind:           0,
 		routes:            make([]string, 0),
 		serdes:            []serde.Serde{&serde.JsonSerde{}}, // 默认支持json序列化
+		gid:               osx.GetGPID(0),
 
 		heartbeatBuffer: createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
 		kickBuffer:      createCommonPackBuffer(serde.Packet{Kind: serde.Kick}),

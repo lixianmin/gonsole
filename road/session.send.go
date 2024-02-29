@@ -134,16 +134,12 @@ func (my *sessionImpl) Handshake() error {
 		return nil
 	}
 
-	// nonce一定不为0
-	var nonce = rand.Int31()
-	for nonce == 0 {
-		nonce = rand.Int31()
-	}
-
+	var nonce = fetchNonce()
 	var info = serde.JsonHandshake{
 		Nonce:     nonce,
 		Heartbeat: float32(my.manger.heartbeatInterval.Seconds()),
 		Routes:    my.manger.routes,
+		Gid:       my.manger.gid,
 	}
 
 	// all supported serde names
@@ -183,4 +179,14 @@ func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 
 func (my *sessionImpl) setSerde(serde serde.Serde) {
 	my.serde = serde
+}
+
+func fetchNonce() int32 {
+	// nonce一定不为0
+	for {
+		var nonce = rand.Int31()
+		if nonce != 0 {
+			return nonce
+		}
+	}
 }
