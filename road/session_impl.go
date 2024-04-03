@@ -59,7 +59,8 @@ func newSession(manager *Manager, link Link) Session {
 		maxKind:    maxKind,
 	}}
 
-	logo.Info("create session(%d)", my.id)
+	// 线上有大量的非法请求, 感觉是攻击, 先用Debug输出吧, 否则会生成大量无效日志
+	logo.Debug("create session(%d)", my.id)
 	my.ctxValue = reflect.ValueOf(context.WithValue(context.Background(), ifs.CtxKeySession, my))
 	my.startGoLoop()
 
