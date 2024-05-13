@@ -1,11 +1,11 @@
 module github.com/lixianmin/gonsole
 
-go 1.21
+go 1.22
 
-toolchain go1.21.3
+toolchain go1.22.2
 
 require (
-	github.com/gobwas/ws v1.3.2
+	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/lixianmin/got v0.0.0-20240513074105-aa5f78fe5871
 	github.com/lixianmin/logo v0.0.0-20231209114249-c1316ccfa6c0
