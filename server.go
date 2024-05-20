@@ -44,12 +44,13 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		PageBody:     "Input 'help' and press 'Enter' to fetch builtin commands. <a href=\"https://github.com/lixianmin/gonsole\">learn more</a>",
 
 		AutoLoginTime:   timex.Day,
+		DeadlockIgnores: nil,
+		Directory:       "",
 		EnablePProf:     false,
 		LogListRoot:     "logs",
 		Port:            8888,
-		Directory:       "",
+		Tts:             true,
 		UserPasswords:   make(map[string]string),
-		DeadlockIgnores: nil,
 		WebSocketPath:   "",
 	}
 
@@ -69,12 +70,17 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		epoll.WithSessionRateLimitBySecond(5),
 	)
 
+	var http = "http"
+	if options.Tts {
+		http = "https"
+	}
+
 	var server = &Server{
 		options: options,
 		app:     app,
 		gpid:    osx.GetGPID(options.Port),
 		// 不考虑http了，直接上https
-		consoleUrl: fmt.Sprintf("https://%s:%d%s/console", osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
+		consoleUrl: fmt.Sprintf("%s://%s:%d%s/console", http, osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))

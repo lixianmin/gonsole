@@ -17,12 +17,13 @@ type serverOptions struct {
 	PageBody     string // 主页（console.html）主体
 
 	AutoLoginTime   time.Duration     // 如果手动登录过，则在时限内自动登录
+	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
+	Directory       string            // 项目根目录，表现在url中
 	EnablePProf     bool              // 激活pprof
 	LogListRoot     string            // log.list命令显示的日志文件根目录
 	Port            int               // 服务器端口
-	Directory       string            // 项目根目录，表现在url中
+	Tts             bool              // 是否使用tts, 默认true
 	UserPasswords   map[string]string // 可以登陆的用户名与密码
-	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
 	WebSocketPath   string            // websocket监听的路径
 }
 
@@ -121,5 +122,11 @@ func WithDeadlockIgnores(ignores []string) ServerOption {
 func WithWebSocketPath(path string) ServerOption {
 	return func(options *serverOptions) {
 		options.WebSocketPath = path
+	}
+}
+
+func WithTts(enable bool) ServerOption {
+	return func(options *serverOptions) {
+		options.Tts = enable
 	}
 }
