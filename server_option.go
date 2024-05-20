@@ -22,7 +22,7 @@ type serverOptions struct {
 	EnablePProf     bool              // 激活pprof
 	LogListRoot     string            // log.list命令显示的日志文件根目录
 	Port            int               // 服务器端口
-	Tts             bool              // 是否使用tts, 默认true
+	Tls             bool              // 是否使用tls, 默认true
 	UserPasswords   map[string]string // 可以登陆的用户名与密码
 	WebSocketPath   string            // websocket监听的路径
 }
@@ -125,8 +125,8 @@ func WithWebSocketPath(path string) ServerOption {
 	}
 }
 
-func WithTts(enable bool) ServerOption {
+func WithTls(enable bool) ServerOption {
 	return func(options *serverOptions) {
-		options.Tts = enable
+		options.Tls = enable
 	}
 }

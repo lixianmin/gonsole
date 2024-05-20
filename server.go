@@ -49,7 +49,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		EnablePProf:     false,
 		LogListRoot:     "logs",
 		Port:            8888,
-		Tts:             true,
+		Tls:             true,
 		UserPasswords:   make(map[string]string),
 		WebSocketPath:   "",
 	}
@@ -71,7 +71,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	)
 
 	var http = "http"
-	if options.Tts {
+	if options.Tls {
 		http = "https"
 	}
 
