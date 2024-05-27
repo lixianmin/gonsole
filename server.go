@@ -70,17 +70,22 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		epoll.WithSessionRateLimitBySecond(5),
 	)
 
-	var http = "http"
-	if options.Tls {
-		http = "https"
-	}
-
 	var server = &Server{
 		options: options,
 		app:     app,
 		gpid:    osx.GetGPID(options.Port),
-		// 不考虑http了，直接上https
-		consoleUrl: fmt.Sprintf("%s://%s:%d%s/console", http, osx.GetLocalIp(), options.Port, options.getPathByDirectory("")),
+	}
+
+	// 计算console url
+	if options.ConsoleUrl != "" {
+		server.consoleUrl = options.ConsoleUrl
+	} else {
+		var http = "http"
+		if options.Tls {
+			http = "https"
+		}
+
+		server.consoleUrl = fmt.Sprintf("%s://%s:%d%s/console", http, osx.GetLocalIp(), options.Port, options.getPathByDirectory(""))
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
