@@ -137,6 +137,8 @@ func (my *App) Register(comp component.Component, opts ...component.Option) erro
 	my.services[service.Name] = service
 	for name, handler := range service.Handlers {
 		var route = fmt.Sprintf("%s.%s", service.Name, name)
+		handler.Route = route
+
 		my.manager.AddHandler(route, handler)
 		logo.Debug("route=%s", route)
 	}

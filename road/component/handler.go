@@ -17,4 +17,5 @@ type Handler struct {
 	Method   reflect.Method // method stub
 	Type     reflect.Type   // low-level type of method
 	IsRawArg bool           // whether the data need to serialize
+	Route    string
 }

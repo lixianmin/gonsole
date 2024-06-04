@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/osx"
 	"maps"
-	"reflect"
 	"slices"
 	"sort"
 	"time"
@@ -20,7 +19,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type InterceptorFunc func(session Session, method reflect.Method) error
+type InterceptorFunc func(session Session, route string) error
 
 type Manager struct {
 	heartbeatInterval time.Duration
