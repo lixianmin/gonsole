@@ -3,7 +3,7 @@ package beans
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/jwtx"
 	"github.com/lixianmin/gonsole/road"
