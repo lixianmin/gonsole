@@ -1,8 +1,6 @@
-package epoll
+package road
 
-import (
-	"github.com/lixianmin/gonsole/road"
-)
+import "github.com/lixianmin/gonsole/road/intern"
 
 /********************************************************************
 created:    2020-10-05
@@ -12,5 +10,5 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
-	GetLinkChan() chan road.Link
+	GetLinkChan() chan intern.Link
 }

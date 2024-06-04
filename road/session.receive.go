@@ -2,7 +2,6 @@ package road
 
 import (
 	"fmt"
-	//"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"

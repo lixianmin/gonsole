@@ -64,7 +64,7 @@ func TestRoadClient(t *testing.T) {
 	var tcpPort = 6666
 	var tcpAddress = fmt.Sprintf("127.0.0.1:%d", tcpPort)
 	var acceptor = epoll.NewTcpAcceptor(tcpAddress)
-	var app = epoll.NewApp(acceptor,
+	var app = road.NewApp(acceptor,
 		epoll.WithSessionRateLimitBySecond(1000),
 	)
 

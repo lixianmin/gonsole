@@ -1,7 +1,6 @@
 package epoll
 
 import (
-	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
@@ -17,7 +16,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	linkChan chan road.Link
+	linkChan chan intern.Link
 	isClosed int32
 }
 
@@ -28,7 +27,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
-		linkChan: make(chan road.Link, options.LinkChanSize),
+		linkChan: make(chan intern.Link, options.LinkChanSize),
 	}
 
 	go my.goLoop(address)
@@ -66,6 +65,6 @@ func (my *TcpAcceptor) Close() error {
 	return nil
 }
 
-func (my *TcpAcceptor) GetLinkChan() chan road.Link {
+func (my *TcpAcceptor) GetLinkChan() chan intern.Link {
 	return my.linkChan
 }

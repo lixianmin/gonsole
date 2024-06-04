@@ -1,4 +1,4 @@
-package road
+package intern
 
 import (
 	"github.com/lixianmin/got/iox"

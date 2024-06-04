@@ -3,6 +3,7 @@ package road
 import (
 	"context"
 	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
@@ -34,7 +35,7 @@ type sessionImpl struct {
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
-	link       Link
+	link       intern.Link
 	ctxValue   reflect.Value
 	attachment *AttachmentImpl
 	wc         loom.WaitClose
@@ -46,7 +47,7 @@ type sessionImpl struct {
 	onClosedHandler     func()
 }
 
-func newSession(manager *Manager, link Link) Session {
+func newSession(manager *Manager, link intern.Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var routeKinds, maxKind = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{

@@ -2,6 +2,7 @@ package road
 
 import (
 	"github.com/lixianmin/gonsole/road/component"
+	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/osx"
@@ -37,7 +38,7 @@ type Manager struct {
 	kickBuffer      []byte
 }
 
-func NewManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Manager {
+func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Manager {
 	var my = &Manager{
 		heartbeatInterval: heartbeatInterval,
 		kickInterval:      kickInterval,
@@ -56,7 +57,7 @@ func NewManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 	return my
 }
 
-func (my *Manager) NewSession(link Link) Session {
+func (my *Manager) NewSession(link intern.Link) Session {
 	return newSession(my, link)
 }
 
@@ -125,10 +126,6 @@ func (my *Manager) AddInterceptor(interceptor InterceptorFunc) {
 		my.interceptors = append(my.interceptors, interceptor)
 	}
 }
-
-//func (my *Manager) GetInterceptors() []InterceptorFunc {
-//	return my.interceptors
-//}
 
 func createCommonPackBuffer(pack serde.Packet) []byte {
 	var stream = &iox.OctetsStream{}

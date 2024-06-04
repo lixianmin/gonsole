@@ -1,8 +1,7 @@
-package epoll
+package road
 
 import (
 	"fmt"
-	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
@@ -21,10 +20,10 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		// 下面这组参数，在session里都会用到
-		manager     *road.Manager
+		manager     *Manager
 		wheelSecond *loom.Wheel
 		//rateLimitBySecond    int
-		onHandShakenHandlers []func(session road.Session)
+		onHandShakenHandlers []func(session Session)
 
 		accept   Acceptor
 		sessions loom.Map
@@ -49,7 +48,7 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	}
 
 	var app = &App{
-		manager:     road.NewManager(options.HeartbeatInterval, options.KickInterval),
+		manager:     newManager(options.HeartbeatInterval, options.KickInterval),
 		wheelSecond: loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
 		//rateLimitBySecond: options.SessionRateLimitBySecond,
 
@@ -86,7 +85,7 @@ func (my *App) goLoop(later loom.Later) {
 	}
 }
 
-func (my *App) onNewSession(conn road.Link) {
+func (my *App) onNewSession(conn intern.Link) {
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
@@ -113,13 +112,13 @@ func (my *App) onNewSession(conn road.Link) {
 
 // OnHandShaken 暴露一个OnConnected()事件暂时没有看到很大的意义，因为handshake必须是第一个消息
 // 如果需要接入握手事件的话, 可以自己注册OnHandShaken事件
-func (my *App) OnHandShaken(handler func(session road.Session)) {
+func (my *App) OnHandShaken(handler func(session Session)) {
 	if handler != nil {
 		my.onHandShakenHandlers = append(my.onHandShakenHandlers, handler)
 	}
 }
 
-func (my *App) AddInterceptor(interceptor road.InterceptorFunc) {
+func (my *App) AddInterceptor(interceptor InterceptorFunc) {
 	my.manager.AddInterceptor(interceptor)
 }
 

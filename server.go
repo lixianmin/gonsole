@@ -27,7 +27,7 @@ Copyright (C) - All Rights Reserved
 
 type Server struct {
 	options serverOptions
-	app     *epoll.App
+	app     *road.App
 
 	gpid         string
 	consoleUrl   string
@@ -66,7 +66,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
-	var app = epoll.NewApp(acceptor)//epoll.WithSessionRateLimitBySecond(5),
+	var app = road.NewApp(acceptor) //epoll.WithSessionRateLimitBySecond(5),
 
 	var server = &Server{
 		options: options,
@@ -200,7 +200,7 @@ func (server *Server) ConsoleUrl() string {
 	return server.consoleUrl
 }
 
-func (server *Server) App() *epoll.App {
+func (server *Server) App() *road.App {
 	return server.app
 }
 
