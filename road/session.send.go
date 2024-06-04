@@ -125,7 +125,7 @@ func (my *sessionImpl) Kick() error {
 		return nil
 	}
 
-	var _, err = my.link.Write(my.manger.kickBuffer)
+	var _, err = my.link.Write(my.manager.kickBuffer)
 	return err
 }
 
@@ -137,13 +137,13 @@ func (my *sessionImpl) Handshake() error {
 	var nonce = fetchNonce()
 	var info = serde.JsonHandshake{
 		Nonce:     nonce,
-		Heartbeat: float32(my.manger.heartbeatInterval.Seconds()),
-		Routes:    my.manger.routes,
-		Gid:       my.manger.gid,
+		Heartbeat: float32(my.manager.heartbeatInterval.Seconds()),
+		Routes:    my.manager.routes,
+		Gid:       my.manager.gid,
 	}
 
 	// all supported serde names
-	for _, s := range my.manger.serdes {
+	for _, s := range my.manager.serdes {
 		info.Serdes = append(info.Serdes, s.GetName())
 	}
 

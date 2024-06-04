@@ -26,7 +26,7 @@ func GetSessionFromCtx(ctx context.Context) Session {
 }
 
 // serializeOrRaw serializes the interface if it is not a []byte
-func serializeOrRaw(serde serde.Serde, v interface{}) ([]byte, error) {
+func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 	if data, ok := v.([]byte); ok {
 		return data, nil
 	}
@@ -40,7 +40,7 @@ func serializeOrRaw(serde serde.Serde, v interface{}) ([]byte, error) {
 }
 
 // PCall calls a method that returns an interface and an error and recovers in case of panic
-func PCall(method reflect.Method, args []reflect.Value) (rets interface{}, err error) {
+func PCall(method reflect.Method, args []reflect.Value) (rets any, err error) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			logo.Error("method=%d, recover=%v", method.Name, rec)

@@ -142,12 +142,12 @@ func (my *App) Register(comp component.Component, opts ...component.Option) erro
 	return nil
 }
 
-// Documentation returns handler and remotes docum/7entacion
-func (my *App) Documentation(getPtrNames bool) (map[string]interface{}, error) {
+// Documentation returns handler and remotes documentation
+func (my *App) Documentation(getPtrNames bool) (map[string]any, error) {
 	handlerDocs, err := intern.HandlersDocs("game", my.services, getPtrNames)
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]interface{}{"handlers": handlerDocs}, nil
+	return map[string]any{"handlers": handlerDocs}, nil
 }

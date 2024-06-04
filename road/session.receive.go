@@ -19,7 +19,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) startGoLoop() {
-	go my.link.GoLoop(my.manger.kickInterval, func(reader *iox.OctetsReader, err error) {
+	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
 			logo.Info("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
@@ -57,7 +57,7 @@ func (my *sessionImpl) onReceivedPacket(pack serde.Packet) error {
 		}
 	} else if pack.Kind == serde.Heartbeat {
 		// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
-		if _, err6 := my.link.Write(my.manger.heartbeatBuffer); err6 != nil {
+		if _, err6 := my.link.Write(my.manager.heartbeatBuffer); err6 != nil {
 			return err6
 		}
 	} else if pack.Kind == serde.HandshakeRe {
@@ -76,7 +76,7 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 		return err
 	}
 
-	var s = my.manger.GetSerde(info.Serde)
+	var s = my.manager.GetSerde(info.Serde)
 	if s == nil {
 		return ErrInvalidSerde
 	}
@@ -92,7 +92,7 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 
 func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	// client发来的消息, 必须有handler, 因此一定有kind才是合理的. server推送的消息可以没有kind
-	var handler = my.manger.GetHandlerByKind(input.Kind)
+	var handler = my.manager.GetHandlerByKind(input.Kind)
 	if handler == nil {
 		return ErrEmptyHandler
 	}
@@ -149,12 +149,12 @@ func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *c
 	return ret, nil
 }
 
-func unmarshalHandlerArg(handler *component.Handler, serde serde.Serde, payload []byte) (interface{}, error) {
+func unmarshalHandlerArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {
 	if handler.IsRawArg {
 		return payload, nil
 	}
 
-	var arg interface{}
+	var arg any
 	if handler.Type != nil {
 		arg = reflect.New(handler.Type.Elem()).Interface()
 		err := serde.Deserialize(payload, arg)

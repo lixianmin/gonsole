@@ -80,12 +80,12 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	if options.ConsoleUrl != "" {
 		server.consoleUrl = options.ConsoleUrl
 	} else {
-		var http = "http"
+		var protocol = "http"
 		if options.Tls {
-			http = "https"
+			protocol = "https"
 		}
 
-		server.consoleUrl = fmt.Sprintf("%s://%s:%d%s/console", http, osx.GetLocalIp(), options.Port, options.getPathByDirectory(""))
+		server.consoleUrl = fmt.Sprintf("%s://%s:%d%s/console", protocol, osx.GetLocalIp(), options.Port, options.getPathByDirectory(""))
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))

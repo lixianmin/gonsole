@@ -30,7 +30,7 @@ type sessionWrapper struct {
 }
 
 type sessionImpl struct {
-	manger     *Manager
+	manager    *Manager
 	writer     *iox.OctetsWriter
 	writeLock  sync.Mutex
 	id         int64
@@ -50,7 +50,7 @@ func newSession(manager *Manager, link Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var routeKinds, maxKind = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
-		manger:     manager,
+		manager:    manager,
 		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
 		id:         id,
 		link:       link,
