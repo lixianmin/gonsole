@@ -89,7 +89,11 @@ const App = () => {
     }
 
     function onDefaultHandler(response, err) {
-        const text = JSON.stringify(err ?? response)
+        const input = err ?? response
+        const isString = typeof input === 'string'
+        // 如果输入本身就是string的话, 则不调用stringify(), 解决序列的json串全是\\的问题
+        const text = isString ? input : JSON.stringify(input)
+
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
     }
