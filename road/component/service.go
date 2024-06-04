@@ -68,19 +68,20 @@ func (service *Service) ExtractHandler() error {
 	service.Handlers = suitableHandlerMethods(service.Type, service.Options.nameFunc)
 
 	if len(service.Handlers) == 0 {
-		str := ""
+		var str = ""
 		// To help the user, see if a pointer receiver would work.
-		method := suitableHandlerMethods(reflect.PointerTo(service.Type), service.Options.nameFunc)
-		if len(method) != 0 {
+		var methods = suitableHandlerMethods(reflect.PointerTo(service.Type), service.Options.nameFunc)
+		if len(methods) != 0 {
 			str = "type " + service.Name + " has no exported methods of handler type (hint: pass a pointer to value of that type)"
 		} else {
 			str = "type " + service.Name + " has no exported methods of handler type"
 		}
+
 		return errors.New(str)
 	}
 
-	for i := range service.Handlers {
-		service.Handlers[i].Receiver = service.Receiver
+	for methodName := range service.Handlers {
+		service.Handlers[methodName].Receiver = service.Receiver
 	}
 
 	return nil
