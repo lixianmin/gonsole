@@ -64,9 +64,7 @@ func TestRoadClient(t *testing.T) {
 	var tcpPort = 6666
 	var tcpAddress = fmt.Sprintf("127.0.0.1:%d", tcpPort)
 	var acceptor = epoll.NewTcpAcceptor(tcpAddress)
-	var app = road.NewApp(acceptor,
-		epoll.WithSessionRateLimitBySecond(1000),
-	)
+	var app = road.NewApp(acceptor) //epoll.WithSessionRateLimitBySecond(1000),
 
 	var group = &PlayerGroup{}
 	_ = app.Register(group, component.WithName("player"), component.WithNameFunc(gonsole.ToSnakeName))
@@ -95,7 +93,7 @@ func TestRoadClient(t *testing.T) {
 
 func roadConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var pClient = client.NewClient()
-	if err := pClient.Connect(serverAddress, func(bean *serde.JsonHandshake) {
+	if err := pClient.Connect(serverAddress, client.WithOnHandShaken(func(bean *serde.JsonHandshake) {
 		var request = &GetPlayerInfo{
 			Id: 100,
 		}
@@ -105,7 +103,7 @@ func roadConnect(serverAddress string, wg *sync.WaitGroup) error {
 		_ = pClient.Request("player.get_player_info", request, &response, func(err *road.Error) {
 			logo.JsonI("response", response, "err", err)
 		})
-	}); err != nil {
+	})); err != nil {
 		wg.Done()
 		return road.NewError("ConnectFailed", "尝试连接游戏服务器失败，serverAddress=%q", serverAddress)
 	}
