@@ -119,6 +119,10 @@ func (my *App) OnHandShaken(handler func(session road.Session)) {
 	}
 }
 
+func (my *App) AddInterceptor(interceptor road.InterceptorFunc) {
+	my.manager.AddInterceptor(interceptor)
+}
+
 func (my *App) Register(comp component.Component, opts ...component.Option) error {
 	var service = component.NewService(comp, opts)
 

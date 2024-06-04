@@ -126,9 +126,9 @@ func (my *Manager) AddInterceptor(interceptor InterceptorFunc) {
 	}
 }
 
-func (my *Manager) GetInterceptors() []InterceptorFunc {
-	return my.interceptors
-}
+//func (my *Manager) GetInterceptors() []InterceptorFunc {
+//	return my.interceptors
+//}
 
 func createCommonPackBuffer(pack serde.Packet) []byte {
 	var stream = &iox.OctetsStream{}
