@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/osx"
 	"maps"
+	"reflect"
 	"slices"
 	"sort"
 	"time"
@@ -18,6 +19,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+type InterceptorFunc func(session Session, method reflect.Method) error
+
 type Manager struct {
 	heartbeatInterval time.Duration
 	kickInterval      time.Duration
@@ -27,6 +30,7 @@ type Manager struct {
 	maxKind           int32
 	routes            []string
 	serdes            []serde.Serde
+	interceptors      []InterceptorFunc
 	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 
 	heartbeatBuffer []byte
@@ -114,6 +118,16 @@ func (my *Manager) GetSerde(name string) serde.Serde {
 	}
 
 	return nil
+}
+
+func (my *Manager) AddInterceptor(interceptor InterceptorFunc) {
+	if interceptor != nil {
+		my.interceptors = append(my.interceptors, interceptor)
+	}
+}
+
+func (my *Manager) GetInterceptors() []InterceptorFunc {
+	return my.interceptors
 }
 
 func createCommonPackBuffer(pack serde.Packet) []byte {

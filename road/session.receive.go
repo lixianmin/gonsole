@@ -101,21 +101,32 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 		return ErrInvalidSerde
 	}
 
+	// 遍历拦截器
+	var interceptors = my.manager.interceptors
+	if interceptors != nil {
+		for _, interceptor := range interceptors {
+			var err1 = interceptor(my, handler.Method)
+			if err1 != nil {
+				return err1
+			}
+		}
+	}
+
 	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
-	var payload, err = processReceivedPacket(input, my.ctxValue, handler, my.serde)
+	var payload, err2 = processReceivedPacket(input, my.ctxValue, handler, my.serde)
 	var output = serde.Packet{
 		Kind:      input.Kind,
 		RequestId: input.RequestId,
 	}
 
-	if err == nil {
+	if err2 == nil {
 		output.Data = payload
-	} else if err1, ok := err.(*Error); ok {
-		output.Code = convert.Bytes(err1.Code)
-		output.Data = convert.Bytes(err1.Message)
+	} else if err3, ok := err2.(*Error); ok {
+		output.Code = convert.Bytes(err3.Code)
+		output.Data = convert.Bytes(err3.Message)
 	} else {
 		output.Code = convert.Bytes("PlainError")
-		output.Data = convert.Bytes(err.Error())
+		output.Data = convert.Bytes(err2.Error())
 	}
 
 	return my.sendPacket(output)

@@ -54,10 +54,10 @@ func NewService(comp Component, opts []Option) *Service {
 // - zero or two outputs
 // - the first output is [] or a pointer
 // - the second output is an error
-func (s *Service) ExtractHandler() error {
-	typeName := reflect.Indirect(s.Receiver).Type().Name()
+func (service *Service) ExtractHandler() error {
+	typeName := reflect.Indirect(service.Receiver).Type().Name()
 	if typeName == "" {
-		return errors.New("no service name for type " + s.Type.String())
+		return errors.New("no service name for type " + service.Type.String())
 	}
 
 	if !isExported(typeName) {
@@ -65,22 +65,22 @@ func (s *Service) ExtractHandler() error {
 	}
 
 	// Install the methods
-	s.Handlers = suitableHandlerMethods(s.Type, s.Options.nameFunc)
+	service.Handlers = suitableHandlerMethods(service.Type, service.Options.nameFunc)
 
-	if len(s.Handlers) == 0 {
+	if len(service.Handlers) == 0 {
 		str := ""
 		// To help the user, see if a pointer receiver would work.
-		method := suitableHandlerMethods(reflect.PtrTo(s.Type), s.Options.nameFunc)
+		method := suitableHandlerMethods(reflect.PointerTo(service.Type), service.Options.nameFunc)
 		if len(method) != 0 {
-			str = "type " + s.Name + " has no exported methods of handler type (hint: pass a pointer to value of that type)"
+			str = "type " + service.Name + " has no exported methods of handler type (hint: pass a pointer to value of that type)"
 		} else {
-			str = "type " + s.Name + " has no exported methods of handler type"
+			str = "type " + service.Name + " has no exported methods of handler type"
 		}
 		return errors.New(str)
 	}
 
-	for i := range s.Handlers {
-		s.Handlers[i].Receiver = s.Receiver
+	for i := range service.Handlers {
+		service.Handlers[i].Receiver = service.Receiver
 	}
 
 	return nil

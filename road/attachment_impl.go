@@ -15,11 +15,11 @@ type AttachmentImpl struct {
 	table sync.Map
 }
 
-func (my *AttachmentImpl) Put(key interface{}, value interface{}) {
+func (my *AttachmentImpl) Put(key any, value any) {
 	my.table.Store(key, value)
 }
 
-func (my *AttachmentImpl) UInt32(key interface{}) uint32 {
+func (my *AttachmentImpl) UInt32(key any) uint32 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(uint32); ok {
 			return r
@@ -29,7 +29,7 @@ func (my *AttachmentImpl) UInt32(key interface{}) uint32 {
 	return 0
 }
 
-func (my *AttachmentImpl) Int32(key interface{}) int32 {
+func (my *AttachmentImpl) Int32(key any) int32 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(int32); ok {
 			return r
@@ -39,7 +39,7 @@ func (my *AttachmentImpl) Int32(key interface{}) int32 {
 	return 0
 }
 
-func (my *AttachmentImpl) UInt64(key interface{}) uint64 {
+func (my *AttachmentImpl) UInt64(key any) uint64 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(uint64); ok {
 			return r
@@ -49,7 +49,7 @@ func (my *AttachmentImpl) UInt64(key interface{}) uint64 {
 	return 0
 }
 
-func (my *AttachmentImpl) Int64(key interface{}) int64 {
+func (my *AttachmentImpl) Int64(key any) int64 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(int64); ok {
 			return r
@@ -59,7 +59,7 @@ func (my *AttachmentImpl) Int64(key interface{}) int64 {
 	return 0
 }
 
-func (my *AttachmentImpl) Int(key interface{}) int {
+func (my *AttachmentImpl) Int(key any) int {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(int); ok {
 			return r
@@ -69,7 +69,7 @@ func (my *AttachmentImpl) Int(key interface{}) int {
 	return 0
 }
 
-func (my *AttachmentImpl) Float32(key interface{}) float32 {
+func (my *AttachmentImpl) Float32(key any) float32 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(float32); ok {
 			return r
@@ -79,7 +79,7 @@ func (my *AttachmentImpl) Float32(key interface{}) float32 {
 	return 0
 }
 
-func (my *AttachmentImpl) Float64(key interface{}) float64 {
+func (my *AttachmentImpl) Float64(key any) float64 {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(float64); ok {
 			return r
@@ -89,7 +89,7 @@ func (my *AttachmentImpl) Float64(key interface{}) float64 {
 	return 0
 }
 
-func (my *AttachmentImpl) Bool(key interface{}) bool {
+func (my *AttachmentImpl) Bool(key any) bool {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(bool); ok {
 			return r
@@ -99,7 +99,7 @@ func (my *AttachmentImpl) Bool(key interface{}) bool {
 	return false
 }
 
-func (my *AttachmentImpl) String(key interface{}) string {
+func (my *AttachmentImpl) String(key any) string {
 	if v, ok := my.Get2(key); ok {
 		if r, ok := v.(string); ok {
 			return r
@@ -109,7 +109,7 @@ func (my *AttachmentImpl) String(key interface{}) string {
 	return ""
 }
 
-func (my *AttachmentImpl) Get1(key interface{}) interface{} {
+func (my *AttachmentImpl) Get1(key any) interface{} {
 	if v, ok := my.Get2(key); ok {
 		return v
 	}
@@ -117,7 +117,7 @@ func (my *AttachmentImpl) Get1(key interface{}) interface{} {
 	return nil
 }
 
-func (my *AttachmentImpl) Get2(key interface{}) (interface{}, bool) {
+func (my *AttachmentImpl) Get2(key any) (any, bool) {
 	return my.table.Load(key)
 }
 
