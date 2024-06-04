@@ -101,13 +101,9 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 遍历拦截器
-	var interceptors = my.manager.interceptors
-	if interceptors != nil {
-		for _, interceptor := range interceptors {
-			var err1 = interceptor(my, handler.Method)
-			if err1 != nil {
-				return err1
-			}
+	for _, interceptor := range my.manager.interceptors {
+		if err1 := interceptor(my, handler.Method); err1 != nil {
+			return err1
 		}
 	}
 
