@@ -22,7 +22,7 @@ func GetSessionFromCtx(ctx context.Context) Session {
 		return nil
 	}
 
-	return fetus.(*sessionWrapper)
+	return fetus.(*sessionImpl)
 }
 
 // serializeOrRaw serializes the interface if it is not a []byte

@@ -10,7 +10,6 @@ import (
 	"github.com/lixianmin/logo"
 	"net"
 	"reflect"
-	"runtime"
 	"sync"
 	"sync/atomic"
 )
@@ -63,14 +62,15 @@ func newSession(manager *Manager, link intern.Link) Session {
 
 	// 线上有大量的非法请求, 感觉是攻击, 先用Debug输出吧, 否则会生成大量无效日志
 	logo.Debug("create session(%d)", my.id)
-	var ctx = context.WithValue(context.Background(), ifs.CtxKeySession, my)
+	var ctx = context.WithValue(context.Background(), ifs.CtxKeySession, my.sessionImpl)
 	my.ctxValue = reflect.ValueOf(ctx)
 	my.startGoLoop()
 
-	// 参考: https://zhuanlan.zhihu.com/p/76504936
-	runtime.SetFinalizer(my, func(w *sessionWrapper) {
-		_ = w.Close()
-	})
+	// 这个设计, 可以保证finalizer被调用到, 但极大延长了对象在内存中存活的时间, 导致内存上涨很快. 外网扫描器很多, 有可能导致内存OOM
+	//// 参考: https://zhuanlan.zhihu.com/p/76504936
+	//runtime.SetFinalizer(my, func(w *sessionWrapper) {
+	//	_ = w.Close()
+	//})
 
 	return my
 }
