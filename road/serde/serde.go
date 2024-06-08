@@ -8,7 +8,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Serde interface {
-	Serialize(v interface{}) ([]byte, error)
-	Deserialize(data []byte, v interface{}) error
+	Serialize(v any) ([]byte, error)
+	Deserialize(data []byte, v any) error
 	GetName() string
 }

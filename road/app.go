@@ -20,9 +20,8 @@ Copyright (C) - All Rights Reserved
 type (
 	App struct {
 		// 下面这组参数，在session里都会用到
-		manager     *Manager
-		wheelSecond *loom.Wheel
-		//rateLimitBySecond    int
+		manager              *Manager
+		wheelSecond          *loom.Wheel
 		onHandShakenHandlers []func(session Session)
 
 		accept   Acceptor
@@ -39,7 +38,6 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	var options = appOptions{
 		HeartbeatInterval: 3 * time.Second,
 		KickInterval:      time.Minute,
-		//SessionRateLimitBySecond: 2,
 	}
 
 	// 初始化
@@ -50,10 +48,8 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	var app = &App{
 		manager:     newManager(options.HeartbeatInterval, options.KickInterval),
 		wheelSecond: loom.NewWheel(time.Second, int(options.HeartbeatInterval/time.Second)+1),
-		//rateLimitBySecond: options.SessionRateLimitBySecond,
-
-		accept:   accept,
-		services: make(map[string]*component.Service),
+		accept:      accept,
+		services:    make(map[string]*component.Service),
 	}
 
 	// 除默认支持JsonSerde外, 可额外添加ProtoSerde等支持

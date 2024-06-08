@@ -81,12 +81,19 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 	}
 
 	my.setSerde(s)
-
-	var handler = my.onHandShakenHandler
-	if handler != nil {
-		handler()
-	}
+	my.onEventHandShaken()
 	return nil
+}
+
+func (my *sessionImpl) onEventHandShaken() {
+	my.handlerLock.Lock()
+	defer my.handlerLock.Unlock()
+	{
+		for _, handler := range my.onHandShakenHandlers {
+			handler()
+		}
+		my.onHandShakenHandlers = nil
+	}
 }
 
 func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {

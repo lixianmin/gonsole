@@ -43,8 +43,9 @@ type sessionImpl struct {
 	routeKinds map[string]int32
 	maxKind    int32
 
-	onHandShakenHandler func()
-	onClosedHandler     func()
+	handlerLock          sync.Mutex
+	onHandShakenHandlers []func()
+	onClosedHandlers     []func()
 }
 
 func newSession(manager *Manager, link intern.Link) Session {
@@ -79,23 +80,39 @@ func (my *sessionImpl) Close() error {
 	return my.wc.Close(func() error {
 		var err = my.link.Close()
 		my.attachment.dispose()
-
-		var handler = my.onClosedHandler
-		if handler != nil {
-			handler()
-		}
-
+		my.onEventClosed()
 		return err
 	})
 }
 
+func (my *sessionImpl) onEventClosed() {
+	my.handlerLock.Lock()
+	defer my.handlerLock.Unlock()
+	{
+		for _, handler := range my.onClosedHandlers {
+			handler()
+		}
+		my.onClosedHandlers = nil
+	}
+}
+
 func (my *sessionImpl) OnHandShaken(handler func()) {
-	my.onHandShakenHandler = handler
+	if handler != nil {
+		my.handlerLock.Lock()
+		defer my.handlerLock.Unlock()
+
+		my.onHandShakenHandlers = append(my.onHandShakenHandlers, handler)
+	}
 }
 
 // OnClosed 需要保证OnClosed事件在任何情况下都会有且仅有一次触发：无论是主动断开，还是意外断开链接；无论client端有没有因为网络问题收到回复消息
 func (my *sessionImpl) OnClosed(handler func()) {
-	my.onClosedHandler = handler
+	if handler != nil {
+		my.handlerLock.Lock()
+		defer my.handlerLock.Unlock()
+
+		my.onClosedHandlers = append(my.onClosedHandlers, handler)
+	}
 }
 
 // 在session中加入SendCallback()的相关权衡？
