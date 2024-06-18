@@ -107,12 +107,13 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 			return bean
 		}
 
-		var ip = extractIpAddress(session)
-		if data["ip"] != ip {
-			bean.Code = invalidUsernameOrPassword
-			logo.JsonI("invalid_ip", data["ip"], "ip", ip)
-			return bean
-		}
+		// 用户的ip可能每次都变, 这样以ip作为验证依据就失去了意义
+		//var ip = extractIpAddress(session)
+		//if data["ip"] != ip {
+		//	bean.Code = invalidUsernameOrPassword
+		//	logo.JsonI("invalid_ip", data["ip"], "ip", ip)
+		//	return bean
+		//}
 	}
 
 	bean.Code = "ok"
