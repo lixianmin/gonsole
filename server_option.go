@@ -17,7 +17,7 @@ type serverOptions struct {
 	PageBody     string // 主页（console.html）主体
 
 	AutoLoginTime   time.Duration     // 如果手动登录过，则在时限内自动登录
-	ConsoleUrl      string            // 直接设置, 而不是自动计算console的url
+	BaseUrl         string            // 直接设置域名, 而不是自动计算
 	DeadlockIgnores []string          // 死锁检查时可以忽略的调用字符串
 	Directory       string            // 项目根目录，表现在url中
 	EnablePProf     bool              // 激活pprof
@@ -132,8 +132,8 @@ func WithTls(enable bool) ServerOption {
 	}
 }
 
-func WithConsoleUrl(url string) ServerOption {
+func WithBaseUrl(url string) ServerOption {
 	return func(options *serverOptions) {
-		options.ConsoleUrl = url
+		options.BaseUrl = url
 	}
 }

@@ -30,7 +30,7 @@ type Server struct {
 	app     *road.App
 
 	gpid         string
-	consoleUrl   string
+	baseUrl      string
 	commands     sync.Map
 	topics       sync.Map
 	lastAuthTime atomic.Value
@@ -75,15 +75,15 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	// 计算console url
-	if options.ConsoleUrl != "" {
-		server.consoleUrl = options.ConsoleUrl
+	if options.BaseUrl != "" {
+		server.baseUrl = options.BaseUrl
 	} else {
 		var protocol = "http"
 		if options.Tls {
 			protocol = "https"
 		}
 
-		server.consoleUrl = fmt.Sprintf("%s://%s:%d%s/console", protocol, osx.GetLocalIp(), options.Port, options.getPathByDirectory(""))
+		server.baseUrl = fmt.Sprintf("%s://%s:%d", protocol, osx.GetLocalIp(), options.Port)
 	}
 
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
@@ -113,7 +113,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	logo.Info("Gonsole: GitCommitMessage		= %s", GitCommitMessage)
 	logo.Info("Gonsole: GitCommitTime 		= %s", GitCommitTime)
 	logo.Info("Gonsole: AppBuildTime  		= %s", AppBuildTime)
-	logo.Info("Gonsole: console       		= %s", server.consoleUrl)
+	logo.Info("Gonsole: console       		= %s", server.baseUrl+"/console")
 	logo.Info("Starting server")
 	return server
 }
@@ -196,8 +196,8 @@ func (server *Server) GPID() string {
 	return server.gpid
 }
 
-func (server *Server) ConsoleUrl() string {
-	return server.consoleUrl
+func (server *Server) BaseUrl() string {
+	return server.baseUrl
 }
 
 func (server *Server) App() *road.App {
