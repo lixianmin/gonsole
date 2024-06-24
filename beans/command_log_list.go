@@ -23,7 +23,7 @@ type LogFileInfo struct {
 	Path        string `json:"path"`
 	ModTime     string `json:"mod_time"`
 	Sample      string `json:"sample"`
-	AccessToken string `bson:"access_token"`
+	AccessToken string `json:"access_token"`
 }
 
 type CommandLogList struct {
