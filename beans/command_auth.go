@@ -27,7 +27,7 @@ type CommandAuth struct {
 	ClientAddress string `json:"client,omitempty"`
 }
 
-func NewCommandAuth(session road.Session, args []string, userPasswords map[string]string, autoLoginTime time.Duration, port int) *CommandAuth {
+func NewCommandAuth(session road.Session, args []string, jwtSecretKey string, userPasswords map[string]string, autoLoginTime time.Duration, port int) *CommandAuth {
 	var bean = &CommandAuth{}
 
 	if len(args) < 4 {
@@ -52,9 +52,6 @@ func NewCommandAuth(session road.Session, args []string, userPasswords map[strin
 		logo.JsonI("invalid_username", username)
 		return bean
 	}
-
-	// todo secret key需要是项目启动时传入的, 不能是固定的, 否则hacker可以自己定制jwt token
-	const jwtSecretKey = "Hey Pet!!"
 
 	// 缓过sha256与base64编码后的digest的长度一定是44, 这是因为sha256返回256 bits的数据, 折合8 bytes, 计算base64编码后的结果长度应该是4 * ceil(n/3)
 	var isDigest = len(digestOrToken) == 44

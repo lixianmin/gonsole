@@ -49,6 +49,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		EnablePProf:     false,
 		LogListRoot:     "logs",
 		Port:            8888,
+		SecretKey:       "Hey Pet!!",
 		Tls:             true,
 		UserPasswords:   make(map[string]string),
 		WebSocketPath:   "",

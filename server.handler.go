@@ -177,7 +177,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 			server.lastAuthTime.Store(time.Now())
 			var options = server.options
 
-			var data = beans.NewCommandAuth(client.Session(), args, options.UserPasswords, options.AutoLoginTime, port)
+			var data = beans.NewCommandAuth(client.Session(), args, options.SecretKey, options.UserPasswords, options.AutoLoginTime, port)
 			return NewDefaultResponse(data), nil
 		}})
 
@@ -186,7 +186,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Note: "日志文件列表",
 		Flag: flagBuiltin,
 		Handler: func(client *Client, args []string) (*Response, error) {
-			var data = beans.NewCommandLogList(server.options.LogListRoot)
+			var data = beans.NewCommandLogList(server.options.LogListRoot, server.options.SecretKey)
 			var ret = &Response{Operation: "log.list", Data: data}
 			return ret, nil
 		},

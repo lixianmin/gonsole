@@ -56,12 +56,10 @@ func readFileSample(filePath string, fileSize int64) string {
 	return sample
 }
 
-func NewCommandLogList(logRoot string) *CommandLogList {
+func NewCommandLogList(logRoot string, jwtSecretKey string) *CommandLogList {
 	var bean = &CommandLogList{}
 	var logFiles = make([]LogFileInfo, 0, 4)
 
-	// todo secret key需要是项目启动时传入的, 不能是固定的, 否则hacker可以自己定制jwt token
-	const jwtSecretKey = "Hey Pet!!"
 	var data = jwt.MapClaims{}
 	data["ts"] = time.Now().UnixMilli()
 	var token, _ = jwtx.Sign(jwtSecretKey, data, jwtx.WithExpiration(time.Minute))
