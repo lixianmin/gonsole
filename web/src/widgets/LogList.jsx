@@ -15,7 +15,7 @@ export default function LogList(props) {
     const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current, 0))
 
     function fetchNameHtml(fi) {
-        return `<a href="${props.rootUrl}/${fi.path}">${fi.path}</a>
+        return `<a href="${props.rootUrl}/${fi.path}?access_token=${fi.access_token}">${fi.path}</a>
           <span class="tips_text">${fi.sample}</span>
           <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>`
     }

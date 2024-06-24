@@ -2,10 +2,13 @@ package beans
 
 import (
 	"bufio"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/lixianmin/gonsole/jwtx"
 	"github.com/lixianmin/got/timex"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 /********************************************************************
@@ -16,10 +19,11 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type LogFileInfo struct {
-	Size    int64  `json:"size"`
-	Path    string `json:"path"`
-	ModTime string `json:"mod_time"`
-	Sample  string `json:"sample"`
+	Size        int64  `json:"size"`
+	Path        string `json:"path"`
+	ModTime     string `json:"mod_time"`
+	Sample      string `json:"sample"`
+	AccessToken string `bson:"access_token"`
 }
 
 type CommandLogList struct {
@@ -55,13 +59,21 @@ func readFileSample(filePath string, fileSize int64) string {
 func NewCommandLogList(logRoot string) *CommandLogList {
 	var bean = &CommandLogList{}
 	var logFiles = make([]LogFileInfo, 0, 4)
+
+	// todo secret key需要是项目启动时传入的, 不能是固定的, 否则hacker可以自己定制jwt token
+	const jwtSecretKey = "Hey Pet!!"
+	var data = jwt.MapClaims{}
+	data["ts"] = time.Now().UnixMilli()
+	var token, _ = jwtx.Sign(jwtSecretKey, data, jwtx.WithExpiration(time.Minute))
+
 	_ = filepath.Walk(logRoot, func(path string, info os.FileInfo, err error) error {
 		if info != nil && !info.IsDir() {
 			logFiles = append(logFiles, LogFileInfo{
-				Size:    info.Size(),
-				Path:    path,
-				ModTime: info.ModTime().Format(timex.Layout),
-				Sample:  readFileSample(path, info.Size()),
+				Size:        info.Size(),
+				Path:        path,
+				ModTime:     info.ModTime().Format(timex.Layout),
+				Sample:      readFileSample(path, info.Size()),
+				AccessToken: token,
 			})
 		}
 

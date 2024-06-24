@@ -66,7 +66,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
-	var app = road.NewApp(acceptor) //epoll.WithSessionRateLimitBySecond(5),
+	var app = road.NewApp(acceptor)
 
 	var server = &Server{
 		options: options,
@@ -113,7 +113,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	logo.Info("Gonsole: GitCommitMessage		= %s", GitCommitMessage)
 	logo.Info("Gonsole: GitCommitTime 		= %s", GitCommitTime)
 	logo.Info("Gonsole: AppBuildTime  		= %s", AppBuildTime)
-	logo.Info("Gonsole: console       		= %s", server.baseUrl+"/console")
+	logo.Info("Gonsole: console       		= %s", server.baseUrl+options.getPathByDirectory("/console"))
 	logo.Info("Starting server")
 	return server
 }
@@ -205,7 +205,7 @@ func (server *Server) App() *road.App {
 }
 
 func (server *Server) enablePProf(mux IServeMux) {
-	var handler = func(processor func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	var verifyAuth = func(processor func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			const validTime = 10 * time.Minute
 
@@ -222,16 +222,16 @@ func (server *Server) enablePProf(mux IServeMux) {
 	}
 
 	const root = "" // 这个不能随便改，改完了能打开页面，但看不到数据；去看看pprof.Index()的实现，里面路径写死了
-	mux.HandleFunc(root+"/debug/pprof/", handler(pprof.Index))
-	mux.HandleFunc(root+"/debug/pprof/cmdline", handler(pprof.Cmdline))
-	mux.HandleFunc(root+"/debug/pprof/profile", handler(pprof.Profile))
-	mux.HandleFunc(root+"/debug/pprof/symbol", handler(pprof.Symbol))
-	mux.HandleFunc(root+"/debug/pprof/trace", handler(pprof.Trace))
-	mux.HandleFunc(root+"/debug/pprof/block", handler(blockHandler))
-	mux.HandleFunc(root+"/debug/pprof/goroutine", handler(pprof.Handler("goroutine").ServeHTTP))
-	mux.HandleFunc(root+"/debug/pprof/heap", handler(pprof.Handler("heap").ServeHTTP))
-	mux.HandleFunc(root+"/debug/pprof/mutex", handler(mutexHandler))
-	mux.HandleFunc(root+"/debug/pprof/threadcreate", handler(pprof.Handler("threadcreate").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/", verifyAuth(pprof.Index))
+	mux.HandleFunc(root+"/debug/pprof/cmdline", verifyAuth(pprof.Cmdline))
+	mux.HandleFunc(root+"/debug/pprof/profile", verifyAuth(pprof.Profile))
+	mux.HandleFunc(root+"/debug/pprof/symbol", verifyAuth(pprof.Symbol))
+	mux.HandleFunc(root+"/debug/pprof/trace", verifyAuth(pprof.Trace))
+	mux.HandleFunc(root+"/debug/pprof/block", verifyAuth(blockHandler))
+	mux.HandleFunc(root+"/debug/pprof/goroutine", verifyAuth(pprof.Handler("goroutine").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/heap", verifyAuth(pprof.Handler("heap").ServeHTTP))
+	mux.HandleFunc(root+"/debug/pprof/mutex", verifyAuth(mutexHandler))
+	mux.HandleFunc(root+"/debug/pprof/threadcreate", verifyAuth(pprof.Handler("threadcreate").ServeHTTP))
 }
 
 func blockHandler(w http.ResponseWriter, r *http.Request) {
