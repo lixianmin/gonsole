@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"math/rand"
+	"sync/atomic"
 )
 
 /********************************************************************
@@ -27,7 +28,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (my *sessionImpl) Send(route string, v interface{}) error {
+func (my *sessionImpl) Send(route string, v any) error {
 	if my.wc.IsClosed() {
 		return nil
 	}
@@ -161,6 +162,27 @@ func (my *sessionImpl) Handshake() error {
 		_ = my.Close()
 	}
 	return err2
+}
+
+func (my *sessionImpl) Echo(handler func()) error {
+	if my.wc.IsClosed() || handler == nil {
+		return nil
+	}
+
+	if my.serde == nil {
+		return ErrInvalidSerde
+	}
+
+	var requestId = atomic.AddInt32(&echoIdGenerator, 1)
+	my.handlerLock.Lock()
+	{
+		my.echoHandlers[requestId] = handler
+	}
+	my.handlerLock.Unlock()
+
+	var pack = serde.Packet{Kind: serde.Echo, RequestId: requestId}
+	var err3 = my.sendPacket(pack)
+	return err3
 }
 
 func (my *sessionImpl) sendPacket(pack serde.Packet) error {

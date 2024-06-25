@@ -51,20 +51,35 @@ func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
 
 func (my *sessionImpl) onReceivedPacket(pack serde.Packet) error {
 	if pack.Kind >= serde.UserBase {
-		if err4 := my.onReceivedUserdata(pack); err4 != nil {
-			return err4
+		if err1 := my.onReceivedUserdata(pack); err1 != nil {
+			return err1
 		}
 	} else if pack.Kind == serde.Heartbeat {
 		// 现在server只有一个goroutine用于阻塞式读取网络数据，因此server缺少定时发送heartbeat的能力，因此采用client主动heartbeat而server回复的方案
-		if _, err6 := my.link.Write(my.manager.heartbeatBuffer); err6 != nil {
-			return err6
+		if _, err2 := my.link.Write(my.manager.heartbeatBuffer); err2 != nil {
+			return err2
+		}
+	} else if pack.Kind == serde.Echo {
+		if err3 := my.onReceivedEcho(pack); err3 != nil {
+			return err3
 		}
 	} else if pack.Kind == serde.HandshakeRe {
-		if err5 := my.onReceivedHandshakeRe(pack); err5 != nil {
-			return err5
+		if err4 := my.onReceivedHandshakeRe(pack); err4 != nil {
+			return err4
 		}
 	}
 
+	return nil
+}
+
+func (my *sessionImpl) onReceivedEcho(input serde.Packet) error {
+	my.handlerLock.Lock()
+	defer my.handlerLock.Unlock()
+
+	var handler = my.echoHandlers[input.RequestId]
+	delete(my.echoHandlers, input.RequestId)
+
+	handler()
 	return nil
 }
 

@@ -23,6 +23,7 @@ Copyright (C) - All Rights Reserved
 
 var (
 	globalIdGenerator int64 = 0
+	echoIdGenerator   int32 = 0
 )
 
 type sessionWrapper struct {
@@ -45,19 +46,21 @@ type sessionImpl struct {
 	handlerLock          sync.Mutex
 	onHandShakenHandlers []func()
 	onClosedHandlers     []func()
+	echoHandlers         map[int32]func()
 }
 
 func newSession(manager *Manager, link intern.Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
 	var routeKinds, maxKind = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
-		manager:    manager,
-		writer:     iox.NewOctetsWriter(&iox.OctetsStream{}),
-		id:         id,
-		link:       link,
-		attachment: &AttachmentImpl{},
-		routeKinds: routeKinds,
-		maxKind:    maxKind,
+		manager:      manager,
+		writer:       iox.NewOctetsWriter(&iox.OctetsStream{}),
+		id:           id,
+		link:         link,
+		attachment:   &AttachmentImpl{},
+		routeKinds:   routeKinds,
+		maxKind:      maxKind,
+		echoHandlers: map[int32]func(){},
 	}}
 
 	// 线上有大量的非法请求, 感觉是攻击, 先用Debug输出吧, 否则会生成大量无效日志
