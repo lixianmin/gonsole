@@ -110,6 +110,9 @@ export function newSession() {
             case PacketKind.RouteKind:
                 onReceivedRouteKind(pack)
                 break
+            case PacketKind.Echo:
+                onReceivedEcho(pack)
+                break
             default:
                 onReceivedUserdata(pack)
                 break
@@ -169,6 +172,11 @@ export function newSession() {
         const bean = _serde.deserialize(pack.data)
         _kindRoutes.set(bean.kind, bean.route)
         _routeKinds.set(bean.route, bean.kind)
+    }
+
+    function onReceivedEcho(pack) {
+        sendPacket(pack);
+        console.log("pack", pack)
     }
 
     function onReceivedUserdata(pack) {
