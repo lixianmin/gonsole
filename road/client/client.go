@@ -174,6 +174,8 @@ func (my *Client) onReceivedPacket(pack serde.Packet) error {
 		return my.Close()
 	case serde.RouteKind:
 		return my.onReceivedRouteKind(pack)
+	case serde.Echo:
+		return my.onReceivedEcho(pack)
 	default:
 		return my.onReceivedUserdata(pack)
 	}
@@ -236,6 +238,10 @@ func (my *Client) onReceivedRouteKind(pack serde.Packet) error {
 	my.routeKinds[bean.Route] = bean.Kind
 	my.kindRoutes[bean.Kind] = bean.Route
 	return nil
+}
+
+func (my *Client) onReceivedEcho(pack serde.Packet) error {
+	return my.sendPacket(pack)
 }
 
 func (my *Client) onReceivedUserdata(pack serde.Packet) error {
