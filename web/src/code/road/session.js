@@ -176,7 +176,7 @@ export function newSession() {
 
     function onReceivedEcho(pack) {
         sendPacket(pack);
-        console.log("pack", pack)
+        // console.log("pack", pack)
     }
 
     function onReceivedUserdata(pack) {
@@ -186,7 +186,6 @@ export function newSession() {
 
         const handler = fetchHandler(pack)
         if (!handler) {
-            console.error(`can not find handler, kind=${pack.kind}, requestId=${pack.requestId}`)
             return
         }
 
@@ -211,10 +210,17 @@ export function newSession() {
         if (requestId !== 0) {
             const handler = _requestHandlers.get(requestId)
             _requestHandlers.delete(requestId)
+            if (!handler) {
+                console.error(`can not find handler, kind=${pack.kind}, requestId=${pack.requestId}`)
+            }
             return handler
         } else {
             const route = _kindRoutes.get(pack.kind)
-            return _requestHandlers.get(route)
+            const handler = _requestHandlers.get(route)
+            if (!handler) {
+                console.error(`can not find handler, kind=${pack.kind}, route=${route}`)
+            }
+            return handler
         }
     }
 
