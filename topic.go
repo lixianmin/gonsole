@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/randx"
 	"github.com/lixianmin/logo"
@@ -22,9 +23,9 @@ type Topic struct {
 	Interval      time.Duration    // 推送周期
 	BuildResponse func() *Response // 创建数据
 
-	clients struct {
+	sessions struct {
 		sync.RWMutex
-		d map[*Client]struct{}
+		d map[road.Session]struct{}
 	}
 }
 
@@ -34,42 +35,42 @@ func (topic *Topic) start() {
 		return
 	}
 
-	topic.clients.d = make(map[*Client]struct{})
+	topic.sessions.d = make(map[road.Session]struct{})
 
 	go func() {
 		time.Sleep(randx.Duration(0, topic.Interval))
 
 		for {
-			topic.clients.RLock()
-			var count = len(topic.clients.d)
+			topic.sessions.RLock()
+			var count = len(topic.sessions.d)
 			if count > 0 {
 				var response = topic.BuildResponse()
 				var route = "console." + response.Operation
-				for client := range topic.clients.d {
-					if err := client.session.Send(route, response); err != nil {
+				for session := range topic.sessions.d {
+					if err := session.Send(route, response); err != nil {
 						logo.JsonW("route", route, "err", err)
 					}
 				}
 			}
-			topic.clients.RUnlock()
+			topic.sessions.RUnlock()
 			time.Sleep(topic.Interval)
 		}
 	}()
 }
 
-func (topic *Topic) addClient(client *Client) {
-	if client != nil {
-		topic.clients.Lock()
-		topic.clients.d[client] = struct{}{}
-		topic.clients.Unlock()
+func (topic *Topic) addClient(session road.Session) {
+	if session != nil {
+		topic.sessions.Lock()
+		topic.sessions.d[session] = struct{}{}
+		topic.sessions.Unlock()
 	}
 }
 
-func (topic *Topic) removeClient(client *Client) {
-	if client != nil {
-		topic.clients.Lock()
-		delete(topic.clients.d, client)
-		topic.clients.Unlock()
+func (topic *Topic) removeClient(session road.Session) {
+	if session != nil {
+		topic.sessions.Lock()
+		delete(topic.sessions.d, session)
+		topic.sessions.Unlock()
 	}
 }
 

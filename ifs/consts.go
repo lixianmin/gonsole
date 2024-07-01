@@ -10,6 +10,6 @@ Copyright (C) - All Rights Reserved
 const (
 	CtxKeySession   = "console.session"
 	KeyIsAuthorized = "console.isAuthorized"
-	KeyClient       = "console.client"
 	KeyNonce        = "console.nonce"
+	//KeyClient       = "console.client"
 )

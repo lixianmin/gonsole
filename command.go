@@ -1,6 +1,7 @@
 package gonsole
 
 import (
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/loom"
 )
 
@@ -12,10 +13,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Command struct {
-	loom.Flag                                                        // command的flag
-	Name      string                                                 // 名称
-	Note      string                                                 // 描述
-	Handler   func(client *Client, args []string) (*Response, error) // 处理方法
+	loom.Flag                                                             // command的flag
+	Name      string                                                      // 名称
+	Note      string                                                      // 描述
+	Handler   func(client road.Session, args []string) (*Response, error) // 处理方法
 }
 
 func (cmd *Command) GetName() string {
@@ -38,6 +39,6 @@ func (cmd *Command) IsInvisible() bool {
 	return cmd.HasFlag(FlagInvisible)
 }
 
-func (cmd *Command) Run(client *Client, args []string) (*Response, error) {
-	return cmd.Handler(client, args)
+func (cmd *Command) Run(session road.Session, args []string) (*Response, error) {
+	return cmd.Handler(session, args)
 }

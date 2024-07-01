@@ -98,8 +98,8 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	app.OnHandShaken(func(session road.Session) {
-		var client = newClient(session)
-		session.Attachment().Put(ifs.KeyClient, client)
+		//var client = newClient(session)
+		//session.Attachment().Put(ifs.KeyClient, client)
 
 		var remoteAddress = session.RemoteAddr().String()
 		// console.challenge协议不能随便发，因为默认情况下pitaya client不认识这个协议，会导致pitaya.connect失败

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
@@ -92,7 +93,7 @@ func registerCommands(server *gonsole.Server) {
 		Name: "hi",
 		Note: "打印 hi console",
 		Flag: 0,
-		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			var bean struct {
 				Text string
 			}
@@ -106,7 +107,7 @@ func registerCommands(server *gonsole.Server) {
 		Name: "test_slice_sort_table_by_head",
 		Note: "测试slice排序",
 		Flag: gonsole.FlagPublic,
-		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text     string
 				Name     string
@@ -134,7 +135,7 @@ func registerCommands(server *gonsole.Server) {
 		Name: "test_element_struct",
 		Note: "测试element_plus结构体",
 		Flag: gonsole.FlagPublic | gonsole.FlagInvisible,
-		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string
 				Name string
@@ -155,7 +156,7 @@ func registerCommands(server *gonsole.Server) {
 		Name: "test_struct_sort_table_by_head",
 		Note: "测试结构体排序",
 		Flag: gonsole.FlagPublic,
-		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string
 				Name string
@@ -177,7 +178,7 @@ func registerCommands(server *gonsole.Server) {
 		Name: "test_element_table",
 		Note: "测试element_table",
 		Flag: gonsole.FlagPublic,
-		Handler: func(client *gonsole.Client, args []string) (*gonsole.Response, error) {
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text     string
 				Name     string

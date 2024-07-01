@@ -3,6 +3,7 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/iox"
@@ -152,8 +153,8 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "help",
 		Note: "帮助中心",
 		Flag: flagBuiltin | FlagPublic,
-		Handler: func(client *Client, args []string) (*Response, error) {
-			var isAuthorized = isAuthorized(client.Session())
+		Handler: func(session road.Session, args []string) (*Response, error) {
+			var isAuthorized = isAuthorized(session)
 			var commandHelp = beans.FetchCommandHelp(server.getCommands(), isAuthorized)
 			var data = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
@@ -173,11 +174,11 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "auth",
 		Note: "认证后开启更多命令：auth username，然后根据提示输入password",
 		Flag: flagBuiltin | FlagPublic,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			server.lastAuthTime.Store(time.Now())
 			var options = server.options
 
-			var data = beans.NewCommandAuth(client.Session(), args, options.SecretKey, options.UserPasswords, options.AutoLoginTime, port)
+			var data = beans.NewCommandAuth(session, args, options.SecretKey, options.UserPasswords, options.AutoLoginTime, port)
 			return NewDefaultResponse(data), nil
 		}})
 
@@ -185,7 +186,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "log.list",
 		Note: "日志文件列表",
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var data = beans.NewCommandLogList(server.options.LogListRoot, server.options.SecretKey)
 			var ret = &Response{Operation: "log.list", Data: data}
 			return ret, nil
@@ -198,7 +199,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "head",
 		Note: headNote,
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
 			return NewHtmlResponse(data), nil
 		},
@@ -210,7 +211,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "tail",
 		Note: tailNote,
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
 			return NewHtmlResponse(data), nil
 		},
@@ -220,7 +221,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "history",
 		Note: "历史命令列表",
 		Flag: flagBuiltin | FlagPublic,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			return &Response{Operation: "history"}, nil
 		},
 	})
@@ -229,7 +230,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "top",
 		Note: "打印进程统计信息",
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var html = tools.ToHtmlTable(beans.NewTopicTop())
 			return NewHtmlResponse(html), nil
 		},
@@ -239,7 +240,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "app.info",
 		Note: "打印app信息",
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
 				GoVersion:        runtime.Version(),
 				GitBranchName:    GitBranchName,
@@ -258,7 +259,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "date",
 		Note: "打印当前日期",
 		Flag: flagBuiltin | FlagPublic,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			const layout = "Mon 2006-01-02 15:04:05"
 			var text = time.Now().Format(layout)
 			return NewDefaultResponse(text), nil
@@ -269,7 +270,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Name: "deadlock.detect",
 		Note: "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
 		Flag: flagBuiltin,
-		Handler: func(client *Client, args []string) (*Response, error) {
+		Handler: func(session road.Session, args []string) (*Response, error) {
 			var html = beans.DeadlockDetect(args, server.options.DeadlockIgnores)
 			if html != "" {
 				return NewHtmlResponse(html), nil
