@@ -19,7 +19,7 @@ func NewEmptyResponse() *Response {
 	return ret
 }
 
-func NewDefaultResponse(data interface{}) *Response {
+func NewDefaultResponse(data any) *Response {
 	var ret = &Response{Operation: "default", Data: data}
 	return ret
 }
@@ -29,7 +29,7 @@ func NewHtmlResponse(data string) *Response {
 	return ret
 }
 
-func NewTableResponse(table interface{}) *Response {
+func NewTableResponse(table any) *Response {
 	var data = convert.String(convert.ToJson(table))
 	var ret = &Response{Operation: "table", Data: data}
 	return ret

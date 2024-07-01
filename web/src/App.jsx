@@ -116,6 +116,24 @@ const App = () => {
         sendBean("console.command", bean, onCommand)
     }
 
+    function roadRequest(texts) {
+        if (texts.length < 2) {
+            console.log("InvalidCommandFormat", texts)
+            return
+        }
+
+        const route = texts[1];
+
+        let data = ""
+        if (texts.length > 2) {
+            data = texts.slice(2).join(' ')
+        }
+
+        // console.log(`route="${route}", data=${data}`)
+        const bean = JSON.parse(data);
+        sendBean(route, bean, onCommand)
+    }
+
     function onCommand(response, err) {
         if (response && response.op) {
             switch (response.op) {
@@ -192,6 +210,9 @@ const App = () => {
                     isAuthorizing = false
                     evt.target.type = "text"
                     login.login(username, name).then()
+                } else if (textsLength >= 2 && name === 'road.request') {
+                    roadRequest(texts)
+                    historyStore.add(command)
                 } else {
                     sendCommand(texts.join(' '))
                     historyStore.add(command)

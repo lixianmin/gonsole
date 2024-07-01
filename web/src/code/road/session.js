@@ -234,7 +234,7 @@ export function newSession() {
 
         const kind = _routeKinds.get(route)
         const pack = {kind: kind, requestId: requestId, data: data}
-        // console.log('route', route, 'kind', kind)
+        // console.log(`route=${route}, kind=${kind}`)
         // if (!kind) {
         //     const routeData = _serde.string2bytes(route)
         //     pack.kind = PacketKind.RouteBase + routeData.length

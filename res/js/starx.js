@@ -173,7 +173,7 @@
     const sendMessage = function (reqId, route, msg) {
         if (useCrypto) {
             msg = JSON.stringify(msg);
-            var sig = rsa.signString(msg, "sha256");
+            const sig = rsa.signString(msg, "sha256");
             msg = JSON.parse(msg);
             msg['__crypto__'] = sig;
         }
@@ -242,13 +242,13 @@
         const type = reqId ? Message.TYPE_REQUEST : Message.TYPE_NOTIFY;
 
         if (decodeIO_encoder && decodeIO_encoder.lookup(route)) {
-            var Builder = decodeIO_encoder.build(route);
+            const Builder = decodeIO_encoder.build(route);
             msg = new Builder(msg).encodeNB();
         } else {
             msg = Protocol.strencode(JSON.stringify(msg));
         }
 
-        var compressRoute = 0;
+        let compressRoute = 0;
         if (dict && dict[route]) {
             route = dict[route];
             compressRoute = 1;
