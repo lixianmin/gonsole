@@ -116,7 +116,7 @@ const App = () => {
         sendBean("console.command", bean, onCommand)
     }
 
-    function roadRequest(texts) {
+    function sendRoadRequest(texts) {
         if (texts.length < 2) {
             console.log("InvalidCommandFormat", texts)
             return
@@ -210,8 +210,8 @@ const App = () => {
                     isAuthorizing = false
                     evt.target.type = "text"
                     login.login(username, name).then()
-                } else if (textsLength >= 2 && name === 'road.request') {
-                    roadRequest(texts)
+                } else if (textsLength >= 2 && name === 'request') {
+                    sendRoadRequest(texts)
                     historyStore.add(command)
                 } else {
                     sendCommand(texts.join(' '))
