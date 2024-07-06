@@ -164,7 +164,7 @@ func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *c
 		args = []reflect.Value{handler.Receiver, ctxValue}
 	}
 
-	var response, err2 = PCall(handler.Method, args)
+	var response, err2 = callMethod(handler.Method, args)
 	if err2 != nil {
 		return nil, err2
 	}

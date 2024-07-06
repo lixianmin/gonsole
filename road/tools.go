@@ -25,6 +25,30 @@ func GetSessionFromCtx(ctx context.Context) Session {
 	return fetus.(*sessionImpl)
 }
 
+func SendDefault(session Session, data any) error {
+	if session != nil {
+		return session.Send("console.default", data)
+	}
+
+	return nil
+}
+
+func SendStream(session Session, text string, done bool) error {
+	if session != nil {
+		var item struct {
+			text string `json:"text"`
+			done bool   `json:"done"`
+		}
+
+		item.text = text
+		item.done = done
+
+		return session.Send("console.stream", item)
+	}
+
+	return nil
+}
+
 // serializeOrRaw serializes the interface if it is not a []byte
 func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 	if data, ok := v.([]byte); ok {
@@ -39,8 +63,8 @@ func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 	return data, nil
 }
 
-// PCall calls a method that returns an interface and an error and recovers in case of panic
-func PCall(method reflect.Method, args []reflect.Value) (rets any, err error) {
+// callMethod calls a method that returns an interface and an error and recovers in case of panic
+func callMethod(method reflect.Method, args []reflect.Value) (rets any, err error) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			logo.Error("method=%d, recover=%v", method.Name, rec)

@@ -17,21 +17,24 @@ const [storePanel, setStorePanel] = createStore({
 
 export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
+        const widget = {html}
         setStorePanel(produce((state) => {
-            state.items.push({html})
+            state.items.push(widget)
         }))
+
+        return widget
     } else {
         console.warn(`invalid html type, html=${html}`)
     }
 }
 
 export function println() {
-    printHtml("<br/>")
+    return printHtml("<br/>")
 }
 
 export function printWithTimestamp(html) {
     const time = moment(new Date()).format("HH:mm:ss.S")
-    printHtml(`[${time}] ${html}`)
+    return printHtml(`[${time}] ${html}`)
 }
 
 export default function MainPanel() {

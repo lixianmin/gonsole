@@ -78,6 +78,7 @@ const App = () => {
 
     session.on("console.html", onHtmlHandler)
     session.on("console.default", onDefaultHandler)
+    session.on("console.stream", onStreamHandler)
 
     function onHtmlHandler(response, err) {
         printWithTimestamp("<b>server响应：</b>" + response.data)
@@ -96,6 +97,28 @@ const App = () => {
 
         printWithTimestamp("<b>server响应：</b>" + text)
         println()
+    }
+
+    let streamWidget = undefined
+
+    function onStreamHandler(response, err) {
+        if (err) {
+            streamWidget = printWithTimestamp("<b>server响应：</b>" + err)
+            println()
+            streamWidget = undefined
+        } else {
+            const item = JSON.parse(response)
+            if (streamWidget) {
+                streamWidget.html += item.text
+
+                if (item.done) {
+                    streamWidget = undefined
+                }
+            } else {
+                streamWidget = printWithTimestamp("<b>server响应：</b>" + item.text)
+                println()
+            }
+        }
     }
 
     function sendBean(route, bean, callback) {
