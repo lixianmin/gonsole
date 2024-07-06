@@ -97,7 +97,7 @@ export function newSession() {
     }
 
     function onReceivedPacket(pack) {
-        console.log(`pack.kind=${pack.kind}, pack=${JSON.stringify(pack)}`)
+        console.log(`pack.kind=${pack.kind} pack.reqeustId=${pack.requestId} pack.code=${pack.code}`)
         switch (pack.kind) {
             case PacketKind.Handshake:
                 onReceivedHandshake(pack)
