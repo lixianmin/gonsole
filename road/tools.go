@@ -37,14 +37,14 @@ func SendDefault(session Session, data any) error {
 func SendStream(session Session, text string, done bool) error {
 	if session != nil {
 		var item struct {
-			text string `json:"text"`
-			done bool   `json:"done"`
+			Text string `json:"text,omitempty"`
+			Done bool   `json:"done,omitempty"`
 		}
 
-		item.text = text
-		item.done = done
+		item.Text = text
+		item.Done = done
 
-		var json = convert.ToJson(item)
+		var json = convert.ToJsonS(item)
 		return session.Send("console.stream", json)
 	}
 

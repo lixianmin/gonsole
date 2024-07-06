@@ -30,7 +30,7 @@ func NewHtmlResponse(data string) *Response {
 }
 
 func NewTableResponse(table any) *Response {
-	var data = convert.String(convert.ToJson(table))
+	var data = convert.ToJsonS(table)
 	var ret = &Response{Operation: "table", Data: data}
 	return ret
 }

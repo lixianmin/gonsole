@@ -12,14 +12,14 @@ import {createDelayed} from "../code/tools";
 
 // 把createStore()定义在外面, 从而支持export一些方法用于操作store的数据
 const [storePanel, setStorePanel] = createStore({
-    items: []
+    widgets: []
 })
 
 export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
         const widget = {html}
         setStorePanel(produce((state) => {
-            state.items.push(widget)
+            state.widgets.push(widget)
         }))
 
         return widget
@@ -35,6 +35,14 @@ export function println() {
 export function printWithTimestamp(html) {
     const time = moment(new Date()).format("HH:mm:ss.S")
     return printHtml(`[${time}] ${html}`)
+}
+
+export function changeWidget(widget) {
+    setStorePanel(produce((state) => {
+        state.widgets.pop()
+        const html = widget.html
+        state.widgets.push({html})
+    }))
 }
 
 export default function MainPanel() {
@@ -53,19 +61,19 @@ export default function MainPanel() {
 
     // 如果监控items, 则只执行一次; 如果监控items.length, 则可以每次在push后都执行
     createEffect(() => {
-        delayedScrollMainPanelToBottom(storePanel.items.length)
+        delayedScrollMainPanelToBottom(storePanel.widgets.length)
     })
 
     return <>
         <div id='mainPanel' ref={mainPanel}>
-            <For each={storePanel.items}>{item =>
+            <For each={storePanel.widgets}>{widget =>
                 <Switch>
-                    <Match when={typeof item.html === 'string'}>
-                        <div innerHTML={item.html}/>
+                    <Match when={typeof widget.html === 'string'}>
+                        <div innerHTML={widget.html}/>
                     </Match>
-                    <Match when={typeof item.html === 'function'}>
+                    <Match when={typeof widget.html === 'function'}>
                         <div>
-                            {item.html()}
+                            {widget.html()}
                         </div>
                     </Match>
                 </Switch>

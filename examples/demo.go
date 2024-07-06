@@ -9,6 +9,7 @@ import (
 	"github.com/lixianmin/logo"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -198,6 +199,22 @@ func registerCommands(server *gonsole.Server) {
 			}
 
 			return gonsole.NewTableResponse(beans), nil
+		},
+	})
+
+	server.RegisterCommand(&gonsole.Command{
+		Name: "test_send_stream",
+		Note: "测试 road.SendStream()",
+		Flag: gonsole.FlagPublic,
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
+
+			for i := 0; i < 10; i++ {
+				_ = road.SendStream(session, strconv.Itoa(i), false)
+				time.Sleep(time.Second)
+			}
+
+			_ = road.SendStream(session, "", true)
+			return gonsole.NewDefaultResponse(""), nil
 		},
 	})
 

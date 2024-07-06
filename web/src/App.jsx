@@ -17,7 +17,7 @@ import {render} from "solid-js/web";
 import JsonTable from "./widgets/JsonTable";
 import {onMount} from "solid-js";
 import InputBox from "./widgets/InputBox";
-import MainPanel, {printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
+import MainPanel, {changeWidget, printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
 import LogList from "./widgets/LogList";
 import {newSession} from "@src/code/road/session";
 
@@ -103,22 +103,29 @@ const App = () => {
 
     function onStreamHandler(response, err) {
         if (err) {
-            streamWidget = printWithTimestamp("<b>server响应：</b>" + err)
+            printWithTimestamp("<b>server响应：</b>" + err)
             println()
-            streamWidget = undefined
-        } else {
-            const item = JSON.parse(response)
-            if (streamWidget) {
-                streamWidget.html += item.text
 
-                if (item.done) {
-                    streamWidget = undefined
-                }
-            } else {
-                streamWidget = printWithTimestamp("<b>server响应：</b>" + item.text)
-                println()
-            }
+            streamWidget = undefined
+            return
         }
+
+        const item = JSON.parse(response)
+        if (!streamWidget) {
+            printWithTimestamp("<b>server响应：</b>" + item.text)
+            streamWidget = println()
+            return
+        }
+
+        if (item.done) {
+            streamWidget = undefined
+            return
+        }
+
+        streamWidget.html += item.text
+        changeWidget(streamWidget)
+
+        console.log(`response=${response}, html=${streamWidget.html}`)
     }
 
     function sendBean(route, bean, callback) {
