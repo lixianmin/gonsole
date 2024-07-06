@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
 	"reflect"
 )
@@ -43,7 +44,8 @@ func SendStream(session Session, text string, done bool) error {
 		item.text = text
 		item.done = done
 
-		return session.Send("console.stream", item)
+		var json = convert.ToJson(item)
+		return session.Send("console.stream", json)
 	}
 
 	return nil
