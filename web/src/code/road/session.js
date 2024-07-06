@@ -97,6 +97,7 @@ export function newSession() {
     }
 
     function onReceivedPacket(pack) {
+        console.log(`pack.kind=${pack.kind}, pack=${JSON.stringify(pack)}`)
         switch (pack.kind) {
             case PacketKind.Handshake:
                 onReceivedHandshake(pack)
@@ -172,6 +173,8 @@ export function newSession() {
         const bean = _serde.deserialize(pack.data)
         _kindRoutes.set(bean.kind, bean.route)
         _routeKinds.set(bean.route, bean.kind)
+
+        console.log(`kind=${bean.kind}, route=${bean.route}`)
     }
 
     function onReceivedEcho(pack) {
