@@ -32,7 +32,7 @@ export function decode(reader) {
         try {
             const kind = reader.read7BitEncodedInt()
 
-            let route = undefined
+            // let route = undefined
             // if (kind > PacketKind.RouteBase) {
             //     const size = kind - PacketKind.RouteBase
             //     route = new Uint8Array(size)
@@ -43,7 +43,7 @@ export function decode(reader) {
             const code = reader.readBytes()
             const data = reader.readBytes()
 
-            const pack = {kind, route, requestId, code, data}
+            const pack = {kind, requestId, code, data}
             packets.push(pack)
         } catch (ex) {
             // console.log(ex, stream)
