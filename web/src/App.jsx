@@ -112,8 +112,11 @@ const App = () => {
 
         const item = JSON.parse(response)
         if (!streamWidget) {
-            printWithTimestamp("<b>server响应：</b>" + item.text)
-            streamWidget = println()
+            printWithTimestamp("<b>server响应：</b>")
+            streamWidget = printHtml('')
+
+            streamWidget.html += item.text
+            changeWidget(streamWidget)
             return
         }
 
