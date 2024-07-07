@@ -207,10 +207,15 @@ func registerCommands(server *gonsole.Server) {
 		Note: "测试 road.SendStream()",
 		Flag: gonsole.FlagPublic,
 		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
-
+			_ = road.SendStream(session, "", false)
 			for i := 0; i < 10; i++ {
 				_ = road.SendStream(session, strconv.Itoa(i), false)
-				time.Sleep(time.Second)
+
+				if i == 5 {
+					_ = road.SendStream(session, "\n", false)
+				}
+
+				time.Sleep(time.Millisecond * 20)
 			}
 
 			_ = road.SendStream(session, "", true)

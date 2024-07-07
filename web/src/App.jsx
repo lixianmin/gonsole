@@ -101,6 +101,14 @@ const App = () => {
 
     let streamWidget = undefined
 
+    function onReceivedStreamText(text) {
+        text = text ?? ""
+        text = text.replace(/\r\n|\r|\n/g, '<br>')
+
+        streamWidget.html += text
+        changeWidget(streamWidget)
+    }
+
     function onStreamHandler(response, err) {
         if (err) {
             printWithTimestamp("<b>server响应：</b>" + err)
@@ -114,9 +122,7 @@ const App = () => {
         if (!streamWidget) {
             printWithTimestamp("<b>server响应：</b>")
             streamWidget = printHtml('')
-
-            streamWidget.html += item.text
-            changeWidget(streamWidget)
+            onReceivedStreamText(item.text)
             return
         }
 
@@ -125,9 +131,7 @@ const App = () => {
             return
         }
 
-        streamWidget.html += item.text
-        changeWidget(streamWidget)
-
+        onReceivedStreamText(item.text)
         // console.log(`response=${response}, html=${streamWidget.html}`)
     }
 
