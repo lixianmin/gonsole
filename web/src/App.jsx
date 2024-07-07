@@ -128,7 +128,7 @@ const App = () => {
         streamWidget.html += item.text
         changeWidget(streamWidget)
 
-        console.log(`response=${response}, html=${streamWidget.html}`)
+        // console.log(`response=${response}, html=${streamWidget.html}`)
     }
 
     function sendBean(route, bean, callback) {

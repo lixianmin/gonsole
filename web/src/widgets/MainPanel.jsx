@@ -12,13 +12,27 @@ import {createDelayed} from "../code/tools";
 
 // 把createStore()定义在外面, 从而支持export一些方法用于操作store的数据
 const [storePanel, setStorePanel] = createStore({
-    widgets: []
+    widgets: [],
 })
+
+export function changeWidget(widget) {
+    setStorePanel(produce((state) => {
+        const widgets = state.widgets
+        for (let i = widgets.length - 1; i >= 0; i--) {
+            const current = widgets[i];
+            if (current.id === widget.id) {
+                widgets[i] = {...widget}
+                break
+            }
+        }
+    }))
+}
 
 export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
         const widget = {html}
         setStorePanel(produce((state) => {
+            widget.id = state.widgets.length
             state.widgets.push(widget)
         }))
 
@@ -35,14 +49,6 @@ export function println() {
 export function printWithTimestamp(html) {
     const time = moment(new Date()).format("HH:mm:ss.S")
     return printHtml(`[${time}] ${html}`)
-}
-
-export function changeWidget(widget) {
-    setStorePanel(produce((state) => {
-        state.widgets.pop()
-        const html = widget.html
-        state.widgets.push({html})
-    }))
 }
 
 export default function MainPanel() {

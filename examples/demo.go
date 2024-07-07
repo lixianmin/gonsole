@@ -214,7 +214,7 @@ func registerCommands(server *gonsole.Server) {
 			}
 
 			_ = road.SendStream(session, "", true)
-			return gonsole.NewDefaultResponse(""), nil
+			return gonsole.NewDefaultResponse("this is the returned object"), nil
 		},
 	})
 
