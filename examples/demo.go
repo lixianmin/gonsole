@@ -9,7 +9,6 @@ import (
 	"github.com/lixianmin/logo"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -208,10 +207,11 @@ func registerCommands(server *gonsole.Server) {
 		Flag: gonsole.FlagPublic,
 		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			_ = road.SendStream(session, "", false)
-			for i := 0; i < 10; i++ {
-				_ = road.SendStream(session, strconv.Itoa(i), false)
+			for i := 0; i < 1000; i++ {
+				var text = fmt.Sprintf("%v, ", i)
+				_ = road.SendStream(session, text, false)
 
-				if i == 5 {
+				if i%5 == 0 {
 					_ = road.SendStream(session, "\n", false)
 				}
 

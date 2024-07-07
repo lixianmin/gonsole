@@ -15,9 +15,13 @@ const [storePanel, setStorePanel] = createStore({
     widgets: [],
 })
 
+let scrollMainPanelToBottom
+
 export function changeWidget(widget) {
     setStorePanel(produce((state) => {
         state.widgets[widget.index] = {...widget}
+        // 这种修改可能需要导致窗口滚动
+        scrollMainPanelToBottom()
     }))
 }
 
@@ -47,7 +51,7 @@ export function printWithTimestamp(html) {
 export default function MainPanel() {
     let mainPanel
 
-    function scrollMainPanelToBottom() {
+    scrollMainPanelToBottom = function () {
         const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
         if (mainPanel.scrollTop < targetPosition) {
             mainPanel.scrollTop = targetPosition
@@ -58,7 +62,7 @@ export default function MainPanel() {
         scrollMainPanelToBottom()
     })
 
-    // 如果监控items, 则只执行一次; 如果监控items.length, 则可以每次在push后都执行
+    // 如果监控widgets, 则只执行一次; 如果监控widgets.length, 则可以每次在push后都执行
     createEffect(() => {
         delayedScrollMainPanelToBottom(storePanel.widgets.length)
     })
