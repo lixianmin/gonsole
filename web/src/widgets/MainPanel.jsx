@@ -17,14 +17,7 @@ const [storePanel, setStorePanel] = createStore({
 
 export function changeWidget(widget) {
     setStorePanel(produce((state) => {
-        const widgets = state.widgets
-        for (let i = widgets.length - 1; i >= 0; i--) {
-            const current = widgets[i];
-            if (current.id === widget.id) {
-                widgets[i] = {...widget}
-                break
-            }
-        }
+        state.widgets[widget.index] = {...widget}
     }))
 }
 
@@ -32,7 +25,7 @@ export function printHtml(html) {
     if (typeof html === 'string' || typeof html === 'function') {
         const widget = {html}
         setStorePanel(produce((state) => {
-            widget.id = state.widgets.length
+            widget.index = state.widgets.length
             state.widgets.push(widget)
         }))
 
