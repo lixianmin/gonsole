@@ -211,6 +211,7 @@ const App = () => {
             let command = inputBox.value
             if (command !== "") {
                 inputBox.value = ""
+                command = command.trim()
 
                 // 检查是不是调用history命令
                 if (command.startsWith("!")) {
