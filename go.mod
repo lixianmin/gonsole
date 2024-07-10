@@ -8,7 +8,7 @@ require (
 	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/lixianmin/got v0.0.0-20240709115033-27563c0e2abc
-	github.com/lixianmin/logo v0.0.0-20240709130814-be3eea26b7cc
+	github.com/lixianmin/logo v0.0.0-20240710025343-95c41a339972
 	github.com/shirou/gopsutil v3.21.11+incompatible
 )
 
