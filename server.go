@@ -26,9 +26,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Server struct {
-	options serverOptions
-	app     *road.App
-
+	options      serverOptions
+	app          *road.App
 	gpid         string
 	baseUrl      string
 	commands     sync.Map
@@ -75,18 +74,7 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		gpid:    osx.GetGPID(options.Port),
 	}
 
-	// 计算console url
-	if options.BaseUrl != "" {
-		server.baseUrl = options.BaseUrl
-	} else {
-		var protocol = "http"
-		if options.Tls {
-			protocol = "https"
-		}
-
-		server.baseUrl = fmt.Sprintf("%s://%s:%d", protocol, osx.GetLocalIp(), options.Port)
-	}
-
+	server.baseUrl = buildBaseUrl(options)
 	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
 	server.RegisterService("console", newConsoleService(server))
 	server.registerHandlers(mux, options)
@@ -98,20 +86,14 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	}
 
 	app.OnHandShaken(func(session road.Session) {
-		//var client = newClient(session)
-		//session.Attachment().Put(ifs.KeyClient, client)
-
 		var remoteAddress = session.RemoteAddr().String()
-		// console.challenge协议不能随便发，因为默认情况下pitaya client不认识这个协议，会导致pitaya.connect失败
-		// 但是, 我们仍然需要给client登录验证的机会, 所以下面会开放OnHandShaken()事件
-		//_ = session.Push("console.challenge", beans.NewChallenge(server.gpid, remoteAddress))
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
 	logo.Info("Gonsole: GoVersion     		= %s", runtime.Version())
 	logo.Info("Gonsole: GitBranchName 		= %s", GitBranchName)
 	logo.Info("Gonsole: GitCommitId   		= %s", GitCommitId)
-	logo.Info("Gonsole: GitCommitMessage		= %s", GitCommitMessage)
+	logo.Info("Gonsole: GitCommitMessage	= %s", GitCommitMessage)
 	logo.Info("Gonsole: GitCommitTime 		= %s", GitCommitTime)
 	logo.Info("Gonsole: AppBuildTime  		= %s", AppBuildTime)
 	logo.Info("Gonsole: console       		= %s", server.baseUrl+options.getPathByDirectory("/console"))
@@ -157,7 +139,7 @@ func (server *Server) getCommand(name string) ifs.Command {
 
 func (server *Server) getCommands() []ifs.Command {
 	var list []ifs.Command
-	server.commands.Range(func(key, value interface{}) bool {
+	server.commands.Range(func(key, value any) bool {
 		var cmd, ok = value.(*Command)
 		if ok {
 			list = append(list, cmd)
@@ -259,4 +241,18 @@ func mutexHandler(w http.ResponseWriter, r *http.Request) {
 	defer runtime.SetMutexProfileFraction(0)
 
 	pprof.Handler("mutex").ServeHTTP(w, r)
+}
+
+func buildBaseUrl(options serverOptions) string {
+	if options.BaseUrl != "" {
+		return options.BaseUrl
+	}
+
+	var protocol = "http"
+	if options.Tls {
+		protocol = "https"
+	}
+
+	var baseUrl = fmt.Sprintf("%s://%s:%d", protocol, osx.GetLocalIp(), options.Port)
+	return baseUrl
 }

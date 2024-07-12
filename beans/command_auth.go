@@ -38,7 +38,7 @@ func NewCommandAuth(session road.Session, args []string, jwtSecretKey string, us
 	// 默认设置为false, 如果登录成功了, 调整为真
 	var isKeyAuthorized = false
 	defer func() {
-		session.Attachment().Put(ifs.KeyIsAuthorized, isKeyAuthorized)
+		session.Attachment().Set(ifs.KeyIsAuthorized, isKeyAuthorized)
 	}()
 
 	var username, digestOrToken, fingerprint = args[1], args[2], args[3]

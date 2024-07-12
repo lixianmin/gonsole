@@ -8,7 +8,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Attachment interface {
-	Put(key any, value any)
+	Set(key any, value any)
 	UInt32(key any) uint32
 	Int32(key any) int32
 	UInt64(key any) uint64

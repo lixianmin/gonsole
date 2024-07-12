@@ -15,7 +15,7 @@ type AttachmentImpl struct {
 	table sync.Map
 }
 
-func (my *AttachmentImpl) Put(key any, value any) {
+func (my *AttachmentImpl) Set(key any, value any) {
 	my.table.Store(key, value)
 }
 

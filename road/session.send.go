@@ -154,7 +154,7 @@ func (my *sessionImpl) Handshake() error {
 		return err1
 	}
 
-	my.Attachment().Put(ifs.KeyNonce, nonce)
+	my.Attachment().Set(ifs.KeyNonce, nonce)
 	var pack = serde.Packet{Kind: serde.Handshake, Data: data}
 	var err2 = my.sendPacket(pack)
 

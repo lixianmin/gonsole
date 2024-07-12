@@ -90,7 +90,7 @@ func fetchTopics(session road.Session) map[string]struct{} {
 	var topics, ok = session.Attachment().Get2(topicKey)
 	if !ok {
 		topics = make(map[string]struct{})
-		session.Attachment().Put(topicKey, topics)
+		session.Attachment().Set(topicKey, topics)
 	}
 
 	return topics.(map[string]struct{})
