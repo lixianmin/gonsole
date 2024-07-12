@@ -217,7 +217,7 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 
 func (my *Client) handshakeRe() {
 	var reply = serde.JsonHandshakeRe{
-		Serde: my.serde.GetName(),
+		Serde: "json",
 	}
 
 	var replyData = convert.ToJson(reply)
