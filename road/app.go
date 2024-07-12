@@ -36,6 +36,7 @@ type (
 func NewApp(accept Acceptor, opts ...AppOption) *App {
 	// 默认值
 	var options = appOptions{
+		SerdeBuilders:     map[string]serdeBuilder{},
 		HeartbeatInterval: 3 * time.Second,
 		KickInterval:      time.Minute,
 	}
@@ -53,8 +54,8 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 	}
 
 	// 除默认支持JsonSerde外, 可额外添加ProtoSerde等支持
-	for _, s := range options.Serdes {
-		app.manager.AddSerde(s)
+	for name, factory := range options.SerdeBuilders {
+		app.manager.AddSerdeBuilder(name, factory)
 	}
 
 	// 这个tasks，只是内部用一下，不公开

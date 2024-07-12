@@ -6,6 +6,7 @@ import (
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/epoll"
+	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
@@ -66,7 +67,9 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 
 	var servePath = options.getPathByDirectory("/" + options.WebSocketPath)
 	var acceptor = epoll.NewWsAcceptor(mux, servePath)
-	var app = road.NewApp(acceptor)
+	var app = road.NewApp(acceptor, road.WithSerdeBuilder("json", func(session road.Session) serde.Serde {
+		return &serde.JsonSerde{}
+	}))
 
 	var server = &Server{
 		options: options,

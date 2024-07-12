@@ -144,8 +144,8 @@ func (my *sessionImpl) Handshake() error {
 	}
 
 	// all supported serde names
-	for _, s := range my.manager.serdes {
-		info.Serdes = append(info.Serdes, s.GetName())
+	for name := range my.manager.serdeBuilders {
+		info.Serdes = append(info.Serdes, name)
 	}
 
 	// handshake这个协议一定使用json去发, 后续的协议则可以替换为其它serde方法

@@ -90,7 +90,7 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 		return err
 	}
 
-	var s = my.manager.GetSerde(info.Serde)
+	var s = my.manager.CreateSerde(info.Serde, my)
 	if s == nil {
 		return ErrInvalidSerde
 	}

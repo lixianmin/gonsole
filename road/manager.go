@@ -29,7 +29,7 @@ type Manager struct {
 	kindHandlers      map[int32]*component.Handler
 	maxKind           int32
 	routes            []string
-	serdes            []serde.Serde
+	serdeBuilders     map[string]serdeBuilder
 	interceptors      []InterceptorFunc
 	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 
@@ -46,7 +46,7 @@ func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 		kindHandlers:      map[int32]*component.Handler{},
 		maxKind:           0,
 		routes:            make([]string, 0),
-		serdes:            []serde.Serde{&serde.JsonSerde{}}, // 默认支持json序列化
+		serdeBuilders:     map[string]serdeBuilder{},
 		gid:               osx.GetGPID(0),
 
 		heartbeatBuffer: createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
@@ -104,17 +104,16 @@ func (my *Manager) GetHandlerByKind(kind int32) *component.Handler {
 	return handler
 }
 
-func (my *Manager) AddSerde(serde serde.Serde) {
-	if serde != nil {
-		my.serdes = append(my.serdes, serde)
+func (my *Manager) AddSerdeBuilder(name string, builder serdeBuilder) {
+	if name != "" && builder != nil {
+		my.serdeBuilders[name] = builder
 	}
 }
 
-func (my *Manager) GetSerde(name string) serde.Serde {
-	for _, s := range my.serdes {
-		if s.GetName() == name {
-			return s
-		}
+func (my *Manager) CreateSerde(name string, session Session) serde.Serde {
+	var builder = my.serdeBuilders[name]
+	if builder != nil {
+		return builder(session)
 	}
 
 	return nil

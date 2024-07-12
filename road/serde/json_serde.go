@@ -12,9 +12,9 @@ Copyright (C) - All Rights Reserved
 type JsonSerde struct {
 }
 
-func (s *JsonSerde) Serialize(v interface{}) ([]byte, error) {
-	if bytes, ok := v.([]byte); ok {
-		return bytes, nil
+func (s *JsonSerde) Serialize(v any) ([]byte, error) {
+	if bts, ok := v.([]byte); ok {
+		return bts, nil
 	}
 
 	if v != nil {
@@ -24,10 +24,6 @@ func (s *JsonSerde) Serialize(v interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-func (s *JsonSerde) Deserialize(data []byte, v interface{}) error {
+func (s *JsonSerde) Deserialize(data []byte, v any) error {
 	return convert.FromJsonE(data, v)
-}
-
-func (s *JsonSerde) GetName() string {
-	return "json"
 }
