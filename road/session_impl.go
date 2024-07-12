@@ -65,7 +65,9 @@ func newSession(manager *Manager, link intern.Link) Session {
 
 	// 线上有大量的非法请求, 感觉是攻击, 先用Debug输出吧, 否则会生成大量无效日志
 	logo.Debug("create session(%d)", my.id)
-	var ctx = context.WithValue(context.Background(), ifs.CtxKeySession, my.sessionImpl)
+	var ctx = context.WithValue(context.Background(), keySession, my.sessionImpl)
+	my.attachment.Set(ifs.KeyContext, ctx)
+
 	my.ctxValue = reflect.ValueOf(ctx)
 	my.startGoLoop()
 

@@ -16,8 +16,10 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+const keySession = "console.session"
+
 func GetSessionFromCtx(ctx context.Context) Session {
-	fetus := ctx.Value(ifs.CtxKeySession)
+	var fetus = ctx.Value(keySession)
 	if fetus == nil {
 		logo.Warn("ctx doesn't contain the session")
 		return nil

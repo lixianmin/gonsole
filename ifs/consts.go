@@ -8,8 +8,7 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 const (
-	CtxKeySession   = "console.session"
 	KeyIsAuthorized = "console.isAuthorized"
 	KeyNonce        = "console.nonce"
-	//KeyClient       = "console.client"
+	KeyContext      = "console.context"
 )
