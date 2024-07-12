@@ -20,8 +20,7 @@ type CommandHelp struct {
 }
 
 func FetchCommandHelp(commands []ifs.Command, isAuthorized bool) []CommandHelp {
-	var list = make([]CommandHelp, 0, len(commands)+3)
-	list = append(list, CommandHelp{Name: "request", Note: "直接发送request请求, 例: request console.command {\"command\":\"help\"}"})
+	var list = make([]CommandHelp, 0, len(commands)+2)
 	list = append(list, CommandHelp{Name: "sub xxx", Note: "订阅主题，例：sub top"})
 	list = append(list, CommandHelp{Name: "unsub xxx", Note: "取消订阅主题，例：unsub top"})
 	return fetchCommandHelpImpl(list, commands, isAuthorized)
