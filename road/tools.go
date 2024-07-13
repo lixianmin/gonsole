@@ -71,7 +71,7 @@ func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 func callMethod(method reflect.Method, args []reflect.Value) (rets any, err error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			logo.Error("method=%d, recover=%v", method.Name, rec)
+			logo.JsonW("method", method.Name, "recover", rec)
 		}
 	}()
 

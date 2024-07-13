@@ -73,13 +73,26 @@ func (my *sessionImpl) onReceivedPacket(pack serde.Packet) error {
 }
 
 func (my *sessionImpl) onReceivedEcho(input serde.Packet) error {
+	var requestId = input.RequestId
+	var handler func() = nil
+
 	my.handlerLock.Lock()
-	defer my.handlerLock.Unlock()
+	{
+		handler = my.echoHandlers[requestId]
+		delete(my.echoHandlers, requestId)
+	}
+	my.handlerLock.Unlock()
 
-	var handler = my.echoHandlers[input.RequestId]
-	delete(my.echoHandlers, input.RequestId)
+	if handler != nil {
+		defer func() {
+			if rec := recover(); rec != nil {
+				logo.JsonE("requestId", requestId, "recover", rec)
+			}
+		}()
 
-	handler()
+		handler()
+	}
+
 	return nil
 }
 
@@ -103,6 +116,7 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 func (my *sessionImpl) onEventHandShaken() {
 	my.handlerLock.Lock()
 	defer my.handlerLock.Unlock()
+
 	{
 		for _, handler := range my.onHandShakenHandlers {
 			handler()
