@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -219,6 +220,26 @@ func registerCommands(server *gonsole.Server) {
 			}
 
 			_ = road.SendStream(session, "", true)
+			return gonsole.NewDefaultResponse("this is the returned object"), nil
+		},
+	})
+
+	server.RegisterCommand(&gonsole.Command{
+		Name: "test_echo",
+		Note: "测试 Echo()",
+		Flag: gonsole.FlagPublic,
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
+			var counter int32 = 0
+			for i := 0; i < 100; i++ {
+				go func() {
+					_ = session.Echo(func() {
+						atomic.AddInt32(&counter, 1)
+						var text = fmt.Sprintf("i=%d, counter=%d", i, counter)
+						_ = road.SendDefault(session, text)
+					})
+				}()
+			}
+
 			return gonsole.NewDefaultResponse("this is the returned object"), nil
 		},
 	})
