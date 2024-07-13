@@ -91,6 +91,8 @@ func (my *sessionImpl) onReceivedEcho(input serde.Packet) error {
 		}()
 
 		handler()
+	} else {
+		logo.JsonW("title", "echo handler is nil", "requestId", requestId)
 	}
 
 	return nil
