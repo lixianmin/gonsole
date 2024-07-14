@@ -16,7 +16,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-const keySession = "console.session"
+const keyNonce = "road.nonce"
+const keySession = "road.session"
 
 func GetSessionFromCtx(ctx context.Context) Session {
 	var fetus = ctx.Value(keySession)

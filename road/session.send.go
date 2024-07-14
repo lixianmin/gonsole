@@ -1,7 +1,6 @@
 package road
 
 import (
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"math/rand"
@@ -154,7 +153,7 @@ func (my *sessionImpl) Handshake() error {
 		return err1
 	}
 
-	my.Attachment().Set(ifs.KeyNonce, nonce)
+	my.Attachment().Set(keyNonce, nonce)
 	var pack = serde.Packet{Kind: serde.Handshake, Data: data}
 	var err2 = my.sendPacket(pack)
 

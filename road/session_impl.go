@@ -154,5 +154,5 @@ func (my *sessionImpl) Attachment() Attachment {
 }
 
 func (my *sessionImpl) Nonce() int32 {
-	return my.attachment.Int32(ifs.KeyNonce)
+	return my.attachment.Int32(keyNonce)
 }

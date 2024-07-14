@@ -9,6 +9,5 @@ Copyright (C) - All Rights Reserved
 
 const (
 	KeyIsAuthorized = "console.isAuthorized"
-	KeyNonce        = "console.nonce"
 	KeyContext      = "console.context"
 )
