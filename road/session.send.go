@@ -33,7 +33,7 @@ func (my *sessionImpl) Send(route string, v any) error {
 	}
 
 	if my.serde == nil {
-		return ErrInvalidSerde
+		return ErrNilSerde
 	}
 
 	var data, err1 = my.serde.Serialize(v)
@@ -169,7 +169,7 @@ func (my *sessionImpl) Echo(handler func()) error {
 	}
 
 	if my.serde == nil {
-		return ErrInvalidSerde
+		return ErrNilSerde
 	}
 
 	var requestId = atomic.AddInt32(&echoIdGenerator, 1)

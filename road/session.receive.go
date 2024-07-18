@@ -107,7 +107,7 @@ func (my *sessionImpl) onReceivedHandshakeRe(input serde.Packet) error {
 
 	var s = my.manager.CreateSerde(info.Serde, my)
 	if s == nil {
-		return ErrInvalidSerde
+		return NewError("InvalidSerde", "info.Serde=%s", info.Serde)
 	}
 
 	my.setSerde(s)
@@ -135,7 +135,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	if my.serde == nil {
-		return ErrInvalidSerde
+		return ErrNilSerde
 	}
 
 	// 遍历拦截器

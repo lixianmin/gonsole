@@ -314,7 +314,7 @@ func (my *Client) Send(route string, v any) error {
 
 func (my *Client) Request(route string, request any, pResponse any, handler func(*road.Error)) error {
 	if my.serde == nil {
-		return road.ErrInvalidSerde
+		return road.ErrNilSerde
 	}
 
 	if route == "" || request == nil || pResponse == nil {
