@@ -19,6 +19,7 @@ Copyright (C) - All Rights Reserved
 type Topic struct {
 	loom.Flag
 	Name          string           // 名称
+	Example       string           // 举例
 	Note          string           // 描述
 	Interval      time.Duration    // 推送周期
 	BuildResponse func() *Response // 创建数据
@@ -76,6 +77,10 @@ func (topic *Topic) removeClient(session road.Session) {
 
 func (topic *Topic) GetName() string {
 	return topic.Name
+}
+
+func (topic *Topic) GetExample() string {
+	return topic.Example
 }
 
 func (topic *Topic) GetNote() string {

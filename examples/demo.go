@@ -154,9 +154,10 @@ func registerCommands(server *gonsole.Server) {
 	})
 
 	server.RegisterCommand(&gonsole.Command{
-		Name: "test_struct_sort_table_by_head",
-		Note: "测试结构体排序",
-		Flag: gonsole.FlagPublic,
+		Name:    "test_struct_sort_table_by_head",
+		Example: "hello world",
+		Note:    "测试结构体排序",
+		Flag:    gonsole.FlagPublic,
 		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
 			type Bean struct {
 				Text string

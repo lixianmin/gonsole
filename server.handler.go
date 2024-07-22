@@ -171,9 +171,10 @@ func (server *Server) registerBuiltinCommands(port int) {
 		}})
 
 	server.RegisterCommand(&Command{
-		Name: "auth",
-		Note: "认证后开启更多命令：auth username，然后根据提示输入password",
-		Flag: flagBuiltin | FlagPublic,
+		Name:    "auth",
+		Example: "auth username",
+		Note:    "认证后开启更多命令：auth username，然后根据提示输入password",
+		Flag:    flagBuiltin | FlagPublic,
 		Handler: func(session road.Session, args []string) (*Response, error) {
 			server.lastAuthTime.Store(time.Now())
 			var options = server.options

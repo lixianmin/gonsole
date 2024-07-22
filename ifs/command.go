@@ -9,6 +9,7 @@ Copyright (C) - All Rights Reserved
 
 type Command interface {
 	GetName() string
+	GetExample() string
 	GetNote() string
 	IsPublic() bool
 	IsInvisible() bool

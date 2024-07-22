@@ -15,12 +15,17 @@ Copyright (C) - All Rights Reserved
 type Command struct {
 	loom.Flag                                                             // command的flag
 	Name      string                                                      // 名称
+	Example   string                                                      // 示例
 	Note      string                                                      // 描述
 	Handler   func(client road.Session, args []string) (*Response, error) // 处理方法
 }
 
 func (cmd *Command) GetName() string {
 	return cmd.Name
+}
+
+func (cmd *Command) GetExample() string {
+	return cmd.Example
 }
 
 func (cmd *Command) GetNote() string {

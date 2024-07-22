@@ -15,14 +15,15 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type CommandHelp struct {
-	Name string
-	Note string
+	Name    string
+	Example string
+	Note    string
 }
 
 func FetchCommandHelp(commands []ifs.Command, isAuthorized bool) []CommandHelp {
 	var list = make([]CommandHelp, 0, len(commands)+2)
-	list = append(list, CommandHelp{Name: "sub xxx", Note: "订阅主题，例：sub top"})
-	list = append(list, CommandHelp{Name: "unsub xxx", Note: "取消订阅主题，例：unsub top"})
+	list = append(list, CommandHelp{Name: "sub", Example: "sub top", Note: "订阅主题"})
+	list = append(list, CommandHelp{Name: "unsub", Example: "unsub top", Note: "取消订阅主题"})
 	return fetchCommandHelpImpl(list, commands, isAuthorized)
 }
 
@@ -34,7 +35,7 @@ func FetchTopicHelp(topics []ifs.Command, isAuthorized bool) []CommandHelp {
 func fetchCommandHelpImpl(list []CommandHelp, commands []ifs.Command, isAuthorized bool) []CommandHelp {
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.IsPublic()) && !cmd.IsInvisible() {
-			list = append(list, CommandHelp{Name: cmd.GetName(), Note: cmd.GetNote()})
+			list = append(list, CommandHelp{Name: cmd.GetName(), Example: cmd.GetExample(), Note: cmd.GetNote()})
 		}
 	}
 
