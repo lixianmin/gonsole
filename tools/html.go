@@ -17,7 +17,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ToHtmlTable(data interface{}) string {
+func ToHtmlTable(data any) string {
 	var dataValue = reflect.Indirect(reflect.ValueOf(data))
 	switch dataValue.Kind() {
 	case reflect.Slice:
@@ -133,7 +133,7 @@ func writeTableData(b []byte, fieldType reflect.StructField, fieldValue reflect.
 	return b
 }
 
-func appendField(b []byte, v interface{}) []byte {
+func appendField(b []byte, v any) []byte {
 	switch v := v.(type) {
 	case nil:
 		return append(b, "<nil>"...)

@@ -234,16 +234,6 @@ func (server *Server) registerBuiltinCommands(port int) {
 		Note: "打印进程统计信息",
 		Flag: flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
-			var html = tools.ToHtmlTable(beans.NewTopicTop())
-			return NewHtmlResponse(html), nil
-		},
-	})
-
-	server.RegisterCommand(&Command{
-		Name: "app.info",
-		Note: "打印app信息",
-		Flag: flagBuiltin,
-		Handler: func(session road.Session, args []string) (*Response, error) {
 			var info = beans.CommandAppInfo{
 				GoVersion:        runtime.Version(),
 				GitBranchName:    GitBranchName,
@@ -254,9 +244,29 @@ func (server *Server) registerBuiltinCommands(port int) {
 			}
 
 			var html = tools.ToHtmlTable(info)
+			html += "<br>" + tools.ToHtmlTable(beans.NewTopicTop())
 			return NewHtmlResponse(html), nil
 		},
 	})
+
+	//server.RegisterCommand(&Command{
+	//	Name: "app.info",
+	//	Note: "打印app信息",
+	//	Flag: flagBuiltin,
+	//	Handler: func(session road.Session, args []string) (*Response, error) {
+	//		var info = beans.CommandAppInfo{
+	//			GoVersion:        runtime.Version(),
+	//			GitBranchName:    GitBranchName,
+	//			GitCommitId:      GitCommitId,
+	//			GitCommitMessage: GitCommitMessage,
+	//			GitCommitTime:    GitCommitTime,
+	//			AppBuildTime:     AppBuildTime,
+	//		}
+	//
+	//		var html = tools.ToHtmlTable(info)
+	//		return NewHtmlResponse(html), nil
+	//	},
+	//})
 
 	server.RegisterCommand(&Command{
 		Name: "date",
