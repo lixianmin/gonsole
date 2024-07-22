@@ -30,8 +30,9 @@ type (
 	}
 
 	hintRe struct {
-		Name string
-		Note string
+		Name    string
+		Example string
+		Note    string
 	}
 
 	commandRqt struct {
@@ -156,13 +157,13 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 
 	for i := range subUnsubNames {
 		if strings.HasPrefix(subUnsubNames[i], head) {
-			results = append(results, hintRe{subUnsubNames[i], subUnsubNotes[i]})
+			results = append(results, hintRe{subUnsubNames[i], subUnsubExamples[i], subUnsubNotes[i]})
 		}
 	}
 
 	for _, cmd := range commands {
 		if (isAuthorized || cmd.IsPublic()) && !cmd.IsInvisible() && strings.HasPrefix(cmd.GetName(), head) {
-			results = append(results, hintRe{cmd.GetName(), cmd.GetNote()})
+			results = append(results, hintRe{cmd.GetName(), cmd.GetExample(), cmd.GetNote()})
 		}
 	}
 

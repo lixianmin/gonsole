@@ -195,11 +195,12 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	const maxHeadNum = 1000
-	var headNote = fmt.Sprintf("打印文件头：head [-n num (<=%d)] [-f fitler] [-s startLine] filename", maxHeadNum)
+	var headNote = "打印文件头"
 	server.RegisterCommand(&Command{
-		Name: "head",
-		Note: headNote,
-		Flag: flagBuiltin,
+		Name:    "head",
+		Example: fmt.Sprintf("head [-n num (<=%d)] [-f fitler] [-s startLine] filename", maxHeadNum),
+		Note:    headNote,
+		Flag:    flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
 			var data = beans.ReadFileHead(headNote, args, maxHeadNum)
 			return NewHtmlResponse(data), nil
@@ -207,11 +208,12 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	const maxTailNum = maxHeadNum
-	var tailNote = fmt.Sprintf("打印文件尾：tail [-n num (<=%d)] [-f filter] filename", maxTailNum)
+	var tailNote = "打印文件尾"
 	server.RegisterCommand(&Command{
-		Name: "tail",
-		Note: tailNote,
-		Flag: flagBuiltin,
+		Name:    "tail",
+		Example: fmt.Sprintf("tail [-n num (<=%d)] [-f filter] filename", maxTailNum),
+		Note:    tailNote,
+		Flag:    flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
 			var data = beans.ReadFileTail(tailNote, args, maxTailNum)
 			return NewHtmlResponse(data), nil
@@ -268,9 +270,10 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 
 	server.RegisterCommand(&Command{
-		Name: "deadlock.detect",
-		Note: "deadlock.detect [-a (show all)] ：按IO wait时间打印goroutine，辅助死锁排查",
-		Flag: flagBuiltin,
+		Name:    "deadlock.detect",
+		Example: "deadlock.detect [-a (show all)]",
+		Note:    "按IO wait时间打印goroutine，辅助死锁排查",
+		Flag:    flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
 			var html = beans.DeadlockDetect(args, server.options.DeadlockIgnores)
 			if html != "" {

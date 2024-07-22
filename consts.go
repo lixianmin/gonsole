@@ -28,4 +28,5 @@ var AppBuildTime string     // 应用构建时间: date +%Y-%m-%dT%H:%M:%S
 
 // 内置的两个指令
 var subUnsubNames = []string{"sub", "unsub"}
-var subUnsubNotes = []string{"订阅主题，例：sub top", "取消订阅主题，例：unsub top"}
+var subUnsubExamples = []string{"sub top", "unsub top"}
+var subUnsubNotes = []string{"订阅主题", "取消订阅主题"}
