@@ -152,9 +152,10 @@ func (server *Server) getCommands() []ifs.Command {
 	})
 
 	list = append(list, &Command{
-		Name: "request",
-		Note: "模拟直接发送请求, 例: request console.command {\"command\":\"help\"}",
-		Flag: flagBuiltin,
+		Name:    "request",
+		Example: `request console.command {"command":"help"}`,
+		Note:    "模拟直接发送请求",
+		Flag:    flagBuiltin,
 	})
 
 	return list
