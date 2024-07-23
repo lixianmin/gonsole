@@ -20,7 +20,7 @@ Copyright (C) - All Rights Reserved
 func (my *sessionImpl) startGoLoop() {
 	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
-			logo.Info("close session(%d) by err=%q", my.id, err)
+			logo.Debug("close session(%d) by err=%q", my.id, err)
 			_ = my.Close()
 			return
 		}
