@@ -7,6 +7,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
+	"sync"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type (
 		onHandShakenHandlers []func(session Session)
 
 		accept   Acceptor
-		sessions loom.Map
+		sessions sync.Map
 		tasks    *taskx.Queue
 		wc       loom.WaitClose
 
@@ -90,10 +91,10 @@ func (my *App) onNewSession(conn intern.Link) {
 	}
 
 	var id = session.Id()
-	my.sessions.Put(id, session)
+	my.sessions.Store(id, session)
 
 	session.OnClosed(func() {
-		my.sessions.Remove(id)
+		my.sessions.Delete(id)
 	})
 
 	// 这个在session的go loop中回调, 因此onHandShakenHandlers放在
