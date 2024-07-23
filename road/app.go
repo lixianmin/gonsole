@@ -120,6 +120,19 @@ func (my *App) AddInterceptor(interceptor InterceptorFunc) {
 	my.manager.AddInterceptor(interceptor)
 }
 
+// RangeSessions 设计这个方法的目的是为了排查如下bug: 2个相同的uid登录了server, playerManager中好像有player丢失了
+func (my *App) RangeSessions(handler func(session Session)) {
+	if handler == nil {
+		return
+	}
+
+	my.sessions.Range(func(key, value any) bool {
+		var session = value.(Session)
+		handler(session)
+		return true
+	})
+}
+
 func (my *App) Register(comp component.Component, opts ...component.Option) error {
 	var service = component.NewService(comp, opts)
 
