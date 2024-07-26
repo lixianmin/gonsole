@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/gobwas/ws v1.4.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/lixianmin/got v0.0.0-20240723074651-796f967cd5a8
+	github.com/lixianmin/got v0.0.0-20240726051851-7d02a0176bad
 	github.com/lixianmin/logo v0.0.0-20240710025343-95c41a339972
 	github.com/shirou/gopsutil v3.21.11+incompatible
 )
