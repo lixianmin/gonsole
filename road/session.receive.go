@@ -154,21 +154,36 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 3个参数+返回值的情况
-	if handler.NumIn == 3 {
+	if handler.ResponseMethodType == nil {
 		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg)}
 		var response, err3 = callMethod(handler.Method, args)
 		return my.respondWith(input, response, err3)
 	}
 
 	// 第4个参数是respond
-	var respond = func(response any, err error) {
+	//var respond = func(response any, err error) {
+	//	if err4 := my.respondWith(input, response, err); err4 != nil {
+	//		logo.Info("close session(%d) by respondWith(), err=%q", my.id, err4)
+	//		_ = my.Close()
+	//	}
+	//}
+
+	var respondValue = reflect.MakeFunc(handler.ResponseMethodType, func(args []reflect.Value) []reflect.Value {
+		var args0, args1 = args[0], args[1]
+		var response = args0.Interface()
+		var err, _ = args1.Interface().(error)
+		//if !args1.IsNil() {
+		//	err = args1.Interface().(error)
+		//}
+
 		if err4 := my.respondWith(input, response, err); err4 != nil {
 			logo.Info("close session(%d) by respondWith(), err=%q", my.id, err4)
 			_ = my.Close()
 		}
-	}
+		return nil
+	})
 
-	var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), reflect.ValueOf(respond)}
+	var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), respondValue}
 	_, _ = callMethod(handler.Method, args)
 	return nil
 }

@@ -83,7 +83,13 @@ func suitableHandlerMethods(type1 reflect.Type, nameFunc func(string) string) ma
 			var handler = &Handler{
 				Method:      method,
 				RequestType: methodType.In(2),
-				NumIn:       int8(methodType.NumIn()),
+			}
+
+			if methodType.NumIn() == 3 {
+				handler.ResponseMethodType = reflect.FuncOf(
+					[]reflect.Type{reflect.PointerTo(methodType.In(3)), reflect.TypeOf((*error)(nil)).Elem()},
+					[]reflect.Type{}, false,
+				)
 			}
 
 			methods[methodName] = handler
