@@ -60,7 +60,7 @@ func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 		return data, nil
 	}
 
-	data, err := serde.Serialize(v)
+	var data, err = serde.Serialize(v)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 }
 
 // callMethod calls a method that returns an interface and an error and recovers in case of panic
-func callMethod(method reflect.Method, args []reflect.Value) (rets any, err error) {
+func callMethod(method reflect.Method, args []reflect.Value) (response any, err error) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			logo.JsonW("method", method.Name, "recover", rec)
@@ -84,7 +84,7 @@ func callMethod(method reflect.Method, args []reflect.Value) (rets any, err erro
 		if v := results[1].Interface(); v != nil {
 			err = v.(error)
 		} else if !results[0].IsNil() {
-			rets = results[0].Interface()
+			response = results[0].Interface()
 		} else {
 			err = ifs.ErrReplyShouldBeNotNull
 		}

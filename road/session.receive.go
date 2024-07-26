@@ -148,83 +148,53 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 这是业务逻辑错误, 应该输出到client, 不应该引发session.Close()
-	var err2 = my.processReceivedPacket(input, handler)
-	return err2
-}
-
-func (my *sessionImpl) processReceivedPacket(input serde.Packet, handler *component.Handler) error {
-	var requestArg, err1 = unmarshalRequestArg(handler, my.serde, input.Data)
-	if err1 != nil {
-		return err1
+	var requestArg, err2 = unmarshalRequestArg(handler, my.serde, input.Data)
+	if err2 != nil {
+		return err2
 	}
 
+	// 3个参数+返回值的情况
 	if handler.NumIn == 3 {
 		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg)}
-		var response, err2 = callMethod(handler.Method, args)
-		if err2 != nil {
-			return err2
-		}
-
-		var payload, err3 = serializeOrRaw(my.serde, response)
-		if err3 != nil {
-			return err3
-		}
-
-		var output = buildOutputPacket(input, payload, err2)
-		return my.sendPacket(output)
-
-	} else {
-		// 第4个参数是respond
-		var respond = func(response any, err error) {
-			my.respondWith(input, response, err)
-		}
-		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), reflect.ValueOf(respond)}
-		var method = handler.Method
-
-		defer func() {
-			if rec := recover(); rec != nil {
-				logo.JsonW("method", method.Name, "recover", rec)
-			}
-		}()
-
-		method.Func.Call(args)
-		return nil
+		var response, err3 = callMethod(handler.Method, args)
+		return my.respondWith(input, response, err3)
 	}
+
+	// 第4个参数是respond
+	var respond = func(response any, err error) {
+		if err4 := my.respondWith(input, response, err); err4 != nil {
+			logo.Info("close session(%d) by respondWith(), err=%q", my.id, err4)
+			_ = my.Close()
+		}
+	}
+
+	var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), reflect.ValueOf(respond)}
+	_, _ = callMethod(handler.Method, args)
+	return nil
 }
 
-func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) {
-	var payload, err1 = serializeOrRaw(my.serde, response)
-	if err1 != nil {
-		logo.Info("close session(%d) by serializeOrRaw(), err=%q", my.id, err1)
-		_ = my.Close()
-		return
+func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) error {
+	var payload []byte
+	if err == nil {
+		payload, err = serializeOrRaw(my.serde, response)
 	}
 
-	var output = buildOutputPacket(input, payload, err1)
-	var err3 = my.sendPacket(output)
-	if err3 != nil {
-		logo.Info("close session(%d) by sendPacket(), err=%q", my.id, err3)
-		_ = my.Close()
-	}
-}
-
-func buildOutputPacket(input serde.Packet, outputPayload []byte, outputError error) serde.Packet {
 	var output = serde.Packet{
 		Kind:      input.Kind,
 		RequestId: input.RequestId,
 	}
 
-	if outputError == nil {
-		output.Data = outputPayload
-	} else if err2, ok := outputError.(*Error); ok {
+	if err == nil {
+		output.Data = payload
+	} else if err2, ok := err.(*Error); ok {
 		output.Code = convert.Bytes(err2.Code)
 		output.Data = convert.Bytes(err2.Message)
 	} else {
 		output.Code = convert.Bytes("PlainError")
-		output.Data = convert.Bytes(outputError.Error())
+		output.Data = convert.Bytes(err.Error())
 	}
 
-	return output
+	return my.sendPacket(output)
 }
 
 func unmarshalRequestArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {
