@@ -76,18 +76,19 @@ func callMethod(method reflect.Method, args []reflect.Value) (rets any, err erro
 		}
 	}()
 
-	r := method.Func.Call(args)
+	var results = method.Func.Call(args)
 
-	// r can have 0 length in case of notify handlers
+	// `results` can have 0 length in case of notify handlers
 	// otherwise it will have 2 outputs: an interface and an error
-	if len(r) == 2 {
-		if v := r[1].Interface(); v != nil {
+	if len(results) == 2 {
+		if v := results[1].Interface(); v != nil {
 			err = v.(error)
-		} else if !r[0].IsNil() {
-			rets = r[0].Interface()
+		} else if !results[0].IsNil() {
+			rets = results[0].Interface()
 		} else {
 			err = ifs.ErrReplyShouldBeNotNull
 		}
 	}
+
 	return
 }

@@ -27,60 +27,64 @@ func isExported(name string) bool {
 
 // isHandlerMethod decide a method is suitable handler method
 func isHandlerMethod(method reflect.Method) bool {
-	mt := method.Type
+	var methodType = method.Type
 	// Method must be exported.
 	if method.PkgPath != "" {
 		return false
 	}
 
 	// Method needs two or three ins: receiver, context.Context and optional []byte or pointer.
-	if mt.NumIn() != 2 && mt.NumIn() != 3 {
+	if methodType.NumIn() != 2 && methodType.NumIn() != 3 {
 		return false
 	}
 
-	if t1 := mt.In(1); !t1.Implements(typeOfContext) {
+	if t1 := methodType.In(1); !t1.Implements(typeOfContext) {
 		return false
 	}
 
-	if mt.NumIn() == 3 && mt.In(2).Kind() != reflect.Ptr && mt.In(2) != typeOfBytes {
+	if methodType.NumIn() == 3 && methodType.In(2).Kind() != reflect.Ptr && methodType.In(2) != typeOfBytes {
 		return false
 	}
 
 	// Method needs either no out or two outs: interface{}(or []byte), error
-	if mt.NumOut() != 0 && mt.NumOut() != 2 {
+	if methodType.NumOut() != 0 && methodType.NumOut() != 2 {
 		return false
 	}
 
-	if mt.NumOut() == 2 && (mt.Out(1) != typeOfError || mt.Out(0) != typeOfBytes && mt.Out(0).Kind() != reflect.Ptr) {
+	if methodType.NumOut() == 2 && (methodType.Out(1) != typeOfError || methodType.Out(0) != typeOfBytes && methodType.Out(0).Kind() != reflect.Ptr) {
 		return false
 	}
 
 	return true
 }
 
-func suitableHandlerMethods(typ reflect.Type, nameFunc func(string) string) map[string]*Handler {
-	methods := make(map[string]*Handler)
-	for m := 0; m < typ.NumMethod(); m++ {
-		method := typ.Method(m)
-		mt := method.Type
-		mn := method.Name
+func suitableHandlerMethods(type1 reflect.Type, nameFunc func(string) string) map[string]*Handler {
+	var methods = make(map[string]*Handler)
+	var numMethod = type1.NumMethod()
+
+	for index := 0; index < numMethod; index++ {
+		var method = type1.Method(index)
+		var methodType = method.Type
+		var methodName = method.Name
 		if isHandlerMethod(method) {
-			raw := false
-			if mt.NumIn() == 3 && mt.In(2) == typeOfBytes {
-				raw = true
+			var isRaw = false
+			if methodType.NumIn() == 3 && methodType.In(2) == typeOfBytes {
+				isRaw = true
 			}
 			// rewrite handler name
 			if nameFunc != nil {
-				mn = nameFunc(mn)
+				methodName = nameFunc(methodName)
 			}
+
 			handler := &Handler{
 				Method:   method,
-				IsRawArg: raw,
+				IsRawArg: isRaw,
 			}
-			if mt.NumIn() == 3 {
-				handler.Type = mt.In(2)
+
+			if methodType.NumIn() == 3 {
+				handler.Type = methodType.In(2)
 			}
-			methods[mn] = handler
+			methods[methodName] = handler
 		}
 	}
 

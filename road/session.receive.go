@@ -165,17 +165,16 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	return my.sendPacket(output)
 }
 
-func processReceivedPacket(pack serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {
-	// First unmarshal the handler argument that will be passed to
-	// both handler and pipeline functions
-	var arg, err = unmarshalHandlerArg(handler, serde, pack.Data)
-	if err != nil {
-		return nil, err
+func processReceivedPacket(input serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {
+	// First unmarshal the handler argument that will be passed to both handler and pipeline functions
+	var requestArg, err1 = unmarshalHandlerArg(handler, serde, input.Data)
+	if err1 != nil {
+		return nil, err1
 	}
 
 	var args []reflect.Value
-	if arg != nil {
-		args = []reflect.Value{handler.Receiver, ctxValue, reflect.ValueOf(arg)}
+	if requestArg != nil {
+		args = []reflect.Value{handler.Receiver, ctxValue, reflect.ValueOf(requestArg)}
 	} else {
 		args = []reflect.Value{handler.Receiver, ctxValue}
 	}
