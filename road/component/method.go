@@ -85,7 +85,7 @@ func suitableHandlerMethods(type1 reflect.Type, nameFunc func(string) string) ma
 				RequestType: methodType.In(2),
 			}
 
-			if methodType.NumIn() == 3 {
+			if methodType.NumIn() == 4 {
 				handler.ResponseMethodType = reflect.FuncOf(
 					[]reflect.Type{reflect.PointerTo(methodType.In(3)), reflect.TypeOf((*error)(nil)).Elem()},
 					[]reflect.Type{}, false,
