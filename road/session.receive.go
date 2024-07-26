@@ -154,7 +154,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 3个参数+返回值的情况
-	if handler.ResponseMethodType == nil {
+	if handler.RespondMethodType == nil {
 		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg)}
 		var response, err3 = callMethod(handler.Method, args)
 		return my.respondWith(input, response, err3)
@@ -168,16 +168,16 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	//	}
 	//}
 
-	var respondValue = reflect.MakeFunc(handler.ResponseMethodType, func(args []reflect.Value) []reflect.Value {
+	var respondValue = reflect.MakeFunc(handler.RespondMethodType, func(args []reflect.Value) []reflect.Value {
 		var args0, args1 = args[0], args[1]
 		var response = args0.Interface()
-		var err, _ = args1.Interface().(error)
+		var err4, _ = args1.Interface().(error)
 		//if !args1.IsNil() {
-		//	err = args1.Interface().(error)
+		//	err4 = args1.Interface().(error)
 		//}
 
-		if err4 := my.respondWith(input, response, err); err4 != nil {
-			logo.Info("close session(%d) by respondWith(), err=%q", my.id, err4)
+		if err5 := my.respondWith(input, response, err4); err5 != nil {
+			logo.Info("close session(%d) by respondWith(), err4=%q", my.id, err5)
 			_ = my.Close()
 		}
 		return nil

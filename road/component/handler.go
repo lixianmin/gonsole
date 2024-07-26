@@ -13,9 +13,9 @@ Copyright (C) - All Rights Reserved
 
 // Handler represents a message.Message's handler's meta information.
 type Handler struct {
-	Receiver           reflect.Value  // receiver of method
-	Method             reflect.Method // method stub
-	RequestType        reflect.Type   // request参数的类型
-	ResponseMethodType reflect.Type
-	Route              string
+	Receiver          reflect.Value  // receiver of method
+	Method            reflect.Method // method stub
+	RequestType       reflect.Type   // request参数的类型
+	RespondMethodType reflect.Type   // response的方法类型
+	Route             string
 }
