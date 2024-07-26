@@ -86,7 +86,7 @@ func suitableHandlerMethods(type1 reflect.Type, nameFunc func(string) string) ma
 			}
 
 			if methodType.NumIn() == 4 {
-				handler.RespondMethodType = reflect.PointerTo(methodType.In(3))
+				handler.RespondMethodType = methodType.In(3)
 			}
 
 			methods[methodName] = handler
