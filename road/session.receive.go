@@ -17,6 +17,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
+var typeOfBytes = reflect.TypeOf(([]byte)(nil))
+
 func (my *sessionImpl) startGoLoop() {
 	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
@@ -145,66 +147,96 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 		}
 	}
 
-	// 这个err不能立即返回，这是业务逻辑错误, 应该输出到client, 而不应该引发session.Close()
-	var payload, err2 = processReceivedPacket(input, my.ctxValue, handler, my.serde)
+	// 这是业务逻辑错误, 应该输出到client, 不应该引发session.Close()
+	var err2 = my.processReceivedPacket(input, handler)
+	return err2
+}
+
+func (my *sessionImpl) processReceivedPacket(input serde.Packet, handler *component.Handler) error {
+	var requestArg, err1 = unmarshalRequestArg(handler, my.serde, input.Data)
+	if err1 != nil {
+		return err1
+	}
+
+	if handler.NumIn == 3 {
+		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg)}
+		var response, err2 = callMethod(handler.Method, args)
+		if err2 != nil {
+			return err2
+		}
+
+		var payload, err3 = serializeOrRaw(my.serde, response)
+		if err3 != nil {
+			return err3
+		}
+
+		var output = buildOutputPacket(input, payload, err2)
+		return my.sendPacket(output)
+
+	} else {
+		// 第4个参数是respond
+		var respond = func(response any, err error) {
+			my.respondWith(input, response, err)
+		}
+		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), reflect.ValueOf(respond)}
+		var method = handler.Method
+
+		defer func() {
+			if rec := recover(); rec != nil {
+				logo.JsonW("method", method.Name, "recover", rec)
+			}
+		}()
+
+		method.Func.Call(args)
+		return nil
+	}
+}
+
+func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) {
+	var payload, err1 = serializeOrRaw(my.serde, response)
+	if err1 != nil {
+		logo.Info("close session(%d) by serializeOrRaw(), err=%q", my.id, err1)
+		_ = my.Close()
+		return
+	}
+
+	var output = buildOutputPacket(input, payload, err1)
+	var err3 = my.sendPacket(output)
+	if err3 != nil {
+		logo.Info("close session(%d) by sendPacket(), err=%q", my.id, err3)
+		_ = my.Close()
+	}
+}
+
+func buildOutputPacket(input serde.Packet, outputPayload []byte, outputError error) serde.Packet {
 	var output = serde.Packet{
 		Kind:      input.Kind,
 		RequestId: input.RequestId,
 	}
 
-	if err2 == nil {
-		output.Data = payload
-	} else if err3, ok := err2.(*Error); ok {
-		output.Code = convert.Bytes(err3.Code)
-		output.Data = convert.Bytes(err3.Message)
+	if outputError == nil {
+		output.Data = outputPayload
+	} else if err2, ok := outputError.(*Error); ok {
+		output.Code = convert.Bytes(err2.Code)
+		output.Data = convert.Bytes(err2.Message)
 	} else {
 		output.Code = convert.Bytes("PlainError")
-		output.Data = convert.Bytes(err2.Error())
+		output.Data = convert.Bytes(outputError.Error())
 	}
 
-	return my.sendPacket(output)
+	return output
 }
 
-func processReceivedPacket(input serde.Packet, ctxValue reflect.Value, handler *component.Handler, serde serde.Serde) ([]byte, error) {
-	// First unmarshal the handler argument that will be passed to both handler and pipeline functions
-	var requestArg, err1 = unmarshalHandlerArg(handler, serde, input.Data)
-	if err1 != nil {
-		return nil, err1
-	}
-
-	var args []reflect.Value
-	if requestArg != nil {
-		args = []reflect.Value{handler.Receiver, ctxValue, reflect.ValueOf(requestArg)}
-	} else {
-		args = []reflect.Value{handler.Receiver, ctxValue}
-	}
-
-	var response, err2 = callMethod(handler.Method, args)
-	if err2 != nil {
-		return nil, err2
-	}
-
-	var ret, err3 = serializeOrRaw(serde, response)
-	if err3 != nil {
-		return nil, err3
-	}
-
-	return ret, nil
-}
-
-func unmarshalHandlerArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {
-	if handler.IsRawArg {
+func unmarshalRequestArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {
+	if handler.RequestType == typeOfBytes {
 		return payload, nil
 	}
 
-	var arg any
-	if handler.Type != nil {
-		arg = reflect.New(handler.Type.Elem()).Interface()
-		err := serde.Deserialize(payload, arg)
-		if err != nil {
-			return nil, err
-		}
+	var request = reflect.New(handler.RequestType.Elem()).Interface()
+	var err = serde.Deserialize(payload, request)
+	if err != nil {
+		return nil, err
 	}
 
-	return arg, nil
+	return request, nil
 }

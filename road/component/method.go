@@ -33,21 +33,29 @@ func isHandlerMethod(method reflect.Method) bool {
 		return false
 	}
 
-	// Method needs two or three ins: receiver, context.Context and optional []byte or pointer.
-	if methodType.NumIn() != 2 && methodType.NumIn() != 3 {
+	// 输入参数列表3个或4个, 如果是3个参数则需要有返回值, 如果是4个参数则第4个参数是respond回调方法
+	var numIn = methodType.NumIn()
+	if numIn != 3 && numIn != 4 {
 		return false
 	}
 
+	// t1必须是context.Context
 	if t1 := methodType.In(1); !t1.Implements(typeOfContext) {
 		return false
 	}
 
-	if methodType.NumIn() == 3 && methodType.In(2).Kind() != reflect.Ptr && methodType.In(2) != typeOfBytes {
+	// t2必须是[]byte或pointer
+	if t2 := methodType.In(2); t2.Kind() != reflect.Ptr && t2 != typeOfBytes {
 		return false
 	}
 
-	// Method needs either no out or two outs: interface{}(or []byte), error
-	if methodType.NumOut() != 0 && methodType.NumOut() != 2 {
+	if numIn == 4 {
+		// 如果有t3, 则必须是一个回调方法
+		if t3 := methodType.In(3); t3.Kind() != reflect.Func {
+			return false
+		}
+	} else if methodType.NumOut() != 2 {
+		// 否则必须有两个返回值
 		return false
 	}
 
@@ -67,23 +75,17 @@ func suitableHandlerMethods(type1 reflect.Type, nameFunc func(string) string) ma
 		var methodType = method.Type
 		var methodName = method.Name
 		if isHandlerMethod(method) {
-			var isRaw = false
-			if methodType.NumIn() == 3 && methodType.In(2) == typeOfBytes {
-				isRaw = true
-			}
-			// rewrite handler name
+			// 重写methodName
 			if nameFunc != nil {
 				methodName = nameFunc(methodName)
 			}
 
-			handler := &Handler{
-				Method:   method,
-				IsRawArg: isRaw,
+			var handler = &Handler{
+				Method:      method,
+				RequestType: methodType.In(2),
+				NumIn:       int8(methodType.NumIn()),
 			}
 
-			if methodType.NumIn() == 3 {
-				handler.Type = methodType.In(2)
-			}
 			methods[methodName] = handler
 		}
 	}

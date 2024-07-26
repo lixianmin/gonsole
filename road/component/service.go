@@ -36,6 +36,7 @@ func NewService(comp Component, opts []Option) *Service {
 		opt := opts[i]
 		opt(&s.Options)
 	}
+
 	if name := s.Options.name; name != "" {
 		s.Name = name
 	} else {
