@@ -12,8 +12,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Session interface {
-	Handshake() error // server主动向client发送服务器的配置信息
-	Kick() error      // server主动踢client
+	Handshake() error         // server主动向client发送服务器的配置信息
+	Kick(reason string) error // server主动踢client
 	Send(route string, v any) error
 	Echo(handler func()) error
 

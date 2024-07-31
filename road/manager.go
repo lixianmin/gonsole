@@ -33,7 +33,6 @@ type Manager struct {
 	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 
 	heartbeatBuffer []byte
-	kickBuffer      []byte
 }
 
 func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Manager {
@@ -48,7 +47,6 @@ func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 		gid:               osx.GetGPID(0),
 
 		heartbeatBuffer: createCommonPackBuffer(serde.Packet{Kind: serde.Heartbeat}),
-		kickBuffer:      createCommonPackBuffer(serde.Packet{Kind: serde.Kick}),
 	}
 
 	return my

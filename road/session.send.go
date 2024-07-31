@@ -119,13 +119,19 @@ func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
 //}
 
 // Kick 强踢下线
-func (my *sessionImpl) Kick() error {
+func (my *sessionImpl) Kick(reason string) error {
 	if my.wc.IsClosed() {
 		return nil
 	}
 
-	var _, err = my.link.Write(my.manager.kickBuffer)
-	return err
+	var data, err1 = my.serde.Serialize(reason)
+	if err1 != nil {
+		return err1
+	}
+
+	var pack = serde.Packet{Kind: serde.Kick, Data: data}
+	var err2 = my.sendPacket(pack)
+	return err2
 }
 
 func (my *sessionImpl) Handshake() error {
