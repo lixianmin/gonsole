@@ -3,6 +3,7 @@ package road
 import (
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
+	"maps"
 	"math/rand"
 	"sync/atomic"
 )
@@ -41,18 +42,14 @@ func (my *sessionImpl) Send(route string, v any) error {
 		return err1
 	}
 
+	// 可能是并发访问my.routeKinds
 	var kind, ok = my.routeKinds[route]
 	var pack = serde.Packet{Kind: kind, Data: data}
 	if !ok {
-		//var routeData = convert.Bytes(route)
-		//// 此时, kind起到了指定route长度的作用, 因此要求所有的client都需要处理这一点
-		////
-		//// 因为notify相关的逻辑经常使用SendByRoute(), 因此长的route还是挺费的. 但是:
-		//// 1. kind不能在manger中动态计算, 因为manager只有一份, 一个session计算了新kind, 其它session并不知道, 就不同步了
-		//// 2. 如果像componentHandler一样, 启动时写死的话, 使用方式会比较别扭
-		//// 3. 考虑每个session单独计算并各自保存route kind, 看起来似乎可行
-		//pack.Kind = serde.RouteBase + int32(len(routeData))
-		//pack.Route = routeData
+		// 因为notify相关的逻辑经常使用SendByRoute(), 因此长的route还是挺费的. 但是:
+		// 1. kind不允许在manger中动态计算, 因为manager只有一份, 一个session计算了新kind, 其它session并不知道, 就不同步了
+		// 2. 如果像componentHandler一样, 启动时写死的话, 使用方式会比较别扭
+		// 3. 考虑每个session单独计算并各自保存route kind, 看起来似乎可行
 		var kind2, err2 = my.sendRouteKind(route)
 		if err2 != nil {
 			return err2
@@ -67,19 +64,21 @@ func (my *sessionImpl) Send(route string, v any) error {
 
 func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
 	var kind int32 = 0
-	var isFind = false
+	var isSent = false
 	my.writeLock.Lock()
 	{
 		// double check lock
-		if kind, isFind = my.routeKinds[route]; !isFind {
-			my.maxKind++
-			my.routeKinds[route] = my.maxKind
-			kind = my.maxKind
+		if kind, isSent = my.routeKinds[route]; !isSent {
+			kind = int32(len(my.routeKinds)) + serde.UserBase
+
+			var cloned = maps.Clone(my.routeKinds)
+			cloned[route] = kind
+			my.routeKinds = cloned // golang中指针赋值是原子操作
 		}
 	}
 	my.writeLock.Unlock()
 
-	if !isFind {
+	if !isSent {
 		var v = &serde.JsonRouteKind{
 			Kind:  kind,
 			Route: route,

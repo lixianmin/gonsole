@@ -27,7 +27,6 @@ type Manager struct {
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
-	maxKind           int32
 	routes            []string
 	serdeBuilders     map[string]serdeBuilder
 	interceptors      []InterceptorFunc
@@ -44,7 +43,6 @@ func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 		routeHandlers:     map[string]*component.Handler{},
 		routeKinds:        map[string]int32{}, // 这些默认不能为nil, 否则一旦有客户端不调用RebuildHandlerKinds(), 那么这些将一直为nil, 并影响后续的操作
 		kindHandlers:      map[int32]*component.Handler{},
-		maxKind:           0,
 		routes:            make([]string, 0),
 		serdeBuilders:     map[string]serdeBuilder{},
 		gid:               osx.GetGPID(0),
@@ -82,21 +80,15 @@ func (my *Manager) RebuildHandlerKinds() {
 	my.kindHandlers = make(map[int32]*component.Handler, size)
 	my.routes = routes
 
-	for i, route := range routes {
-		var kind = int32(i) + serde.UserBase
+	for _, route := range routes {
+		var kind = int32(len(my.routeKinds)) + serde.UserBase
 		my.routeKinds[route] = kind
 		my.kindHandlers[kind] = my.routeHandlers[route]
-		my.maxKind = kind
 	}
 }
 
-//func (my *Manager) GetKindByRoute(route string) (int32, bool) {
-//	var kind, ok = my.routeKinds[route]
-//	return kind, ok
-//}
-
-func (my *Manager) CloneRouteKinds() (map[string]int32, int32) {
-	return maps.Clone(my.routeKinds), my.maxKind
+func (my *Manager) CloneRouteKinds() map[string]int32 {
+	return maps.Clone(my.routeKinds)
 }
 
 func (my *Manager) GetHandlerByKind(kind int32) *component.Handler {

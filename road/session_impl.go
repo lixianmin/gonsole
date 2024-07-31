@@ -41,7 +41,6 @@ type sessionImpl struct {
 	wc         loom.WaitClose
 	serde      serde.Serde
 	routeKinds map[string]int32
-	maxKind    int32
 
 	handlerLock          sync.Mutex
 	onHandShakenHandlers []func()
@@ -51,7 +50,7 @@ type sessionImpl struct {
 
 func newSession(manager *Manager, link intern.Link) Session {
 	var id = atomic.AddInt64(&globalIdGenerator, 1)
-	var routeKinds, maxKind = manager.CloneRouteKinds()
+	var routeKinds = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
 		manager:      manager,
 		writer:       iox.NewOctetsWriter(&iox.OctetsStream{}),
@@ -59,7 +58,6 @@ func newSession(manager *Manager, link intern.Link) Session {
 		link:         link,
 		attachment:   &AttachmentImpl{},
 		routeKinds:   routeKinds,
-		maxKind:      maxKind,
 		echoHandlers: map[int32]func(){},
 	}}
 
