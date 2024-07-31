@@ -97,7 +97,7 @@ export function newSession() {
     }
 
     function onReceivedPacket(pack) {
-        console.log(`pack={ kind=${pack.kind}, reqeustId=${pack.requestId}, code=${_serde.bytes2String(pack.code)} }`)
+        console.log(`pack={ kind=${pack.kind}, requestId=${pack.requestId}, code=${_serde.bytes2String(pack.code)} }`)
         switch (pack.kind) {
             case PacketKind.Handshake:
                 onReceivedHandshake(pack)
@@ -106,7 +106,9 @@ export function newSession() {
                 // console.log(pack)
                 break
             case PacketKind.Kick:
-                _socket.close(0, 'kicked')
+                const message = `kicked by reason=${_serde.bytes2String(pack.data)}`
+                console.log(message)
+                _socket.close(0)
                 break
             case PacketKind.RouteKind:
                 onReceivedRouteKind(pack)
