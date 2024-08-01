@@ -93,13 +93,13 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
-	logo.Info("Gonsole: GoVersion     		= %s", runtime.Version())
-	logo.Info("Gonsole: GitBranchName 		= %s", GitBranchName)
-	logo.Info("Gonsole: GitCommitId   		= %s", GitCommitId)
-	logo.Info("Gonsole: GitCommitMessage	= %s", GitCommitMessage)
-	logo.Info("Gonsole: GitCommitTime 		= %s", GitCommitTime)
-	logo.Info("Gonsole: AppBuildTime  		= %s", AppBuildTime)
-	logo.Info("Gonsole: console       		= %s", server.baseUrl+options.getPathByDirectory("/console"))
+	logo.Info("gonsole: GoVersion     		= %s", runtime.Version())
+	logo.Info("gonsole: GitBranchName 		= %s", GitBranchName)
+	logo.Info("gonsole: GitCommitId   		= %s", GitCommitId)
+	logo.Info("gonsole: GitCommitMessage		= %s", GitCommitMessage)
+	logo.Info("gonsole: GitCommitTime 		= %s", GitCommitTime)
+	logo.Info("gonsole: AppBuildTime  		= %s", AppBuildTime)
+	logo.Info("gonsole: console       		= %s", server.baseUrl+options.getPathByDirectory("/console"))
 	logo.Info("Starting server")
 	return server
 }
