@@ -5,7 +5,6 @@ import (
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/got/taskx"
 	"github.com/lixianmin/logo"
 	"sync"
 	"time"
@@ -27,7 +26,6 @@ type (
 
 		accept   Acceptor
 		sessions sync.Map
-		tasks    *taskx.Queue
 		wc       loom.WaitClose
 
 		services map[string]*component.Service // all registered service
@@ -59,9 +57,6 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 		app.manager.AddSerdeBuilder(name, factory)
 	}
 
-	// 这个tasks，只是内部用一下，不公开
-	app.tasks = taskx.NewQueue(taskx.WithSize(2), taskx.WithCloseChan(app.wc.C()))
-
 	loom.Go(app.goLoop)
 	return app
 }
@@ -72,11 +67,6 @@ func (my *App) goLoop(later loom.Later) {
 		select {
 		case conn := <-my.accept.GetLinkChan():
 			my.onNewSession(conn)
-		case task := <-my.tasks.C:
-			var err = task.Do(nil)
-			if err != nil {
-				logo.JsonI("err", err)
-			}
 		case <-closeChan:
 			return
 		}
