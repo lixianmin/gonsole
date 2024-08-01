@@ -37,7 +37,7 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 func (my *TcpAcceptor) goLoop(address string) {
 	defer loom.DumpIfPanic()
 
-	listener, err := net.Listen("tcp", address)
+	var listener, err = net.Listen("tcp", address)
 	if err != nil {
 		logo.Warn("failed to listen on address=%q, err=%q", address, err)
 		return
@@ -46,9 +46,9 @@ func (my *TcpAcceptor) goLoop(address string) {
 
 	// while this acceptor is not closed
 	for atomic.LoadInt32(&my.isClosed) == 0 {
-		conn, err := listener.Accept()
-		if err != nil {
-			logo.Info("failed to accept TCP connection: %q", err)
+		var conn, err2 = listener.Accept()
+		if err2 != nil {
+			logo.Info("failed to accept TCP connection: %q", err2)
 			continue
 		}
 
