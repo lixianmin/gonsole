@@ -124,12 +124,7 @@ func (my *sessionImpl) Kick(reason string) error {
 		return nil
 	}
 
-	var data, err1 = my.serde.Serialize(reason)
-	if err1 != nil {
-		return err1
-	}
-
-	var pack = serde.Packet{Kind: serde.Kick, Data: data}
+	var pack = serde.Packet{Kind: serde.Kick, Data: convert.Bytes(reason)}
 	var err2 = my.sendPacket(pack)
 	return err2
 }
