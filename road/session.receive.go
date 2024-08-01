@@ -189,6 +189,11 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 }
 
 func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) error {
+	// respondWith()可能很久以后才回调过来的, 加点儿判断, 早一步拦截
+	if my.wc.IsClosed() {
+		return nil
+	}
+
 	var payload []byte
 	if err == nil {
 		payload, err = serializeOrRaw(my.serde, response)
