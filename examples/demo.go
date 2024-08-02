@@ -61,6 +61,7 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	server.App().Listen()
 	loom.Go(goLoop)
 
 	// 使用mkcert生成自签名证书，以启用并测试http/2和https，支持frame传输

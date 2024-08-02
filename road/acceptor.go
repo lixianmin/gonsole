@@ -10,5 +10,6 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Acceptor interface {
+	Listen()
 	GetLinkChan() chan intern.Link
 }

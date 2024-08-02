@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"net"
+	"sync"
 	"sync/atomic"
 )
 
@@ -16,8 +17,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type TcpAcceptor struct {
-	linkChan chan intern.Link
-	isClosed int32
+	address    string
+	linkChan   chan intern.Link
+	isClosed   int32
+	listenOnce sync.Once
 }
 
 func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
@@ -27,19 +30,19 @@ func NewTcpAcceptor(address string, opts ...AcceptorOption) *TcpAcceptor {
 	}
 
 	var my = &TcpAcceptor{
+		address:  address,
 		linkChan: make(chan intern.Link, options.LinkChanSize),
 	}
 
-	go my.goLoop(address)
 	return my
 }
 
-func (my *TcpAcceptor) goLoop(address string) {
+func (my *TcpAcceptor) goLoop() {
 	defer loom.DumpIfPanic()
 
-	var listener, err = net.Listen("tcp", address)
+	var listener, err = net.Listen("tcp", my.address)
 	if err != nil {
-		logo.Warn("failed to listen on address=%q, err=%q", address, err)
+		logo.Warn("failed to listen on address=%q, err=%q", my.address, err)
 		return
 	}
 	defer listener.Close()
@@ -63,6 +66,12 @@ func (my *TcpAcceptor) goLoop(address string) {
 func (my *TcpAcceptor) Close() error {
 	atomic.StoreInt32(&my.isClosed, 1)
 	return nil
+}
+
+func (my *TcpAcceptor) Listen() {
+	my.listenOnce.Do(func() {
+		go my.goLoop()
+	})
 }
 
 func (my *TcpAcceptor) GetLinkChan() chan intern.Link {

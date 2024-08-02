@@ -7,7 +7,6 @@ import (
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -28,7 +27,6 @@ type (
 		accept   Acceptor
 		sessions sync.Map
 		wc       loom.WaitClose
-		isInited int32 // 初始化完成, 意味着可以接受session连接进来了
 
 		services map[string]*component.Service // all registered service
 	}
@@ -76,13 +74,6 @@ func (my *App) goLoop(later loom.Later) {
 }
 
 func (my *App) onNewSession(conn intern.Link) {
-	var isInited = atomic.LoadInt32(&my.isInited) == 1
-	if !isInited {
-		_ = conn.Close()
-		logo.Info("sever is still initializing...")
-		return
-	}
-
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
@@ -167,7 +158,7 @@ func (my *App) Documentation(getPtrNames bool) (map[string]any, error) {
 	return map[string]any{"handlers": handlerDocs}, nil
 }
 
-// SetInited 初始化完成, 意味着可以接受session连接进来了
-func (my *App) SetInited() {
-	atomic.StoreInt32(&my.isInited, 1)
+// Listen 初始化完成后才启动Listen, 才可以接受session连接进来
+func (my *App) Listen() {
+	my.accept.Listen()
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/logo"
 	"net/http"
+	"sync"
 )
 
 /********************************************************************
@@ -15,26 +16,34 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type WsAcceptor struct {
-	linkChan chan intern.Link
-	isClosed int32
+	serveMux   IServeMux
+	servePath  string
+	linkChan   chan intern.Link
+	isClosed   int32
+	listenOnce sync.Once
 }
 
 func NewWsAcceptor(serveMux IServeMux, servePath string, opts ...AcceptorOption) *WsAcceptor {
+	if serveMux == nil {
+		logo.Error("serveMux is nil")
+		return nil
+	}
+
 	var options = newAcceptorOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
 
 	var my = &WsAcceptor{
-		linkChan: make(chan intern.Link, options.LinkChanSize),
+		serveMux:  serveMux,
+		servePath: servePath,
+		linkChan:  make(chan intern.Link, options.LinkChanSize),
 	}
 
-	// 这个相当于listener，每创建一个新的链接
-	serveMux.HandleFunc(servePath, my.ServeHTTP)
 	return my
 }
 
-func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (my *WsAcceptor) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	// Upgrade connection
 	conn, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
@@ -43,6 +52,13 @@ func (my *WsAcceptor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	my.linkChan <- intern.NewWsLink(conn)
+}
+
+func (my *WsAcceptor) Listen() {
+	my.listenOnce.Do(func() {
+		// 这个相当于listener，每次创建一个新的链接
+		my.serveMux.HandleFunc(my.servePath, my.serveHTTP)
+	})
 }
 
 func (my *WsAcceptor) GetLinkChan() chan intern.Link {
