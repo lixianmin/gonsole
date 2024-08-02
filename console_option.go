@@ -11,7 +11,7 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type serverOptions struct {
+type consoleOptions struct {
 	PageTemplate string // 主页（console.html）模板文件的路径名
 	PageTitle    string // 主页（console.html）标题
 	PageBody     string // 主页（console.html）主体
@@ -29,7 +29,7 @@ type serverOptions struct {
 	WebSocketPath   string            // websocket监听的路径
 }
 
-func (options serverOptions) getPathByDirectory(path string) string {
+func (options consoleOptions) getPathByDirectory(path string) string {
 	if options.Directory != "" {
 		path = "/" + options.Directory + path
 	}
@@ -37,11 +37,11 @@ func (options serverOptions) getPathByDirectory(path string) string {
 	return path
 }
 
-type ServerOption func(*serverOptions)
+type ConsoleOption func(*consoleOptions)
 
 // WithAutoLoginTime 如果手动登录过，则在时限内自动登录
-func WithAutoLoginTime(d time.Duration) ServerOption {
-	return func(options *serverOptions) {
+func WithAutoLoginTime(d time.Duration) ConsoleOption {
+	return func(options *consoleOptions) {
 		if d > 0 {
 			options.AutoLoginTime = d
 		}
@@ -49,22 +49,22 @@ func WithAutoLoginTime(d time.Duration) ServerOption {
 }
 
 // WithEnablePProf 激活pprof
-func WithEnablePProf(enable bool) ServerOption {
-	return func(options *serverOptions) {
+func WithEnablePProf(enable bool) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.EnablePProf = enable
 	}
 }
 
 // WithLogListRoot log.list命令显示的日志文件根目录
-func WithLogListRoot(path string) ServerOption {
-	return func(options *serverOptions) {
+func WithLogListRoot(path string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.LogListRoot = path
 	}
 }
 
 // WithPort 服务器端口
-func WithPort(port int) ServerOption {
-	return func(options *serverOptions) {
+func WithPort(port int) ConsoleOption {
+	return func(options *consoleOptions) {
 		if port > 0 {
 			options.Port = port
 		}
@@ -72,8 +72,8 @@ func WithPort(port int) ServerOption {
 }
 
 // WithSecretKey jwt的secret key
-func WithSecretKey(secretKey string) ServerOption {
-	return func(options *serverOptions) {
+func WithSecretKey(secretKey string) ConsoleOption {
+	return func(options *consoleOptions) {
 		if secretKey != "" {
 			options.SecretKey = secretKey
 		}
@@ -81,36 +81,36 @@ func WithSecretKey(secretKey string) ServerOption {
 }
 
 // WithPageTemplate 主页（console.html）模板文件的路径名
-func WithPageTemplate(path string) ServerOption {
-	return func(options *serverOptions) {
+func WithPageTemplate(path string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.PageTemplate = path
 	}
 }
 
 // WithPageTitle 主页（console.html）标题
-func WithPageTitle(title string) ServerOption {
-	return func(options *serverOptions) {
+func WithPageTitle(title string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.PageTitle = title
 	}
 }
 
 // WithPageBody 主页（console.html）主体
-func WithPageBody(body string) ServerOption {
-	return func(options *serverOptions) {
+func WithPageBody(body string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.PageBody = body
 	}
 }
 
 // WithDirectory 项目根目录，表现在url中
-func WithDirectory(path string) ServerOption {
-	return func(options *serverOptions) {
+func WithDirectory(path string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.Directory = path
 	}
 }
 
 // WithUserPasswords 可以登陆的用户名与密码
-func WithUserPasswords(passwords map[string]string) ServerOption {
-	return func(options *serverOptions) {
+func WithUserPasswords(passwords map[string]string) ConsoleOption {
+	return func(options *consoleOptions) {
 		if len(passwords) > 0 {
 			options.UserPasswords = passwords
 			//const key = "hey pet!"
@@ -123,27 +123,27 @@ func WithUserPasswords(passwords map[string]string) ServerOption {
 }
 
 // WithDeadlockIgnores 死锁检查时可以忽略的调用字符串
-func WithDeadlockIgnores(ignores []string) ServerOption {
-	return func(options *serverOptions) {
+func WithDeadlockIgnores(ignores []string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.DeadlockIgnores = ignores
 	}
 }
 
 // WithWebSocketPath websocket监听的路径
-func WithWebSocketPath(path string) ServerOption {
-	return func(options *serverOptions) {
+func WithWebSocketPath(path string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.WebSocketPath = path
 	}
 }
 
-func WithTls(enable bool) ServerOption {
-	return func(options *serverOptions) {
+func WithTls(enable bool) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.Tls = enable
 	}
 }
 
-func WithBaseUrl(url string) ServerOption {
-	return func(options *serverOptions) {
+func WithBaseUrl(url string) ConsoleOption {
+	return func(options *consoleOptions) {
 		options.BaseUrl = url
 	}
 }

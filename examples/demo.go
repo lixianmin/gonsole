@@ -27,7 +27,7 @@ func main() {
 
 	var webPort = 8888
 	var mux = http.NewServeMux()
-	var server = gonsole.NewServer(mux,
+	var console = gonsole.NewConsole(mux,
 		gonsole.WithPort(webPort),
 		gonsole.WithPageTemplate("web/dist/console.html"),
 		gonsole.WithPageBody("<H1>This is a very huge body</H1>"),
@@ -36,7 +36,7 @@ func main() {
 		gonsole.WithDirectory("ws"),
 	)
 
-	//var app = server.App()
+	//var app = console.App()
 	//app.AddHook(func(rawMethod func() (interface{}, error)) (interface{}, error) {
 	//	var start = time.Now()
 	//	var ret, err = rawMethod()
@@ -51,7 +51,7 @@ func main() {
 	//	return ret, err
 	//})
 
-	registerCommands(server)
+	registerCommands(console)
 
 	var srv = &http.Server{
 		Addr:           fmt.Sprintf(":%d", webPort),
@@ -61,7 +61,7 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	server.App().Listen()
+	console.App().Listen()
 	loom.Go(goLoop)
 
 	// 使用mkcert生成自签名证书，以启用并测试http/2和https，支持frame传输
@@ -90,7 +90,7 @@ func goLoop(later loom.Later) {
 	}
 }
 
-func registerCommands(server *gonsole.Server) {
+func registerCommands(server *gonsole.Console) {
 	server.RegisterCommand(&gonsole.Command{
 		Name: "hi",
 		Note: "打印 hi console",

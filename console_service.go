@@ -44,13 +44,13 @@ type (
 	}
 
 	ConsoleService struct {
-		server *Server
+		console *Console
 	}
 )
 
-func newConsoleService(server *Server) *ConsoleService {
+func newConsoleService(console *Console) *ConsoleService {
 	var service = &ConsoleService{
-		server: server,
+		console: console,
 	}
 
 	return service
@@ -64,7 +64,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
-	var cmd, _ = my.server.getCommand(name).(*Command)
+	var cmd, _ = my.console.getCommand(name).(*Command)
 	if cmd == nil {
 		return nil, fmt.Errorf("invalid cmd name=%s", name)
 	}
@@ -104,7 +104,7 @@ func (my *ConsoleService) Sub(ctx context.Context, request *subRqt) (*Response, 
 	}
 
 	var name = request.Topic
-	var topic = my.server.getTopic(name)
+	var topic = my.console.getTopic(name)
 
 	if topic == nil || !(topic.IsPublic() || isAuthorized(session)) {
 		return nil, road.NewError("InvalidTopic", "尝试订阅非法topic")
@@ -129,7 +129,7 @@ func (my *ConsoleService) Unsub(ctx context.Context, request *subRqt) (*Response
 	}
 
 	var name = request.Topic
-	var topic = my.server.getTopic(name)
+	var topic = my.console.getTopic(name)
 	if topic == nil {
 		return nil, road.NewError("InvalidTopic", "尝试取消非法topic")
 	}
@@ -151,7 +151,7 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	var isAuthorized = isAuthorized(session)
 
 	var head = strings.TrimSpace(request.Head)
-	var commands = my.server.getCommands()
+	var commands = my.console.getCommands()
 
 	var results = make([]hintRe, 0, len(commands)+len(subUnsubNames))
 

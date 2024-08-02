@@ -24,14 +24,14 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func (server *Server) registerHandlers(mux IServeMux, options serverOptions) {
-	server.handleConsolePage(mux, options.WebSocketPath)
-	server.handleAssets(mux)
-	server.handleLogFiles(mux, options)
+func (my *Console) registerHandlers(mux IServeMux, options consoleOptions) {
+	my.handleConsolePage(mux, options.WebSocketPath)
+	my.handleAssets(mux)
+	my.handleLogFiles(mux, options)
 }
 
-func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
-	var options = server.options
+func (my *Console) handleConsolePage(mux IServeMux, websocketPath string) {
+	var options = my.options
 	var tmpl = template.Must(template.ParseFiles(options.PageTemplate))
 
 	var config struct {
@@ -65,7 +65,7 @@ func (server *Server) handleConsolePage(mux IServeMux, websocketPath string) {
 	})
 }
 
-func (server *Server) handleAssets(mux IServeMux) {
+func (my *Console) handleAssets(mux IServeMux) {
 	var isValidAsset = func(path string) bool {
 		var extensions = []string{".css", ".html", ".ico", ".js"}
 		for _, extension := range extensions {
@@ -96,7 +96,7 @@ func (server *Server) handleAssets(mux IServeMux) {
 		return "text/plain"
 	}
 
-	var pageRoot = filepath.Dir(server.options.PageTemplate)
+	var pageRoot = filepath.Dir(my.options.PageTemplate)
 	//var walkRoot = filepath.Join(pageRoot, "assets")
 	var walkRoot = pageRoot
 
@@ -126,9 +126,9 @@ func (server *Server) handleAssets(mux IServeMux) {
 }
 
 // 这个方法在gin中由于pattern不一样，需要被重写
-func (server *Server) handleLogFiles(mux IServeMux, options serverOptions) {
-	var pattern = options.getPathByDirectory("/" + server.options.LogListRoot + "/")
-	var cutLength = len(pattern) - len(server.options.LogListRoot) - 1
+func (my *Console) handleLogFiles(mux IServeMux, options consoleOptions) {
+	var pattern = options.getPathByDirectory("/" + my.options.LogListRoot + "/")
+	var cutLength = len(pattern) - len(my.options.LogListRoot) - 1
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		var logFilePath = request.URL.Path
 		if len(logFilePath) < 1 {
@@ -140,55 +140,55 @@ func (server *Server) handleLogFiles(mux IServeMux, options serverOptions) {
 	})
 }
 
-//func (server *Server) handleHealth(mux IServeMux) {
-//	var pattern = server.options.Directory + "/health"
+//func (console *Console) handleHealth(mux IServeMux) {
+//	var pattern = console.options.Directory + "/health"
 //	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 //		var message = `{"status":"UP"}`
 //		_, _ = writer.Write([]byte(message))
 //	})
 //}
 
-func (server *Server) registerBuiltinCommands(port int) {
-	server.RegisterCommand(&Command{
+func (my *Console) registerBuiltinCommands(port int) {
+	my.RegisterCommand(&Command{
 		Name: "help",
 		Note: "帮助中心",
 		Flag: flagBuiltin | FlagPublic,
 		Handler: func(session road.Session, args []string) (*Response, error) {
 			var isAuthorized = isAuthorized(session)
-			var commandHelp = beans.FetchCommandHelp(server.getCommands(), isAuthorized)
+			var commandHelp = beans.FetchCommandHelp(my.getCommands(), isAuthorized)
 			var data = fmt.Sprintf("<br/><b>命令列表：</b> <br> %s", ToHtmlTable(commandHelp))
 
-			var topicHelp = beans.FetchTopicHelp(server.getTopics(), isAuthorized)
+			var topicHelp = beans.FetchTopicHelp(my.getTopics(), isAuthorized)
 			if len(topicHelp) > 0 {
 				data += fmt.Sprintf("<br/><b>主题列表：</b> <br> %s", ToHtmlTable(topicHelp))
 			}
 
-			if isAuthorized && server.options.EnablePProf {
+			if isAuthorized && my.options.EnablePProf {
 				data += "<br/><b>PProf：</b> <br>" + ToHtmlTable(beans.FetchPProfHelp(args))
 			}
 
 			return NewHtmlResponse(data), nil
 		}})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name:    "auth",
 		Example: "auth username",
 		Note:    "认证后开启更多命令：auth username，然后根据提示输入password",
 		Flag:    flagBuiltin | FlagPublic,
 		Handler: func(session road.Session, args []string) (*Response, error) {
-			server.lastAuthTime.Store(time.Now())
-			var options = server.options
+			my.lastAuthTime.Store(time.Now())
+			var options = my.options
 
 			var data = beans.NewCommandAuth(session, args, options.SecretKey, options.UserPasswords, options.AutoLoginTime, port)
 			return NewDefaultResponse(data), nil
 		}})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name: "log.list",
 		Note: "日志文件列表",
 		Flag: flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
-			var data = beans.NewCommandLogList(server.options.LogListRoot, server.options.SecretKey)
+			var data = beans.NewCommandLogList(my.options.LogListRoot, my.options.SecretKey)
 			var ret = &Response{Operation: "log.list", Data: data}
 			return ret, nil
 		},
@@ -196,7 +196,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 
 	const maxHeadNum = 1000
 	var headNote = "打印文件头"
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name:    "head",
 		Example: fmt.Sprintf("head [-n num (<=%d)] [-f fitler] [-s startLine] filename", maxHeadNum),
 		Note:    headNote,
@@ -209,7 +209,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 
 	const maxTailNum = maxHeadNum
 	var tailNote = "打印文件尾"
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name:    "tail",
 		Example: fmt.Sprintf("tail [-n num (<=%d)] [-f filter] filename", maxTailNum),
 		Note:    tailNote,
@@ -220,7 +220,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		},
 	})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name: "history",
 		Note: "历史命令列表",
 		Flag: flagBuiltin | FlagPublic,
@@ -229,7 +229,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		},
 	})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name: "top",
 		Note: "打印进程统计信息",
 		Flag: flagBuiltin,
@@ -249,7 +249,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 		},
 	})
 
-	//server.RegisterCommand(&Command{
+	//my.RegisterCommand(&Command{
 	//	Name: "app.info",
 	//	Note: "打印app信息",
 	//	Flag: flagBuiltin,
@@ -268,7 +268,7 @@ func (server *Server) registerBuiltinCommands(port int) {
 	//	},
 	//})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name: "date",
 		Note: "打印当前日期",
 		Flag: flagBuiltin | FlagPublic,
@@ -279,13 +279,13 @@ func (server *Server) registerBuiltinCommands(port int) {
 		},
 	})
 
-	server.RegisterCommand(&Command{
+	my.RegisterCommand(&Command{
 		Name:    "deadlock.detect",
 		Example: "deadlock.detect [-a (show all)]",
 		Note:    "按IO wait时间打印goroutine，辅助死锁排查",
 		Flag:    flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
-			var html = beans.DeadlockDetect(args, server.options.DeadlockIgnores)
+			var html = beans.DeadlockDetect(args, my.options.DeadlockIgnores)
 			if html != "" {
 				return NewHtmlResponse(html), nil
 			} else {
@@ -295,9 +295,9 @@ func (server *Server) registerBuiltinCommands(port int) {
 	})
 }
 
-func (server *Server) registerBuiltinTopics() {
+func (my *Console) registerBuiltinTopics() {
 	const intervalSeconds = 5
-	server.RegisterTopic(&Topic{
+	my.RegisterTopic(&Topic{
 		Name:     "top",
 		Note:     fmt.Sprintf("广播进程统计信息（每%ds）", intervalSeconds),
 		Interval: intervalSeconds * time.Second,

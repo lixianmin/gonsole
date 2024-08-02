@@ -26,8 +26,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-type Server struct {
-	options      serverOptions
+type Console struct {
+	options      consoleOptions
 	app          *road.App
 	gpid         string
 	baseUrl      string
@@ -36,9 +36,9 @@ type Server struct {
 	lastAuthTime atomic.Value
 }
 
-func NewServer(mux IServeMux, opts ...ServerOption) *Server {
+func NewConsole(mux IServeMux, opts ...ConsoleOption) *Console {
 	// 默认值
-	var options = serverOptions{
+	var options = consoleOptions{
 		PageTemplate: "vendor/github.com/lixianmin/gonsole/web/dist/console.html",
 		PageTitle:    "Console",
 		PageBody:     "Input 'help' and press 'Enter' to fetch builtin commands. <a href=\"https://github.com/lixianmin/gonsole\">learn more</a>",
@@ -71,21 +71,21 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 		return &serde.JsonSerde{}
 	}))
 
-	var server = &Server{
+	var console = &Console{
 		options: options,
 		app:     app,
 		gpid:    osx.GetGPID(options.Port),
 	}
 
-	server.baseUrl = buildBaseUrl(options)
-	server.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
-	server.RegisterService("console", newConsoleService(server))
-	server.registerHandlers(mux, options)
-	server.registerBuiltinCommands(options.Port)
-	server.registerBuiltinTopics()
+	console.baseUrl = buildBaseUrl(options)
+	console.lastAuthTime.Store(time.Now().Add(-timex.Day * 365))
+	console.RegisterService("console", newConsoleService(console))
+	console.registerHandlers(mux, options)
+	console.registerBuiltinCommands(options.Port)
+	console.registerBuiltinTopics()
 
 	if options.EnablePProf {
-		server.enablePProf(mux)
+		console.enablePProf(mux)
 	}
 
 	app.OnHandShaken(func(session road.Session) {
@@ -99,9 +99,9 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 	logo.Info("gonsole: GitCommitMessage		= %s", GitCommitMessage)
 	logo.Info("gonsole: GitCommitTime 		= %s", GitCommitTime)
 	logo.Info("gonsole: AppBuildTime  		= %s", AppBuildTime)
-	logo.Info("gonsole: console       		= %s", server.baseUrl+options.getPathByDirectory("/console"))
-	logo.Info("Starting server")
-	return server
+	logo.Info("gonsole: console       		= %s", console.baseUrl+options.getPathByDirectory("/console"))
+	logo.Info("Starting console server")
+	return console
 }
 
 // 这里不需要开放OnHandShaken()事件, 原因是:
@@ -109,29 +109,29 @@ func NewServer(mux IServeMux, opts ...ServerOption) *Server {
 //	2. 即使项目使用的是gonsole创建的app对象, 也可以直接通过server.App()方法拿到app对象后自己注册OnHandShaken()回调
 //
 // OnHandShaken 开放OnHandShaken()事件(可以反复注册多个). 原因是在用户认证流程中需要在这个时机向client发送challenge协议
-//func (server *Server) OnHandShaken(handler func(session road.Session)) {
-//	server.app.OnHandShaken(handler)
+//func (console *Console) OnHandShaken(handler func(session road.Session)) {
+//	console.app.OnHandShaken(handler)
 //}
 
-func (server *Server) RegisterService(name string, service component.Component) {
-	_ = server.app.Register(service, component.WithName(name), component.WithNameFunc(ToSnakeName))
+func (my *Console) RegisterService(name string, service component.Component) {
+	_ = my.app.Register(service, component.WithName(name), component.WithNameFunc(ToSnakeName))
 }
 
-func (server *Server) RegisterCommand(cmd *Command) {
+func (my *Console) RegisterCommand(cmd *Command) {
 	if cmd != nil && cmd.Name != "" {
-		server.commands.Store(cmd.Name, cmd)
+		my.commands.Store(cmd.Name, cmd)
 	}
 }
 
-func (server *Server) RegisterTopic(topic *Topic) {
+func (my *Console) RegisterTopic(topic *Topic) {
 	if topic != nil && topic.Name != "" && topic.Interval > 0 && topic.BuildResponse != nil {
-		server.topics.Store(topic.Name, topic)
+		my.topics.Store(topic.Name, topic)
 		topic.start()
 	}
 }
 
-func (server *Server) getCommand(name string) ifs.Command {
-	var box, ok = server.commands.Load(name)
+func (my *Console) getCommand(name string) ifs.Command {
+	var box, ok = my.commands.Load(name)
 	if ok {
 		var cmd, _ = box.(ifs.Command)
 		return cmd
@@ -140,9 +140,9 @@ func (server *Server) getCommand(name string) ifs.Command {
 	return nil
 }
 
-func (server *Server) getCommands() []ifs.Command {
+func (my *Console) getCommands() []ifs.Command {
 	var list []ifs.Command
-	server.commands.Range(func(key, value any) bool {
+	my.commands.Range(func(key, value any) bool {
 		var cmd, ok = value.(*Command)
 		if ok {
 			list = append(list, cmd)
@@ -161,8 +161,8 @@ func (server *Server) getCommands() []ifs.Command {
 	return list
 }
 
-func (server *Server) getTopic(name string) *Topic {
-	var box, ok = server.topics.Load(name)
+func (my *Console) getTopic(name string) *Topic {
+	var box, ok = my.topics.Load(name)
 	if ok {
 		var client, _ = box.(*Topic)
 		return client
@@ -171,9 +171,9 @@ func (server *Server) getTopic(name string) *Topic {
 	return nil
 }
 
-func (server *Server) getTopics() []ifs.Command {
+func (my *Console) getTopics() []ifs.Command {
 	var list []ifs.Command
-	server.topics.Range(func(key, value interface{}) bool {
+	my.topics.Range(func(key, value interface{}) bool {
 		var topic, ok = value.(*Topic)
 		if ok {
 			list = append(list, topic)
@@ -185,24 +185,24 @@ func (server *Server) getTopics() []ifs.Command {
 	return list
 }
 
-func (server *Server) GPID() string {
-	return server.gpid
+func (my *Console) GPID() string {
+	return my.gpid
 }
 
-func (server *Server) BaseUrl() string {
-	return server.baseUrl
+func (my *Console) BaseUrl() string {
+	return my.baseUrl
 }
 
-func (server *Server) App() *road.App {
-	return server.app
+func (my *Console) App() *road.App {
+	return my.app
 }
 
-func (server *Server) enablePProf(mux IServeMux) {
+func (my *Console) enablePProf(mux IServeMux) {
 	var verifyAuth = func(processor func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			const validTime = 10 * time.Minute
 
-			var lastAuthTime = server.lastAuthTime.Load().(time.Time)
+			var lastAuthTime = my.lastAuthTime.Load().(time.Time)
 			var pastTime = time.Now().Sub(lastAuthTime)
 			if pastTime > validTime {
 				// 下面返回的数据，其实识别不了，会报：unrecognized profile format
@@ -253,7 +253,7 @@ func mutexHandler(w http.ResponseWriter, r *http.Request) {
 	pprof.Handler("mutex").ServeHTTP(w, r)
 }
 
-func buildBaseUrl(options serverOptions) string {
+func buildBaseUrl(options consoleOptions) string {
 	if options.BaseUrl != "" {
 		return options.BaseUrl
 	}
