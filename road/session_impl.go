@@ -2,16 +2,17 @@ package road
 
 import (
 	"context"
+	"net"
+	"reflect"
+	"sync"
+	"sync/atomic"
+
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
-	"net"
-	"reflect"
-	"sync"
-	"sync/atomic"
 )
 
 /********************************************************************
@@ -22,8 +23,8 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 var (
-	globalIdGenerator int64 = 0
-	echoIdGenerator   int32 = 0
+	globalIdGenerator atomic.Int64
+	echoIdGenerator   atomic.Int32
 )
 
 type sessionWrapper struct {
@@ -49,7 +50,7 @@ type sessionImpl struct {
 }
 
 func newSession(manager *Manager, link intern.Link) Session {
-	var id = atomic.AddInt64(&globalIdGenerator, 1)
+	var id = globalIdGenerator.Add(1)
 	var routeKinds = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
 		manager:      manager,

@@ -1,11 +1,11 @@
 package road
 
 import (
-	"github.com/lixianmin/gonsole/road/serde"
-	"github.com/lixianmin/got/convert"
 	"maps"
 	"math/rand"
-	"sync/atomic"
+
+	"github.com/lixianmin/gonsole/road/serde"
+	"github.com/lixianmin/got/convert"
 )
 
 /********************************************************************
@@ -172,7 +172,7 @@ func (my *sessionImpl) Echo(handler func()) error {
 		return ErrNilSerde
 	}
 
-	var requestId = atomic.AddInt32(&echoIdGenerator, 1)
+	var requestId = echoIdGenerator.Add(1)
 	my.handlerLock.Lock()
 	{
 		my.echoHandlers[requestId] = handler

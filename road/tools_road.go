@@ -2,11 +2,12 @@ package road
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
-	"reflect"
 )
 
 /********************************************************************
@@ -16,8 +17,8 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-const keyNonce = "road.nonce"
-const keySession = "road.session"
+var keyNonce = struct{}{}
+var keySession = struct{}{}
 
 func GetSessionFromCtx(ctx context.Context) Session {
 	var fetus = ctx.Value(keySession)

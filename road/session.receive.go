@@ -2,12 +2,13 @@ package road
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/logo"
-	"reflect"
 )
 
 /********************************************************************
@@ -194,6 +195,7 @@ func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) 
 		return nil
 	}
 
+	// 这个方法有可能从非session线程中回调回来, 因此要求my.serder必须是thread-safe的
 	var payload []byte
 	if err == nil {
 		payload, err = serializeOrRaw(my.serde, response)
