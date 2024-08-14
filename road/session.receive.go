@@ -169,6 +169,8 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	//	}
 	//}
 
+	// 因为使用了input这种上值, 因此这里很难直接缓存respondValue
+	// 虽然MakeFunc的成本很高, 但这里主要会用于处理耗时比较长的调用LLM之类的请求, 因此也没有很急切优化的必要
 	var respondValue = reflect.MakeFunc(handler.RespondMethodType, func(args []reflect.Value) []reflect.Value {
 		var args0, args1 = args[0], args[1]
 		var response = args0.Interface()
