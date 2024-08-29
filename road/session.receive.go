@@ -169,18 +169,14 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	//	}
 	//}
 
-	// 因为使用了input这种上值, 因此这里很难直接缓存respondValue
+	// 因为使用了input这种upvalue, 因此很难直接缓存respondValue
 	// 虽然MakeFunc的成本很高, 但这里主要会用于处理耗时比较长的调用LLM之类的请求, 因此也没有很急切优化的必要
 	var respondValue = reflect.MakeFunc(handler.RespondMethodType, func(args []reflect.Value) []reflect.Value {
-		var args0, args1 = args[0], args[1]
-		var response = args0.Interface()
-		var err4, _ = args1.Interface().(error)
-		//if !args1.IsNil() {
-		//	err4 = args1.Interface().(error)
-		//}
+		var response = args[0].Interface()
+		var err4, _ = args[1].Interface().(error)
 
 		if err5 := my.respondWith(input, response, err4); err5 != nil {
-			logo.Info("close session(%d) by respondWith(), err4=%q", my.id, err5)
+			logo.Info("close session(%d) by respondWith(), err5=%q", my.id, err5)
 			_ = my.Close()
 		}
 		return nil
