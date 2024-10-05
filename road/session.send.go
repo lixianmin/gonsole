@@ -125,7 +125,13 @@ func (my *sessionImpl) Kick(reason string) error {
 	}
 
 	var pack = serde.Packet{Kind: serde.Kick, Data: convert.Bytes(reason)}
-	var err2 = my.sendPacket(pack)
+	var err1 = my.sendPacket(pack)
+	if err1 != nil {
+		return err1
+	}
+
+	// 发送kick后，关闭链接
+	var err2 = my.Close()
 	return err2
 }
 
