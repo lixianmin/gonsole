@@ -17,8 +17,11 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var keyNonce = struct{}{}
-var keySession = struct{}{}
+// keyType is a type for context keys
+type keyType struct{}
+
+var keyNonce = keyType{}
+var keySession = keyType{}
 
 func GetSessionFromCtx(ctx context.Context) Session {
 	var fetus = ctx.Value(keySession)
