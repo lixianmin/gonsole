@@ -2,12 +2,13 @@ package road
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
-	"sync"
-	"time"
 )
 
 /********************************************************************
@@ -63,10 +64,17 @@ func NewApp(accept Acceptor, opts ...AppOption) *App {
 
 func (my *App) goLoop(later loom.Later) {
 	var closeChan = my.wc.C()
+	// 心跳包只有一个类型, 没有具体的数据字段, 因此与serde无关
+	var heartbeatBuffer = my.manager.heartbeatBuffer
+
 	for {
 		select {
 		case conn := <-my.accept.GetLinkChan():
-			my.onNewSession(conn)
+			// 外网环境是非常恶劣的, 有大量扫描器
+			// 先写个心跳包检测一下链接的可用性, 如果失败了就无需建立session了
+			if _, err1 := conn.Write(heartbeatBuffer); err1 == nil {
+				my.onNewSession(conn)
+			}
 		case <-closeChan:
 			return
 		}
