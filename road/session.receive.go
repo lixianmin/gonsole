@@ -23,7 +23,7 @@ var typeOfBytes = reflect.TypeOf(([]byte)(nil))
 func (my *sessionImpl) startGoLoop() {
 	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
 		if err != nil {
-			logo.Debug("close session(%d) by err, addr=%s, err=%q", my.id, my.link.RemoteAddr(), err)
+			logo.Info("close session(%d) by err, addr=%s, err=%q", my.id, my.link.RemoteAddr(), err)
 			_ = my.Close()
 			return
 		}

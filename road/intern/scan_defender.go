@@ -22,13 +22,6 @@ type ScanDefender struct {
 	lastCleanupTs    int64
 }
 
-type connectItem struct {
-	lastConnectTs int64
-	isScanner     int32
-	connectingNum int32 // 连接计数器
-	flashCloseNum int32 // 闪断计数器
-}
-
 // NewScanDefender 创建一个新的 ScanDefender 实例
 func NewScanDefender() *ScanDefender {
 	var sd = &ScanDefender{
@@ -58,15 +51,14 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 
 	// 10分钟内没有新连接的，重置计数器
 	if now-lastConnectTs > 10*60*1000 {
-		atomic.StoreInt32(&item.connectingNum, 0)
-		atomic.StoreInt32(&item.flashCloseNum, 0)
+		item.ResetCounter()
 	}
 
-	// 当前连接数超过5，判定为扫描器
-	atomic.AddInt32(&item.connectingNum, 1)
-	if atomic.LoadInt32(&item.connectingNum) >= 5 {
+	// 当无效连接数超过10，判定为扫描器
+	atomic.AddInt32(&item.connectingCounter, 1)
+	if atomic.LoadInt32(&item.connectingCounter) >= 10 {
 		atomic.StoreInt32(&item.isScanner, 1)
-		logo.Info("[IsScanner()] find scanner by connectingNum, ip=%s", ip)
+		logo.Info("[IsScanner()] find scanner by connectingCounter, ip=%s", ip)
 		return true
 	}
 
@@ -75,19 +67,27 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 	return false
 }
 
-func (my *ScanDefender) OnConnectionClosed(ip string) {
+func (my *ScanDefender) OnSessionHandShaken(ip string) {
 	var item = my.getItem(ip)
 	if item != nil {
-		atomic.AddInt32(&item.connectingNum, -1)
+		// 当一家公司的出口ip都是同一个时, 重置计数器以防止误伤
+		item.ResetCounter()
+	}
+}
+
+func (my *ScanDefender) OnSessionClosed(ip string) {
+	var item = my.getItem(ip)
+	if item != nil {
+		atomic.AddInt32(&item.connectingCounter, -1)
 
 		var now = time.Now().UnixMilli()
 		var lastConnectTs = atomic.LoadInt64(&item.lastConnectTs)
 
 		if now-lastConnectTs < 1*1000 {
-			var flashCloseNum = atomic.AddInt32(&item.flashCloseNum, 1)
+			var flashCloseNum = atomic.AddInt32(&item.flashCloseCounter, 1)
 			if flashCloseNum >= 20 {
 				atomic.StoreInt32(&item.isScanner, 1)
-				logo.Info("[OnConnectionClosed()] find scanner by flashCloseNum, ip=%s", ip)
+				logo.Info("[OnSessionClosed()] find scanner by flashCloseCounter, ip=%s", ip)
 			}
 		}
 	}

@@ -104,7 +104,7 @@ func (my *App) onNewSession(conn intern.Link, scanDefender *intern.ScanDefender,
 
 	session.OnClosed(func() {
 		my.sessions.Delete(id)
-		scanDefender.OnConnectionClosed(ip)
+		scanDefender.OnSessionClosed(ip)
 	})
 
 	// 这个在session的go loop中回调, 因此onHandShakenHandlers放在
@@ -115,6 +115,8 @@ func (my *App) onNewSession(conn intern.Link, scanDefender *intern.ScanDefender,
 			var handler = handlers[i]
 			handler(session)
 		}
+
+		scanDefender.OnSessionHandShaken(ip)
 	})
 }
 
