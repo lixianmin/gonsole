@@ -2,6 +2,7 @@ package intern
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/lixianmin/logo"
@@ -23,10 +24,9 @@ type ScanDefender struct {
 
 type connectItem struct {
 	lastConnectTs int64
-	isScanner     bool
-	flashCloseNum int16 // 闪断计数器
-
-	// connectTimestamps []int64
+	isScanner     int32
+	connectingNum int32 // 连接计数器
+	flashCloseNum int32 // 闪断计数器
 }
 
 // NewScanDefender 创建一个新的 ScanDefender 实例
@@ -45,54 +45,49 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 		return false
 	}
 
-	var now = time.Now().UnixMilli()
 	var item = my.fetchItem(ip)
+	var isScanner = atomic.LoadInt32(&item.isScanner) > 0
 
-	// 10分钟内没有连接的IP，重置闪断计数器
-	// 这一条主要是针对那些偶尔连接一次的IP，防止误判. 但对于已经判定为扫描器的IP，仍然会保留isScanner=true
-	if now-item.lastConnectTs > 10*60*1000 {
-		item.flashCloseNum = 0
-	}
-
-	item.lastConnectTs = now
-	var isScanner = item.isScanner
-
+	// 无论是否是scanner，都要更新连接时间
+	var lastConnectTs = atomic.LoadInt64(&item.lastConnectTs)
+	var now = time.Now().UnixMilli()
+	atomic.StoreInt64(&item.lastConnectTs, now)
 	if isScanner {
 		return true
 	}
 
-	// item.connectTimestamps = append(item.connectTimestamps, now)
+	// 10分钟内没有新连接的，重置计数器
+	if now-lastConnectTs > 10*60*1000 {
+		atomic.StoreInt32(&item.connectingNum, 0)
+		atomic.StoreInt32(&item.flashCloseNum, 0)
+	}
 
-	// // 只保留最近10分钟的连接记录
-	// for len(item.connectTimestamps) > 0 && now-item.connectTimestamps[0] > 600000 {
-	// 	item.connectTimestamps = item.connectTimestamps[1:]
-	// }
-
-	// // 检查是否是扫描器: 10分钟, 20次连接, 判定为扫描器
-	// var recentConnections = len(item.connectTimestamps)
-	// isScanner = recentConnections >= 20
-	// if isScanner {
-	// 	item.isScanner = true
-	// 	item.connectTimestamps = nil
-	// 	logo.Info("[IsScanner()] find scanner, ip=%s, recentConnections=%d", ip, recentConnections)
-	// }
+	// 当前连接数超过5，判定为扫描器
+	atomic.AddInt32(&item.connectingNum, 1)
+	if atomic.LoadInt32(&item.connectingNum) >= 5 {
+		atomic.StoreInt32(&item.isScanner, 1)
+		logo.Info("[IsScanner()] find scanner by connectingNum, ip=%s", ip)
+		return true
+	}
 
 	// 检查是否需要清理过期的连接记录
 	my.checkCleanup(now)
-	return isScanner
+	return false
 }
 
 func (my *ScanDefender) OnConnectionClosed(ip string) {
 	var item = my.getItem(ip)
 	if item != nil {
-		var now = time.Now().UnixMilli()
-		// 1秒内关闭的连接，认为是闪断
-		if now-item.lastConnectTs < 1000 {
-			item.flashCloseNum++
+		atomic.AddInt32(&item.connectingNum, -1)
 
-			if item.flashCloseNum >= 20 {
-				item.isScanner = true
-				logo.Info("[OnConnectionClosed()] find scanner, ip=%s", ip)
+		var now = time.Now().UnixMilli()
+		var lastConnectTs = atomic.LoadInt64(&item.lastConnectTs)
+
+		if now-lastConnectTs < 1*1000 {
+			var flashCloseNum = atomic.AddInt32(&item.flashCloseNum, 1)
+			if flashCloseNum >= 20 {
+				atomic.StoreInt32(&item.isScanner, 1)
+				logo.Info("[OnConnectionClosed()] find scanner by flashCloseNum, ip=%s", ip)
 			}
 		}
 	}
@@ -125,16 +120,16 @@ func (my *ScanDefender) getItem(ip string) *connectItem {
 // checkCleanup 清理过期的连接记录
 func (my *ScanDefender) checkCleanup(now int64) {
 	// 每1分钟清理一次过期的连接记录
-	if now-my.lastCleanupTs > 60000 {
+	if now-my.lastCleanupTs > 60*1000 {
+		my.lastCleanupTs = now
+
 		my.connectItemsLock.Lock()
 		defer my.connectItemsLock.Unlock()
 
-		my.lastCleanupTs = now
 		var before = len(my.connectItems)
-
 		for ip, item := range my.connectItems {
-			// 1小时内未连接的IP将被删除
-			if now-item.lastConnectTs > 3600000 {
+			var lastConnectTs = atomic.LoadInt64(&item.lastConnectTs)
+			if now-lastConnectTs > 3600*1000 {
 				delete(my.connectItems, ip)
 			}
 		}
