@@ -2,6 +2,7 @@ package road
 
 import (
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
@@ -66,15 +67,25 @@ func (my *App) goLoop(later loom.Later) {
 	var closeChan = my.wc.C()
 	// 心跳包只有一个类型, 没有具体的数据字段, 因此与serde无关
 	var heartbeatBuffer = my.manager.heartbeatBuffer
+	var scanDefender = intern.NewScanDefender()
 
 	for {
 		select {
 		case conn := <-my.accept.GetLinkChan():
 			// 外网环境是非常恶劣的, 有大量扫描器
 			// 先写个心跳包检测一下链接的可用性, 如果失败了就无需建立session了
-			if _, err1 := conn.Write(heartbeatBuffer); err1 == nil {
-				my.onNewSession(conn)
+			if _, err1 := conn.Write(heartbeatBuffer); err1 != nil {
+				continue
 			}
+
+			// 检测是不是扫描器
+			var fullAddr = conn.RemoteAddr().String()
+			var ip = getIpWithoutPort(fullAddr)
+			if scanDefender.IsScanner(ip) {
+				continue
+			}
+
+			my.onNewSession(conn)
 		case <-closeChan:
 			return
 		}
@@ -169,4 +180,13 @@ func (my *App) Documentation(getPtrNames bool) (map[string]any, error) {
 // Listen 初始化完成后才启动Listen, 才可以接受session连接进来
 func (my *App) Listen() {
 	my.accept.Listen()
+}
+
+func getIpWithoutPort(addr string) string {
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		return host
+	}
+
+	// 如果没有端口号，直接返回
+	return addr
 }

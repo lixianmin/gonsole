@@ -1,11 +1,12 @@
 package epoll
 
 import (
+	"net/http"
+	"sync"
+
 	"github.com/gobwas/ws"
 	"github.com/lixianmin/gonsole/road/intern"
 	"github.com/lixianmin/logo"
-	"net/http"
-	"sync"
 )
 
 /********************************************************************
