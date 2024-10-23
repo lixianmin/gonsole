@@ -66,7 +66,7 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 	if isScanner {
 		item.isScanner = true
 		item.connectTimestamps = nil
-		logo.Info("[IsScanner()] find scanner, ip=%s, recentConnections=%d, len(connectItems)=%d", ip, recentConnections, len(my.connectItems))
+		logo.Info("[IsScanner()] find scanner, ip=%s, recentConnections=%d", ip, recentConnections)
 	}
 
 	// 检查是否需要清理过期的连接记录
