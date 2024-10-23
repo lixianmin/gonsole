@@ -85,14 +85,14 @@ func (my *App) goLoop(later loom.Later) {
 				continue
 			}
 
-			my.onNewSession(conn)
+			my.onNewSession(conn, scanDefender, ip)
 		case <-closeChan:
 			return
 		}
 	}
 }
 
-func (my *App) onNewSession(conn intern.Link) {
+func (my *App) onNewSession(conn intern.Link, scanDefender *intern.ScanDefender, ip string) {
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
@@ -104,6 +104,7 @@ func (my *App) onNewSession(conn intern.Link) {
 
 	session.OnClosed(func() {
 		my.sessions.Delete(id)
+		scanDefender.OnConnectionClosed(ip)
 	})
 
 	// 这个在session的go loop中回调, 因此onHandShakenHandlers放在
