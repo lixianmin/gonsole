@@ -4,3 +4,4 @@ logs/
 vendor/
 .DS_Store
 yarn.lock
+.vscode
