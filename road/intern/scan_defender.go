@@ -41,12 +41,13 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 		return false
 	}
 
+	var now = time.Now().UnixMilli()
 	var item, exists = my.connectItems[ip]
 	if exists && item.isScanner {
+		item.lastConnectTs = now
 		return true
 	}
 
-	var now = time.Now().Unix()
 	if !exists {
 		item = &connectItem{}
 		my.connectItems[ip] = item
@@ -56,7 +57,7 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 	item.connectTimestamps = append(item.connectTimestamps, now)
 
 	// 只保留最近10分钟的连接记录
-	for len(item.connectTimestamps) > 0 && now-item.connectTimestamps[0] > 600 {
+	for len(item.connectTimestamps) > 0 && now-item.connectTimestamps[0] > 600000 {
 		item.connectTimestamps = item.connectTimestamps[1:]
 	}
 
@@ -77,13 +78,13 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 // checkCleanup 清理过期的连接记录
 func (my *ScanDefender) checkCleanup(now int64) {
 	// 每1分钟清理一次过期的连接记录
-	if now-my.lastCleanupTs > 60 {
+	if now-my.lastCleanupTs > 60000 {
 		my.lastCleanupTs = now
 		var before = len(my.connectItems)
 
 		for ip, item := range my.connectItems {
 			// 1小时内未连接的IP将被删除
-			if now-item.lastConnectTs > 3600 {
+			if now-item.lastConnectTs > 3600000 {
 				delete(my.connectItems, ip)
 			}
 		}
