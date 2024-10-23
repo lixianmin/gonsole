@@ -66,7 +66,7 @@ func (my *ScanDefender) IsScanner(ip string) bool {
 	if isScanner {
 		item.isScanner = true
 		item.connectTimestamps = nil
-		logo.Info("[IsScanner()] find scanner, ip=%s, recentConnections=%d", ip, recentConnections)
+		logo.Info("[IsScanner()] find scanner, ip=%s, recentConnections=%d, len(connectItems)=%d", ip, recentConnections, len(my.connectItems))
 	}
 
 	// 检查是否需要清理过期的连接记录
@@ -79,11 +79,16 @@ func (my *ScanDefender) checkCleanup(now int64) {
 	// 每1分钟清理一次过期的连接记录
 	if now-my.lastCleanupTs > 60 {
 		my.lastCleanupTs = now
+		var before = len(my.connectItems)
+
 		for ip, item := range my.connectItems {
 			// 1小时内未连接的IP将被删除
 			if now-item.lastConnectTs > 3600 {
 				delete(my.connectItems, ip)
 			}
 		}
+
+		var after = len(my.connectItems)
+		logo.Info("[checkCleanup()] before=%d, after=%d", before, after)
 	}
 }
