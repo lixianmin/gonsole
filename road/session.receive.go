@@ -199,22 +199,22 @@ func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) 
 		payload, err = serializeOrRaw(my.serde, response)
 	}
 
-	var output = serde.Packet{
+	var pack = serde.Packet{
 		Kind:      input.Kind,
 		RequestId: input.RequestId,
 	}
 
 	if err == nil {
-		output.Data = payload
+		pack.Data = payload
 	} else if err2, ok := err.(*Error); ok {
-		output.Code = convert.Bytes(err2.Code)
-		output.Data = convert.Bytes(err2.Message)
+		pack.Code = convert.Bytes(err2.Code)
+		pack.Data = convert.Bytes(err2.Message)
 	} else {
-		output.Code = convert.Bytes("PlainError")
-		output.Data = convert.Bytes(err.Error())
+		pack.Code = convert.Bytes("PlainError")
+		pack.Data = convert.Bytes(err.Error())
 	}
 
-	return my.sendPacket(output)
+	return my.sendPacket(pack)
 }
 
 func unmarshalRequestArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {

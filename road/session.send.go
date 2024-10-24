@@ -29,6 +29,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func (my *sessionImpl) Send(route string, v any) error {
+	if route == "" {
+		return ErrInvalidRoute
+	}
+
 	if my.wc.IsClosed() {
 		return nil
 	}
@@ -37,29 +41,40 @@ func (my *sessionImpl) Send(route string, v any) error {
 		return ErrNilSerde
 	}
 
-	var data, err1 = my.serde.Serialize(v)
-	if err1 != nil {
-		return err1
-	}
-
-	// 可能是并发访问my.routeKinds
+	// 可能是并发访问my.routeKinds, 所以对my.routeKinds的修改都是通过clone实现的
 	var kind, ok = my.routeKinds[route]
-	var pack = serde.Packet{Kind: kind, Data: data}
+	var pack = serde.Packet{Kind: kind}
 	if !ok {
 		// 因为notify相关的逻辑经常使用SendByRoute(), 因此长的route还是挺费的. 但是:
-		// 1. kind不允许在manger中动态计算, 因为manager只有一份, 一个session计算了新kind, 其它session并不知道, 就不同步了
+		// 1. kind1不允许在manger中动态计算, 因为manager只有一份, 一个session计算了新kind1, 其它session并不知道, 就不同步了
 		// 2. 如果像componentHandler一样, 启动时写死的话, 使用方式会比较别扭
-		// 3. 考虑每个session单独计算并各自保存route kind, 看起来似乎可行
-		var kind2, err2 = my.sendRouteKind(route)
-		if err2 != nil {
-			return err2
+		// 3. 考虑每个session单独计算并各自保存route kind1, 看起来似乎可行
+		var kind1, err1 = my.sendRouteKind(route)
+		if err1 != nil {
+			return err1
 		}
 
-		pack.Kind = kind2
+		pack.Kind = kind1
 	}
 
-	var err3 = my.sendPacket(pack)
-	return err3
+	var err2, isError2 = v.(error)
+	if !isError2 {
+		var payload, err3 = serializeOrRaw(my.serde, v)
+		if err3 != nil {
+			return err3
+		}
+
+		pack.Data = payload
+	} else if err4, ok := v.(*Error); ok {
+		pack.Code = convert.Bytes(err4.Code)
+		pack.Data = convert.Bytes(err4.Message)
+	} else {
+		pack.Code = convert.Bytes("PlainError")
+		pack.Data = convert.Bytes(err2.Error())
+	}
+
+	var err5 = my.sendPacket(pack)
+	return err5
 }
 
 func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
