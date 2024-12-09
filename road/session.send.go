@@ -161,6 +161,7 @@ func (my *sessionImpl) Handshake() error {
 		Heartbeat: float32(my.manager.heartbeatInterval.Seconds()),
 		Routes:    my.manager.routes,
 		Gid:       my.manager.gid,
+		SessionId: my.id, // server的很多日志都是基于sid的, client打印一下这个值, 用于跟server配对
 	}
 
 	// all supported serde names
@@ -181,6 +182,7 @@ func (my *sessionImpl) Handshake() error {
 	if err2 != nil {
 		_ = my.Close()
 	}
+
 	return err2
 }
 
