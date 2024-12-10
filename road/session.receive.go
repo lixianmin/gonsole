@@ -144,6 +144,11 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	// 遍历拦截器
 	for _, interceptor := range my.manager.interceptors {
 		if err1 := interceptor(my, handler.Route); err1 != nil {
+			// 如果被interceptor拦截了, 则直接Kick()
+			if roadErr := err1.(*Error); roadErr != nil {
+				my.Kick(roadErr.Code)
+			}
+
 			return err1
 		}
 	}
