@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/component"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
@@ -162,7 +163,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	// 3个参数+返回值的情况
 	if handler.RespondMethodType == nil {
 		var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg)}
-		var response, err3 = callMethod(handler.Method, args)
+		var response, err3 = my.callMethod(handler.Method, args)
 		return my.respondWith(input, response, err3)
 	}
 
@@ -188,8 +189,40 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	})
 
 	var args = []reflect.Value{handler.Receiver, my.ctxValue, reflect.ValueOf(requestArg), respondValue}
-	_, _ = callMethod(handler.Method, args)
+	_, _ = my.callMethod(handler.Method, args)
 	return nil
+}
+
+// callMethod calls a method that returns an interface and an error and recovers in case of panic
+func (my *sessionImpl) callMethod(method reflect.Method, args []reflect.Value) (response any, err error) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			var data = make(map[any]any)
+			my.attachment.Range(func(key, value any) bool {
+				data[key] = value
+				return true
+			})
+
+			var attachment = fmt.Sprintf("%v", data)
+			logo.JsonW("method", method.Name, "recover", rec, "sid", my.id, "attachement", attachment)
+		}
+	}()
+
+	var results = method.Func.Call(args)
+
+	// `results` can have 0 length in case of notify handlers
+	// otherwise it will have 2 outputs: an interface and an error
+	if len(results) == 2 {
+		if v := results[1].Interface(); v != nil {
+			err = v.(error)
+		} else if !results[0].IsNil() {
+			response = results[0].Interface()
+		} else {
+			err = ifs.ErrReplyShouldBeNotNull
+		}
+	}
+
+	return
 }
 
 func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) error {

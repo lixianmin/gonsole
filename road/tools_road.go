@@ -2,9 +2,7 @@ package road
 
 import (
 	"context"
-	"reflect"
 
-	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/logo"
@@ -70,29 +68,4 @@ func serializeOrRaw(serde serde.Serde, v any) ([]byte, error) {
 	}
 
 	return data, nil
-}
-
-// callMethod calls a method that returns an interface and an error and recovers in case of panic
-func callMethod(method reflect.Method, args []reflect.Value) (response any, err error) {
-	defer func() {
-		if rec := recover(); rec != nil {
-			logo.JsonW("method", method.Name, "recover", rec)
-		}
-	}()
-
-	var results = method.Func.Call(args)
-
-	// `results` can have 0 length in case of notify handlers
-	// otherwise it will have 2 outputs: an interface and an error
-	if len(results) == 2 {
-		if v := results[1].Interface(); v != nil {
-			err = v.(error)
-		} else if !results[0].IsNil() {
-			response = results[0].Interface()
-		} else {
-			err = ifs.ErrReplyShouldBeNotNull
-		}
-	}
-
-	return
 }

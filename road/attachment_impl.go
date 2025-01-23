@@ -109,7 +109,7 @@ func (my *AttachmentImpl) String(key any) string {
 	return ""
 }
 
-func (my *AttachmentImpl) Get1(key any) interface{} {
+func (my *AttachmentImpl) Get1(key any) any {
 	if v, ok := my.Get2(key); ok {
 		return v
 	}
@@ -121,8 +121,12 @@ func (my *AttachmentImpl) Get2(key any) (any, bool) {
 	return my.table.Load(key)
 }
 
+func (my *AttachmentImpl) Range(f func(key, value any) bool) {
+	my.table.Range(f)
+}
+
 func (my *AttachmentImpl) dispose() {
-	my.table.Range(func(key, value interface{}) bool {
+	my.table.Range(func(key, value any) bool {
 		my.table.Delete(key)
 		return true
 	})
