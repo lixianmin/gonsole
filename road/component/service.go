@@ -37,11 +37,13 @@ func NewService(comp Component, opts []Option) *Service {
 		opt(&s.Options)
 	}
 
-	if name := s.Options.name; name != "" {
-		s.Name = name
-	} else {
-		s.Name = reflect.Indirect(s.Receiver).Type().Name()
-	}
+	// 这样修改后, 最外层可以不传name, 这样最常用的player.xxx可以简化成.xxx
+	s.Name = s.Options.name
+	// if name := s.Options.name; name != "" {
+	// 	s.Name = name
+	// } else {
+	// 	s.Name = reflect.Indirect(s.Receiver).Type().Name()
+	// }
 
 	return s
 }
