@@ -172,9 +172,9 @@ export function newSession() {
             try {
                 // 使用deflate-raw解压routes (handshake.routes是base64编码的)
                 const compressedRoutes = handshake.routes
-                console.log('compressedRoutes (base64):', compressedRoutes)
+                // console.log('compressedRoutes (base64):', compressedRoutes)
                 const routesString = await inflateRaw(compressedRoutes)
-                console.log('decompressed routesString:', routesString)
+                // console.log('decompressed routesString:', routesString)
 
                 // 用空格分割routes数组
                 const routes = routesString.split(' ')
@@ -187,7 +187,7 @@ export function newSession() {
                     _routeKinds.set(route, kind)
                 }
 
-                console.log('Successfully decompressed and built route kinds:', routes)
+                // console.log('Successfully decompressed and built route kinds:', routes)
             } catch (error) {
                 console.error('Failed to decompress routes, falling back to original format:', error)
             }

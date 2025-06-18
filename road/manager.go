@@ -3,6 +3,7 @@ package road
 import (
 	"bytes"
 	"compress/flate"
+	"encoding/base64"
 	"fmt"
 	"maps"
 	"slices"
@@ -33,7 +34,7 @@ type Manager struct {
 	routeHandlers     map[string]*component.Handler
 	routeKinds        map[string]int32
 	kindHandlers      map[int32]*component.Handler
-	routes            []byte // 改为[]byte类型，直接存储压缩后的二进制数据
+	routes            string
 	serdeBuilders     map[string]serdeBuilder
 	interceptors      []InterceptorFunc
 	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
@@ -82,7 +83,7 @@ func (my *Manager) RebuildHandlerKinds() {
 	sort.Strings(routes)
 	var joined = convert.Bytes(strings.Join(routes, " "))
 	var compressed, _ = compressWithDeflate(joined, flate.BestCompression)
-	my.routes = compressed
+	my.routes = base64.StdEncoding.EncodeToString(compressed)
 
 	my.routeKinds = make(map[string]int32, size)
 	my.kindHandlers = make(map[int32]*component.Handler, size)
