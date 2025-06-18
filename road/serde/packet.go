@@ -19,10 +19,16 @@ type Packet struct {
 type JsonHandshake struct {
 	Nonce     int32    `json:"nonce"`
 	Heartbeat float32  `json:"heartbeat"` // 心跳间隔. 单位: 秒
-	Routes    []string `json:"routes"`    // 有序的routes, 其kinds值从Userdata(1000)有序增加; 只所以这么做并不是为了省流量, 而是unity3d的JsonUtility不支持反序列化Dictionary
 	Serdes    []string `json:"serdes"`    // 服务器支持的序列化方法
-	Gid       string   `json:"gid"`       // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 	SessionId int64    `json:"sid"`       // session id
+
+	// 有序的routes, 其kinds值从Userdata(1000)有序增加; 只所以这么做并不是为了省流量, 而是unity3d的JsonUtility不支持反序列化Dictionary
+	// 这原来是一个 []string, 为了方便压缩, join成一个单一的string, 由client自己按空格分割
+	Routes string `json:"routes"`
+
+	// 暂时用不到, 先注释掉
+	// ~~client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程.~~
+	// Gid       string   `json:"gid"`
 }
 
 type JsonHandshakeRe struct {

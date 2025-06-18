@@ -159,9 +159,10 @@ func (my *sessionImpl) Handshake() error {
 	var info = serde.JsonHandshake{
 		Nonce:     nonce,
 		Heartbeat: float32(my.manager.heartbeatInterval.Seconds()),
-		Routes:    my.manager.routes,
-		Gid:       my.manager.gid,
 		SessionId: my.id, // server的很多日志都是基于sid的, client打印一下这个值, 用于跟server配对
+
+		Routes: my.manager.routes,
+		// Gid:       my.manager.gid,
 	}
 
 	// all supported serde names

@@ -6,12 +6,42 @@
 
  Copyright (C) - All Rights Reserved
  *********************************************************************/
-import {newOctetsStream, SeekOrigin} from "@src/code/iox/octets_stream";
-import {newOctetsReader} from "@src/code/iox/octets_reader";
-import {decode, encode} from "@src/code/road/packet_tools";
-import {PacketKind} from "@src/code/road/consts";
-import {newJsonSerde} from "@src/code/road/json_serde";
-import {newOctetsWriter} from "@src/code/iox/octets_writer";
+import { newOctetsStream, SeekOrigin } from "@src/code/iox/octets_stream";
+import { newOctetsReader } from "@src/code/iox/octets_reader";
+import { decode, encode } from "@src/code/road/packet_tools";
+import { PacketKind } from "@src/code/road/consts";
+import { newJsonSerde } from "@src/code/road/json_serde";
+import { newOctetsWriter } from "@src/code/iox/octets_writer";
+
+// 异步deflate-raw解压函数
+async function inflateRaw(base64CompressedData) {
+    try {
+        // 先对base64编码的数据进行解码
+        const binaryString = atob(base64CompressedData);
+        const compressedData = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            compressedData[i] = binaryString.charCodeAt(i);
+        }
+
+        // 将 Uint8Array 包装成可读流
+        const compressedStream = new Blob([compressedData]).stream();
+
+        // 创建解压流，注意格式是 'deflate-raw'
+        const decompressionStream = new DecompressionStream('deflate-raw');
+
+        // 将数据流通过管道传给解压流
+        const decompressedStream = compressedStream.pipeThrough(decompressionStream);
+
+        // 将解压后的流转换为文本
+        // Response.text() 是一个方便的工具，可以处理流并解码为 UTF-8 字符串
+        const decompressedText = await new Response(decompressedStream).text();
+
+        return decompressedText;
+    } catch (error) {
+        console.error('Failed to decompress deflate-raw data:', error);
+        throw error;
+    }
+}
 
 export function newSession() {
     const _serde = newJsonSerde()
@@ -100,7 +130,9 @@ export function newSession() {
         console.log(`pack={ kind=${pack.kind}, requestId=${pack.requestId}, code=${_serde.bytes2String(pack.code)} }`)
         switch (pack.kind) {
             case PacketKind.Handshake:
-                onReceivedHandshake(pack)
+                onReceivedHandshake(pack).catch(error => {
+                    console.error('Error handling handshake:', error)
+                })
                 break
             case PacketKind.Heartbeat:
                 // console.log(pack)
@@ -122,9 +154,10 @@ export function newSession() {
         }
     }
 
-    function onReceivedHandshake(pack) {
+    async function onReceivedHandshake(pack) {
         const handshake = _serde.deserialize(pack.data)
-        buildKindRoutes()
+        await buildKindRoutes()
+
         startHeartbeat()
         handshakeRe()
 
@@ -132,32 +165,46 @@ export function newSession() {
             _onConnected(handshake.nonce)
         }
 
-        function buildKindRoutes() {
+        async function buildKindRoutes() {
             _kindRoutes.clear()
             _routeKinds.clear()
 
-            const routes = handshake.routes
-            const size = routes.length
-            for (let i = 0; i < size; i++) {
-                const kind = PacketKind.UserBase + i
-                const route = routes[i]
-                _kindRoutes.set(kind, route)
-                _routeKinds.set(route, kind)
+            try {
+                // 使用deflate-raw解压routes (handshake.routes是base64编码的)
+                const compressedRoutes = handshake.routes
+                console.log('compressedRoutes (base64):', compressedRoutes)
+                const routesString = await inflateRaw(compressedRoutes)
+                console.log('decompressed routesString:', routesString)
+
+                // 用空格分割routes数组
+                const routes = routesString.split(' ')
+
+                const size = routes.length
+                for (let i = 0; i < size; i++) {
+                    const kind = PacketKind.UserBase + i
+                    const route = routes[i]
+                    _kindRoutes.set(kind, route)
+                    _routeKinds.set(route, kind)
+                }
+
+                console.log('Successfully decompressed and built route kinds:', routes)
+            } catch (error) {
+                console.error('Failed to decompress routes, falling back to original format:', error)
             }
         }
 
         function startHeartbeat() {
             const interval = handshake.heartbeat * 1000 // unit: ms
-            const pack = {kind: PacketKind.Heartbeat}
+            const pack = { kind: PacketKind.Heartbeat }
             _heartbeatIntervalId = setInterval(() => {
                 sendPacket(pack)
             }, interval)
         }
 
         function handshakeRe() {
-            const reply = {'serde': 'json'}
+            const reply = { 'serde': 'json' }
             const data = _serde.serialize(reply)
-            const pack = {kind: PacketKind.HandshakeRe, data: data}
+            const pack = { kind: PacketKind.HandshakeRe, data: data }
             sendPacket(pack)
         }
 
@@ -244,7 +291,7 @@ export function newSession() {
         const requestId = ++_requestIdGenerator
 
         const kind = _routeKinds.get(route)
-        const pack = {kind: kind, requestId: requestId, data: data}
+        const pack = { kind: kind, requestId: requestId, data: data }
         // console.log(`route=${route}, kind=${kind}`)
         // if (!kind) {
         //     const routeData = _serde.string2bytes(route)
