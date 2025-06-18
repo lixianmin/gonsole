@@ -1,18 +1,23 @@
 package client
 
 import (
+	"compress/flate"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"net"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
 	"github.com/lixianmin/got/iox"
 	"github.com/lixianmin/got/loom"
 	"github.com/lixianmin/logo"
-	"net"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 /********************************************************************
@@ -182,6 +187,27 @@ func (my *Client) onReceivedPacket(pack serde.Packet) error {
 	return nil
 }
 
+// inflateRaw 解压 deflate-raw 格式的 base64 编码数据
+func inflateRaw(base64CompressedData string) (string, error) {
+	// base64 解码
+	compressedData, err := base64.StdEncoding.DecodeString(base64CompressedData)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64: %w", err)
+	}
+
+	// 创建 deflate-raw 解压缩读取器
+	reader := flate.NewReader(strings.NewReader(string(compressedData)))
+	defer reader.Close()
+
+	// 读取解压后的数据
+	decompressedData, err := io.ReadAll(reader)
+	if err != nil {
+		return "", fmt.Errorf("failed to decompress deflate-raw: %w", err)
+	}
+
+	return string(decompressedData), nil
+}
+
 func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 	var handshake serde.JsonHandshake
 	var err = convert.FromJsonE(pack.Data, &handshake)
@@ -195,7 +221,21 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 	clear(my.routeKinds)
 	clear(my.kindRoutes)
 
-	var routes = handshake.Routes
+	// 解压并解析 routes
+	var routes []string
+	if handshake.Routes != "" {
+		// 先尝试新格式：base64 + deflate-raw 压缩
+		if decompressedRoutes, err := inflateRaw(handshake.Routes); err == nil {
+			// 用空格分割 routes
+			routes = strings.Split(decompressedRoutes, " ")
+		} else {
+			// 如果解压失败，可能是旧格式或其他问题
+			logo.Warn("failed to decompress routes, error: %v", err)
+			return fmt.Errorf("failed to process routes: %w", err)
+		}
+	}
+
+	// 构建 route-kind 映射
 	for i := 0; i < len(routes); i++ {
 		var kind = serde.UserBase + int32(i)
 		var route = routes[i]
