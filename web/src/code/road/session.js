@@ -127,7 +127,7 @@ export function newSession() {
     }
 
     function onReceivedPacket(pack) {
-        console.log(`pack={ kind=${pack.kind}, requestId=${pack.requestId}, code=${_serde.bytes2String(pack.code)} }`)
+        // console.log(`pack={ kind=${pack.kind}, requestId=${pack.requestId}, code=${_serde.bytes2String(pack.code)} }`)
         switch (pack.kind) {
             case PacketKind.Handshake:
                 onReceivedHandshake(pack).catch(error => {

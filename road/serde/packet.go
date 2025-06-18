@@ -24,7 +24,7 @@ type JsonHandshake struct {
 
 	// 有序的routes, 其kinds值从Userdata(1000)有序增加; 只所以这么做并不是为了省流量, 而是unity3d的JsonUtility不支持反序列化Dictionary
 	// 这原来是一个 []string, 为了方便压缩, join成一个单一的string, 由client自己按空格分割
-	Routes string `json:"routes"`
+	Routes []byte `json:"routes"`
 
 	// 暂时用不到, 先注释掉
 	// ~~client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程.~~
