@@ -1,12 +1,14 @@
 package epoll
 
 import (
-	"github.com/lixianmin/gonsole/road/intern"
-	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/logo"
 	"net"
 	"sync"
 	"sync/atomic"
+	"time"
+
+	"github.com/lixianmin/gonsole/road/intern"
+	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/logo"
 )
 
 /********************************************************************
@@ -55,9 +57,12 @@ func (my *TcpAcceptor) goLoop() {
 			continue
 		}
 
-		// tcp链接对no delay的默认值就是true, 因此不需要设置
-		//tcpConn, ok := conn.(*net.TCPConn)
-		//_ = tcpConn.SetNoDelay(true)
+		if tcpConn, ok := conn.(*net.TCPConn); ok {
+			// tcp链接对no delay的默认值就是true, 显示设置是为了让读代码的人更安心
+			_ = tcpConn.SetNoDelay(true)
+			_ = tcpConn.SetKeepAlive(true)
+			_ = tcpConn.SetKeepAlivePeriod(time.Minute)
+		}
 
 		my.linkChan <- intern.NewTcpLink(conn)
 	}
