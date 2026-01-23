@@ -187,25 +187,15 @@ func (my *sessionImpl) Handshake() error {
 	return err2
 }
 
-func (my *sessionImpl) Echo(handler func()) error {
+func (my *sessionImpl) Echo(handler func()) {
 	if my.wc.IsClosed() || handler == nil {
-		return nil
+		return
 	}
 
-	if my.serde == nil {
-		return ErrNilSerde
-	}
-
-	var requestId = echoIdGenerator.Add(1)
-	my.handlerLock.Lock()
-	{
-		my.echoHandlers[requestId] = handler
-	}
-	my.handlerLock.Unlock()
-
-	var pack = serde.Packet{Kind: serde.Echo, RequestId: requestId}
-	var err3 = my.sendPacket(pack)
-	return err3
+	// 发送到内部channel，由startGoLoop的select接收并处理
+	// 使用阻塞发送，确保如果session线程活跃时能立即处理
+	// channel有buffer=4，所以不会阻塞太久
+	my.echoChan <- handler
 }
 
 func (my *sessionImpl) sendPacket(pack serde.Packet) error {

@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/lixianmin/gonsole"
-	"github.com/lixianmin/gonsole/road"
-	"github.com/lixianmin/got/loom"
-	"github.com/lixianmin/got/timex"
-	"github.com/lixianmin/logo"
 	"log"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/gonsole/road"
+	"github.com/lixianmin/got/loom"
+	"github.com/lixianmin/got/timex"
+	"github.com/lixianmin/logo"
 )
 
 /********************************************************************
@@ -234,7 +235,7 @@ func registerCommands(server *gonsole.Console) {
 			var counter int32 = 0
 			for i := 0; i < 100; i++ {
 				go func() {
-					_ = session.Echo(func() {
+					session.Echo(func() {
 						atomic.AddInt32(&counter, 1)
 						var text = fmt.Sprintf("i=%d, counter=%d", i, counter)
 						_ = road.SendDefault(session, text)

@@ -29,12 +29,41 @@ func (my *sessionImpl) startGoLoop() {
 			return
 		}
 
+		// 在处理网络数据之前，先处理所有待处理的echo请求
+		my.processPendingEchos()
+
 		if err1 := my.onReceivedData(reader); err1 != nil {
 			logo.Info("close session(%d) by onReceivedData(), addr=%s, err=%q", my.id, my.link.RemoteAddr(), err1)
 			_ = my.Close()
 			return
 		}
 	})
+}
+
+// processPendingEchos 处理所有待处理的echo handler
+func (my *sessionImpl) processPendingEchos() {
+	// 非阻塞地处理所有待处理的echo请求
+	for {
+		select {
+		case handler := <-my.echoChan:
+			if handler != nil {
+				my.processEchoHandler(handler)
+			}
+		default:
+			// 没有更多待处理的请求
+			return
+		}
+	}
+}
+
+// processEchoHandler 处理echo handler
+func (my *sessionImpl) processEchoHandler(handler func()) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			logo.JsonW("recover", rec, "sid", my.id)
+		}
+	}()
+	handler()
 }
 
 func (my *sessionImpl) onReceivedData(reader *iox.OctetsReader) error {
@@ -63,40 +92,10 @@ func (my *sessionImpl) onReceivedPacket(pack serde.Packet) error {
 		if _, err2 := my.link.Write(my.manager.heartbeatBuffer); err2 != nil {
 			return err2
 		}
-	} else if pack.Kind == serde.Echo {
-		if err3 := my.onReceivedEcho(pack); err3 != nil {
-			return err3
-		}
 	} else if pack.Kind == serde.HandshakeRe {
 		if err4 := my.onReceivedHandshakeRe(pack); err4 != nil {
 			return err4
 		}
-	}
-
-	return nil
-}
-
-func (my *sessionImpl) onReceivedEcho(input serde.Packet) error {
-	var requestId = input.RequestId
-	var handler func() = nil
-
-	my.handlerLock.Lock()
-	{
-		handler = my.echoHandlers[requestId]
-		delete(my.echoHandlers, requestId)
-	}
-	my.handlerLock.Unlock()
-
-	if handler != nil {
-		defer func() {
-			if rec := recover(); rec != nil {
-				logo.JsonE("requestId", requestId, "recover", rec)
-			}
-		}()
-
-		handler()
-	} else {
-		logo.JsonW("title", "echo handler is nil", "requestId", requestId)
 	}
 
 	return nil
