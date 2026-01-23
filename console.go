@@ -2,6 +2,14 @@ package gonsole
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
+	"runtime"
+	"strconv"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/road/component"
@@ -10,13 +18,6 @@ import (
 	"github.com/lixianmin/got/osx"
 	"github.com/lixianmin/got/timex"
 	"github.com/lixianmin/logo"
-	"net/http"
-	"net/http/pprof"
-	"runtime"
-	"strconv"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 /********************************************************************
@@ -203,7 +204,7 @@ func (my *Console) enablePProf(mux IServeMux) {
 			const validTime = 10 * time.Minute
 
 			var lastAuthTime = my.lastAuthTime.Load().(time.Time)
-			var pastTime = time.Now().Sub(lastAuthTime)
+			var pastTime = time.Since(lastAuthTime)
 			if pastTime > validTime {
 				// 下面返回的数据，其实识别不了，会报：unrecognized profile format
 				_, _ = w.Write([]byte(fmt.Sprintf(`安全起见：使用auth指令登录后%s内可以查看pprof信息，请重新登录`, timex.FormatDuration(validTime))))

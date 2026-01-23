@@ -145,9 +145,6 @@ export function newSession() {
             case PacketKind.RouteKind:
                 onReceivedRouteKind(pack)
                 break
-            case PacketKind.Echo:
-                onReceivedEcho(pack)
-                break
             default:
                 onReceivedUserdata(pack)
                 break
@@ -224,11 +221,6 @@ export function newSession() {
         _routeKinds.set(bean.route, bean.kind)
 
         console.log(`kind=${bean.kind}, route=${bean.route}`)
-    }
-
-    function onReceivedEcho(pack) {
-        sendPacket(pack);
-        // console.log("pack", pack)
     }
 
     function onReceivedUserdata(pack) {
