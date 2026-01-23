@@ -3,6 +3,7 @@ package road
 import (
 	"fmt"
 	"reflect"
+	"sync/atomic"
 
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/component"
@@ -23,6 +24,10 @@ var typeOfBytes = reflect.TypeOf(([]byte)(nil))
 
 func (my *sessionImpl) startGoLoop() {
 	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
+		// 标记进入receive线程
+		atomic.StoreInt32(&my.inReceiveLoop, 1)
+		defer atomic.StoreInt32(&my.inReceiveLoop, 0) // 退出时清除标记
+
 		if err != nil {
 			logo.Info("close session(%d) by err, addr=%s, err=%q", my.id, my.link.RemoteAddr(), err)
 			_ = my.Close()

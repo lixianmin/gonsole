@@ -46,6 +46,7 @@ type sessionImpl struct {
 	onHandShakenHandlers []func()
 	onClosedHandlers     []func()
 	echoChan             chan func()
+	inReceiveLoop        int32 // 原子标记，用于检测是否在receive线程中调用Echo()
 }
 
 func newSession(manager *Manager, link intern.Link) Session {

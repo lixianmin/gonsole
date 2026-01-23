@@ -3,6 +3,7 @@ package road
 import (
 	"maps"
 	"math/rand"
+	"sync/atomic"
 
 	"github.com/lixianmin/gonsole/road/serde"
 	"github.com/lixianmin/got/convert"
@@ -192,9 +193,15 @@ func (my *sessionImpl) Echo(handler func()) {
 		return
 	}
 
-	// 发送到内部channel，由startGoLoop的select接收并处理
-	// 使用阻塞发送，确保如果session线程活跃时能立即处理
-	// channel有buffer=4，所以不会阻塞太久
+	// 检测是否在receive线程中调用
+	if atomic.LoadInt32(&my.inReceiveLoop) == 1 {
+		// 已经在receive线程中，直接执行
+		my.processEchoHandler(handler)
+		return
+	}
+
+	// 不在receive线程，发送到channel由receive线程处理
+	// 使用阻塞发送，channel有buffer=4，所以不会阻塞太久
 	my.echoChan <- handler
 }
 
