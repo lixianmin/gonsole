@@ -1,18 +1,27 @@
 ## gonsole
 
-基于websocket的远程控制台系统
+基于 WebSocket 的远程控制台系统，遵循[项目开发宪法](specs/constitution.md)的严格架构规范。
 
 ---
 
 #### 0x1 简述
 
-历数各类软件系统，你会发现每一个牛B的系统都会自带一个控制台，用于观察系统状态和调整系统参数，比如Linux, MySQL等。
+历数各类软件系统，你会发现每一个牛B的系统都会自带一个控制台，用于观察系统状态和调整系统参数，比如 Linux, MySQL 等。
 
-1. 支持自定义command：`server.RegisterCommand(cmd)`
-1. 支持自定义topic，订阅后可周期性推送数据到控制台：`server.RegisterTopic(topic)`
-1. 安全验证：对于关键的系统命令，可以设置`cmd.IsPublic=false`，这一类命令只能使用`auth`验证后才能使用
-1. 历史命令：输入history查看历史命令，输入 !98 执行历史命令列表中的第98命令
-1. Tab键命令补全
+**核心功能**：
+1. 支持自定义 Command：`server.RegisterCommand(cmd)`
+2. 支持自定义 Topic，订阅后可周期性推送数据：`server.RegisterTopic(topic)`
+3. 安全验证：关键命令设置 `FlagPublic`，需 `auth` 验证后使用
+4. 历史命令：输入 `history` 查看，`!98` 执行第 98 条
+5. Tab 键命令补全
+6. 内置 pprof 性能分析
+
+**架构特点**（符合[项目开发宪法](specs/constitution.md)）：
+- **无全局可变状态**：所有依赖显式注入（重构后 Session ID 生成器、Git 构建信息等均已组件化）
+- **单一职责**：Console 采用 Facade 模式，职责委托给 CommandManager / TopicManager
+- **显式错误处理**：无错误被静默忽略，均有日志或返回
+- **表格驱动测试**：单元测试采用标准表格驱动风格
+- **标准库优先**：最小化外部依赖，使用 `net/http` 等标准库
 
 ---
 
@@ -53,16 +62,14 @@ func main() {
 	)
 
 	server.RegisterCommand(&gonsole.Command{
-		Name:     "hi",
-		Note:     "打印 hi console",
-		IsPublic: false,
-		Handler: func(client *gonsole.Client, texts [] string) {
-			var bean struct {
-				Text string
-			}
-
-			bean.Text = "hello world"
-			client.SendBean(bean)
+		Name:  "hi",
+		Note:  "打印 hi console",
+		Flag:  gonsole.FlagPublic, // 或 0 表示需认证
+		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
+			var bean = struct {
+				Text string `json:"text"`
+			}{Text: "hello world"}
+			return gonsole.NewBeanResponse(bean), nil
 		},
 	})
 }
@@ -70,11 +77,47 @@ func main() {
 
 ---
 
-#### 0x4 Road Map
+#### 0x4 架构设计
 
-1. 引入完整的登录验证方式
-2. ~~将项目中的js逐步过渡为Vue框架, 目标是梳理代码框架, 通过import减小代码单元的大小~~
-3. ~~逐步使用typescript代替javascript, 引入编译机制~~
-4. 升级golang以引入泛型机制. 但这件事情在centos的yum默认支持到1.18+之前不能考虑. 目前(2022-09-03) 最新版本是golang 1.19。(centos目前官方不再更新)
-5. ~~逐步移除gaio这个库, 在golang 1.17+的centos上编译会报错, 它升级太慢了. [相关issue](https://github.com/xtaci/gaio/issues/21)~~
-6. 引入对https的支持, 或者至少设计出完整的支持方案. 在golang库中直接支持可能比在nginx上支持要更下简单一些, 毕竟会减少对nginx的依赖. ~~另外, gaio这个库似乎不支持https~~
+**Console 采用 Facade 模式，职责清晰分离**：
+
+```
+Console (Facade)
+├── CommandManager   # 命令注册与查找
+├── TopicManager     # 主题订阅与推送
+└── road.App         # WebSocket 网络层
+```
+
+**显式依赖注入示例**：
+
+```go
+// Manager 持有 Session ID 生成器（非全局变量）
+type Manager struct {
+    idGenerator atomic.Int64  // 每个实例独立
+}
+
+// ConsoleService 通过构造函数注入依赖
+type ConsoleService struct {
+    console *Console  // 显式注入，非全局获取
+}
+```
+
+**规范文档**：
+- [项目开发宪法](specs/constitution.md) - 核心开发原则
+- [重构规范](specs/01.refactor/01.refactor.spec.md) - BDD 行为规范
+- [技术方案](specs/01.refactor/01.refactor.plan.md) - 实现细节
+
+---
+
+#### 0x5 Road Map
+
+1. ~~引入完整的登录验证方式~~ ✅ JWT + 密码认证已实现
+2. ~~将项目中的 js 逐步过渡为 Vue 框架~~ ✅ 已完成
+3. ~~逐步使用 TypeScript 代替 JavaScript~~ ✅ 已完成
+4. ~~升级 golang 以引入泛型机制~~ ✅ 已要求 Go 1.22+
+5. ~~逐步移除 gaio 库~~ ✅ 已替换为自研 epoll
+6. 引入对 HTTPS 的支持，或设计完整支持方案
+7. ~~重构消除全局变量~~ ✅ 已完成（详见 specs/01.refactor/）
+8. ~~Console 职责拆分~~ ✅ 已完成（Facade + Manager 模式）
+
+**环境要求**：Go 1.22+
