@@ -95,12 +95,13 @@ func NewConsole(mux IServeMux, opts ...ConsoleOption) *Console {
 		logo.Info("client connected, remoteAddress=%q.", remoteAddress)
 	})
 
+	var buildInfo = GetBuildInfo()
 	logo.Info("gonsole: GoVersion     		= %s", runtime.Version())
-	logo.Info("gonsole: GitBranchName 		= %s", GitBranchName)
-	logo.Info("gonsole: GitCommitId   		= %s", GitCommitId)
-	logo.Info("gonsole: GitCommitMessage		= %s", GitCommitMessage)
-	logo.Info("gonsole: GitCommitTime 		= %s", GitCommitTime)
-	logo.Info("gonsole: AppBuildTime  		= %s", AppBuildTime)
+	logo.Info("gonsole: GitBranchName 		= %s", buildInfo.BranchName)
+	logo.Info("gonsole: GitCommitId   		= %s", buildInfo.CommitId)
+	logo.Info("gonsole: GitCommitMessage		= %s", buildInfo.CommitMessage)
+	logo.Info("gonsole: GitCommitTime 		= %s", buildInfo.CommitTime)
+	logo.Info("gonsole: AppBuildTime  		= %s", buildInfo.AppBuildTime)
 	logo.Info("gonsole: console       		= %s", console.baseUrl+options.getPathByDirectory("/console"))
 	logo.Info("Starting console server")
 	return console

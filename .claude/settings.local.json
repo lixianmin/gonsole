@@ -5,7 +5,10 @@
       "Bash(tree:*)",
       "Bash(make test:*)",
       "Bash(go test:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ]
   }
 }

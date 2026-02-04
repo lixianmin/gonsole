@@ -234,13 +234,14 @@ func (my *Console) registerBuiltinCommands(port int) {
 		Note: "打印进程统计信息",
 		Flag: flagBuiltin,
 		Handler: func(session road.Session, args []string) (*Response, error) {
+			var buildInfo = GetBuildInfo()
 			var info = beans.CommandAppInfo{
 				GoVersion:        runtime.Version(),
-				GitBranchName:    GitBranchName,
-				GitCommitId:      GitCommitId,
-				GitCommitMessage: GitCommitMessage,
-				GitCommitTime:    GitCommitTime,
-				AppBuildTime:     AppBuildTime,
+				GitBranchName:    buildInfo.BranchName,
+				GitCommitId:      buildInfo.CommitId,
+				GitCommitMessage: buildInfo.CommitMessage,
+				GitCommitTime:    buildInfo.CommitTime,
+				AppBuildTime:     buildInfo.AppBuildTime,
 			}
 
 			var html = tools.ToHtmlTable(info)
