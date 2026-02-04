@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"github.com/lixianmin/got/convert"
-	"github.com/lixianmin/logo"
 	"reflect"
 	"strconv"
 	"time"
@@ -18,6 +17,10 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 func ToHtmlTable(data any) string {
+	if data == nil {
+		return "" // nil 视为正常输入，静默返回空字符串
+	}
+
 	var dataValue = reflect.Indirect(reflect.ValueOf(data))
 	switch dataValue.Kind() {
 	case reflect.Slice:
@@ -25,8 +28,7 @@ func ToHtmlTable(data any) string {
 	case reflect.Struct:
 		return toHtmlTableStruct(dataValue)
 	default:
-		logo.Error("data should be slice or struct")
-		return ""
+		return "" // 非 slice/struct 类型静默返回空字符串
 	}
 }
 
