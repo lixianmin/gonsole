@@ -1,6 +1,6 @@
 ## gonsole
 
-基于 WebSocket 的远程控制台系统，遵循[项目开发宪法](specs/constitution.md)的严格架构规范。
+基于 WebSocket 的远程控制台系统。
 
 ---
 
@@ -15,13 +15,6 @@
 4. 历史命令：输入 `history` 查看，`!98` 执行第 98 条
 5. Tab 键命令补全
 6. 内置 pprof 性能分析
-
-**架构特点**（符合[项目开发宪法](specs/constitution.md)）：
-- **无全局可变状态**：所有依赖显式注入（重构后 Session ID 生成器、Git 构建信息等均已组件化）
-- **单一职责**：Console 采用 Facade 模式，职责委托给 CommandManager / TopicManager
-- **显式错误处理**：无错误被静默忽略，均有日志或返回
-- **表格驱动测试**：单元测试采用标准表格驱动风格
-- **标准库优先**：最小化外部依赖，使用 `net/http` 等标准库
 
 ---
 
@@ -77,39 +70,7 @@ func main() {
 
 ---
 
-#### 0x4 架构设计
-
-**Console 采用 Facade 模式，职责清晰分离**：
-
-```
-Console (Facade)
-├── CommandManager   # 命令注册与查找
-├── TopicManager     # 主题订阅与推送
-└── road.App         # WebSocket 网络层
-```
-
-**显式依赖注入示例**：
-
-```go
-// Manager 持有 Session ID 生成器（非全局变量）
-type Manager struct {
-    idGenerator atomic.Int64  // 每个实例独立
-}
-
-// ConsoleService 通过构造函数注入依赖
-type ConsoleService struct {
-    console *Console  // 显式注入，非全局获取
-}
-```
-
-**规范文档**：
-- [项目开发宪法](specs/constitution.md) - 核心开发原则
-- [重构规范](specs/01.refactor/01.refactor.spec.md) - BDD 行为规范
-- [技术方案](specs/01.refactor/01.refactor.plan.md) - 实现细节
-
----
-
-#### 0x5 Road Map
+#### 0x4 Road Map
 
 1. ~~引入完整的登录验证方式~~ ✅ JWT + 密码认证已实现
 2. ~~将项目中的 js 逐步过渡为 Vue 框架~~ ✅ 已完成
@@ -117,7 +78,5 @@ type ConsoleService struct {
 4. ~~升级 golang 以引入泛型机制~~ ✅ 已要求 Go 1.22+
 5. ~~逐步移除 gaio 库~~ ✅ 已替换为自研 epoll
 6. 引入对 HTTPS 的支持，或设计完整支持方案
-7. ~~重构消除全局变量~~ ✅ 已完成（详见 specs/01.refactor/）
-8. ~~Console 职责拆分~~ ✅ 已完成（Facade + Manager 模式）
 
 **环境要求**：Go 1.22+
