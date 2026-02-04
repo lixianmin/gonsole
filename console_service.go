@@ -64,7 +64,7 @@ func (my *ConsoleService) Command(ctx context.Context, request *commandRqt) (*Re
 
 	var args = commandPattern.Split(request.Command, -1)
 	var name = args[0]
-	var cmd, _ = my.console.getCommand(name).(*Command)
+	var cmd = my.console.getCommand(name)
 	if cmd == nil {
 		return nil, fmt.Errorf("invalid cmd name=%s", name)
 	}
@@ -153,11 +153,12 @@ func (my *ConsoleService) Hint(ctx context.Context, request *hintRqt) ([]byte, e
 	var head = strings.TrimSpace(request.Head)
 	var commands = my.console.getCommands()
 
-	var results = make([]hintRe, 0, len(commands)+len(subUnsubNames))
+	builtinCmds := GetBuiltinSubCommands()
+	var results = make([]hintRe, 0, len(commands)+len(builtinCmds))
 
-	for i := range subUnsubNames {
-		if strings.HasPrefix(subUnsubNames[i], head) {
-			results = append(results, hintRe{subUnsubNames[i], subUnsubExamples[i], subUnsubNotes[i]})
+	for _, cmd := range builtinCmds {
+		if strings.HasPrefix(cmd.Name, head) {
+			results = append(results, hintRe{cmd.Name, cmd.Example, cmd.Note})
 		}
 	}
 

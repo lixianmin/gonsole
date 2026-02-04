@@ -74,7 +74,9 @@ func (my *App) goLoop(later loom.Later) {
 		case conn := <-my.accept.GetLinkChan():
 			// 外网环境是非常恶劣的, 有大量扫描器
 			// 先写个心跳包检测一下链接的可用性, 如果失败了就无需建立session了
-			if _, err1 := conn.Write(heartbeatBuffer); err1 != nil {
+			if _, err := conn.Write(heartbeatBuffer); err != nil {
+				logo.Info("heartbeat write failed, addr=%s, err=%v", conn.RemoteAddr(), err)
+				_ = conn.Close() // 显式忽略：commonLink.Close()永不为error，仅设置isClosed标志
 				continue
 			}
 
@@ -96,6 +98,7 @@ func (my *App) onNewSession(conn intern.Link, scanDefender *intern.ScanDefender,
 	var session = my.manager.NewSession(conn)
 	var err = session.Handshake()
 	if err != nil {
+		logo.Info("session handshake failed, addr=%s, err=%v", conn.RemoteAddr(), err)
 		return
 	}
 

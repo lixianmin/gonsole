@@ -27,8 +27,6 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var globalIdGenerator int64 = 0
-
 type Client struct {
 	id        int64
 	writeLock sync.Mutex
@@ -48,8 +46,11 @@ type Client struct {
 	registeredHandlers map[string]func([]byte, *road.Error)
 }
 
+// idGenerator 用于生成Client ID，替代全局变量
+var idGenerator int64
+
 func NewClient() *Client {
-	var id = atomic.AddInt64(&globalIdGenerator, 1)
+	var id = atomic.AddInt64(&idGenerator, 1)
 	var my = &Client{
 		id:                 id,
 		writer:             iox.NewOctetsWriter(&iox.OctetsStream{}),

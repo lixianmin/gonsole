@@ -20,8 +20,6 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-var typeOfBytes = reflect.TypeOf(([]byte)(nil))
-
 func (my *sessionImpl) startGoLoop() {
 	go my.link.GoLoop(my.manager.kickInterval, func(reader *iox.OctetsReader, err error) {
 		// 标记进入receive线程
@@ -260,7 +258,7 @@ func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) 
 }
 
 func unmarshalRequestArg(handler *component.Handler, serde serde.Serde, payload []byte) (any, error) {
-	if handler.RequestType == typeOfBytes {
+	if handler.RequestType == reflect.TypeOf(([]byte)(nil)) {
 		return payload, nil
 	}
 

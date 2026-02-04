@@ -9,6 +9,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/lixianmin/gonsole/road/component"
@@ -40,6 +41,7 @@ type Manager struct {
 	gid               string // client断线重连时, 基于此判断client重连的是不是上一次的同一个server进程
 
 	heartbeatBuffer []byte
+	idGenerator     atomic.Int64 // Session ID生成器，替代全局变量
 }
 
 func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Manager {
@@ -59,7 +61,8 @@ func newManager(heartbeatInterval time.Duration, kickInterval time.Duration) *Ma
 }
 
 func (my *Manager) NewSession(link intern.Link) Session {
-	return newSession(my, link)
+	var id = my.idGenerator.Add(1)
+	return newSession(my, link, id)
 }
 
 func (my *Manager) AddHandler(route string, handler *component.Handler) {

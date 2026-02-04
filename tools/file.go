@@ -16,14 +16,14 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func ReadTailLines(fullPath string, num int, filter string) []string {
+func ReadTailLines(fullPath string, num int, filter string) ([]string, error) {
 	if num <= 0 {
-		return nil
+		return nil, fmt.Errorf("invalid num: %d", num)
 	}
 
 	var fin, err = os.Open(fullPath)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("open file %s: %w", fullPath, err)
 	}
 
 	defer fin.Close()
@@ -46,7 +46,7 @@ func ReadTailLines(fullPath string, num int, filter string) []string {
 			}
 
 			lines = append(lines, cache[:nextIndex]...)
-			return lines
+			return lines, nil
 		}
 
 		lineNum++

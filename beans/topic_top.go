@@ -59,6 +59,6 @@ func NewTopicTop() *TopicTop {
 	}
 
 	body.IP = osx.GetLocalIp()
-	body.UpTime = timex.FormatDuration(time.Now().Sub(startProcessTime))
+	body.UpTime = timex.FormatDuration(time.Since(processStartTime()))
 	return body
 }

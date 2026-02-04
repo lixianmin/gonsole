@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(tree:*)",
+      "Bash(make test:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)"
     ]
   }
 }

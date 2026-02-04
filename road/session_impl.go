@@ -5,7 +5,6 @@ import (
 	"net"
 	"reflect"
 	"sync"
-	"sync/atomic"
 
 	"github.com/lixianmin/gonsole/ifs"
 	"github.com/lixianmin/gonsole/road/intern"
@@ -21,10 +20,6 @@ author:     lixianmin
 
 Copyright (C) - All Rights Reserved
 *********************************************************************/
-
-var (
-	globalIdGenerator atomic.Int64
-)
 
 type sessionWrapper struct {
 	*sessionImpl
@@ -49,8 +44,7 @@ type sessionImpl struct {
 	inReceiveLoop        int32 // 原子标记，用于检测是否在receive线程中调用Echo()
 }
 
-func newSession(manager *Manager, link intern.Link) Session {
-	var id = globalIdGenerator.Add(1)
+func newSession(manager *Manager, link intern.Link, id int64) Session {
 	var routeKinds = manager.CloneRouteKinds()
 	var my = &sessionWrapper{&sessionImpl{
 		manager:    manager,

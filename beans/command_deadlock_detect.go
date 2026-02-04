@@ -36,13 +36,19 @@ func DeadlockDetect(args []string, deadlockIgnores []string) string {
 	var itemMap = make(map[string]*DetectItem, 16)
 
 	// 匹配title
-	var titlePattern, _ = regexp.Compile(`goroutine.*\[.*?(\d+) minutes\]:`)
-	var addressPattern, _= regexp.Compile(`(0x[0-9a-z]+)`)
+	titlePattern, err := regexp.Compile(`goroutine.*\[.*?(\d+) minutes\]:`)
+	if err != nil {
+		panic(fmt.Sprintf("failed to compile title pattern: %v", err))
+	}
+	addressPattern, err := regexp.Compile(`(0x[0-9a-z]+)`)
+	if err != nil {
+		panic(fmt.Sprintf("failed to compile address pattern: %v", err))
+	}
 
 	// 匹配一个调用方法
 	//var funcPattern, _ = regexp.Compile(`\s*(.*)\(.*\)`)
 
-	var err = readPProfGoroutineByLine(func(line string) {
+	err = readPProfGoroutineByLine(func(line string) {
 		if strings.HasPrefix(line, "goroutine") {
 			// 此分支是一条记录的开始
 			isIgnored = false

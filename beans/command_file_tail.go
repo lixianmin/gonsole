@@ -31,7 +31,10 @@ func ReadFileTail(note string, texts []string, maxNum int) string {
 		return note
 	}
 
-	var lines = tools.ReadTailLines(args.FullPath, args.Num, args.Filter)
+	var lines, readErr = tools.ReadTailLines(args.FullPath, args.Num, args.Filter)
+	if readErr != nil {
+		return fmt.Sprintf("<br> 读取文件失败：%v", readErr)
+	}
 	var message = fmt.Sprintf("<br> 返回行数：%d <br>", len(lines)) + strings.Join(lines, "<br>")
 	return message
 }

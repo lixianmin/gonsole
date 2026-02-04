@@ -26,7 +26,41 @@ var GitCommitMessage string // git提交的message: git show -s --format=%s
 var GitCommitTime string    // git提交的时间: git log --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:%ad -1
 var AppBuildTime string     // 应用构建时间: date +%Y-%m-%dT%H:%M:%S
 
+// BuildInfo 封装Git编译信息，通过GetBuildInfo()获取只读副本
+type BuildInfo struct {
+	BranchName    string
+	CommitId      string
+	CommitMessage string
+	CommitTime    string
+	AppBuildTime  string
+}
+
+// GetBuildInfo 返回Git编译信息的只读副本
+func GetBuildInfo() BuildInfo {
+	return BuildInfo{
+		BranchName:    GitBranchName,
+		CommitId:      GitCommitId,
+		CommitMessage: GitCommitMessage,
+		CommitTime:    GitCommitTime,
+		AppBuildTime:  AppBuildTime,
+	}
+}
+
 // 内置的两个指令
-var subUnsubNames = []string{"sub", "unsub"}
-var subUnsubExamples = []string{"sub top", "unsub top"}
-var subUnsubNotes = []string{"订阅主题", "取消订阅主题"}
+type builtinCommand struct {
+	Name    string
+	Example string
+	Note    string
+}
+
+var builtinSubCommands = []builtinCommand{
+	{Name: "sub", Example: "sub top", Note: "订阅主题"},
+	{Name: "unsub", Example: "unsub top", Note: "取消订阅主题"},
+}
+
+// GetBuiltinSubCommands 返回内置sub/unsub命令的副本
+func GetBuiltinSubCommands() []builtinCommand {
+	result := make([]builtinCommand, len(builtinSubCommands))
+	copy(result, builtinSubCommands)
+	return result
+}

@@ -1,9 +1,8 @@
 package tools
 
 import (
-	"fmt"
+	"os"
 	"sort"
-	"strings"
 	"testing"
 )
 
@@ -14,21 +13,97 @@ author:     lixianmin
 Copyright (C) - All Rights Reserved
 *********************************************************************/
 
-func TestReadFileTail(t *testing.T) {
-	var fullPath = "../logs/log_debug.log"
-	var lines = ReadTailLines(fullPath, 10, "server")
-	fmt.Println(strings.Join(lines, "\n"))
+func TestReadTailLines(t *testing.T) {
+	// 创建临时文件
+	tmpfile, err := os.CreateTemp("", "test*.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	// 写入测试数据
+	content := "line1\nline2\nline3\nline4\nline5\n"
+	if _, err := tmpfile.WriteString(content); err != nil {
+		t.Fatal(err)
+	}
+	tmpfile.Close()
+
+	tests := []struct {
+		name    string
+		num     int
+		filter  string
+		wantLen int // 期望行数
+		wantErr bool
+	}{
+		{"读取全部", 10, "", 5, false},
+		{"读取部分", 3, "", 3, false},
+		{"带过滤", 10, "line3", 1, false},
+		{"零行数", 0, "", 0, true},
+		{"不存在的文件", 10, "", 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := tmpfile.Name()
+			if tt.name == "不存在的文件" {
+				path = "/nonexistent/path/file.log"
+			}
+
+			got, err := ReadTailLines(path, tt.num, tt.filter)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ReadTailLines() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				return
+			}
+			if len(got) != tt.wantLen {
+				t.Errorf("ReadTailLines() got %d lines, want %d", len(got), tt.wantLen)
+			}
+		})
+	}
 }
 
-func TestTimeSort (t *testing.T) {
-	var timeList = []string {"2022-10-19\t", "2021-10-18\t", "2021-10-19\t", "2021-10-20\t"}
-	sort.Slice(timeList, func(i, j int) bool {
-		return timeList[i] < timeList[j]
-	})
-	fmt.Println(timeList)
+func TestTimeSort(t *testing.T) {
+	tests := []struct {
+		name string
+		data []string
+		asc  bool // true=升序, false=降序
+		want []string
+	}{
+		{
+			name: "升序排序",
+			data: []string{"2022-10-19\t", "2021-10-18\t", "2021-10-19\t", "2021-10-20\t"},
+			asc:  true,
+			want: []string{"2021-10-18\t", "2021-10-19\t", "2021-10-20\t", "2022-10-19\t"},
+		},
+		{
+			name: "降序排序",
+			data: []string{"2022-10-19\t", "2021-10-18\t", "2021-10-19\t", "2021-10-20\t"},
+			asc:  false,
+			want: []string{"2022-10-19\t", "2021-10-20\t", "2021-10-19\t", "2021-10-18\t"},
+		},
+	}
 
-	sort.Slice(timeList, func(i, j int) bool {
-		return timeList[i] > timeList[j]
-	})
-	fmt.Println(timeList)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := make([]string, len(tt.data))
+			copy(data, tt.data)
+
+			if tt.asc {
+				sort.Slice(data, func(i, j int) bool {
+					return data[i] < data[j]
+				})
+			} else {
+				sort.Slice(data, func(i, j int) bool {
+					return data[i] > data[j]
+				})
+			}
+
+			for i := range data {
+				if data[i] != tt.want[i] {
+					t.Errorf("sort result[%d] = %v, want %v", i, data[i], tt.want[i])
+				}
+			}
+		})
+	}
 }

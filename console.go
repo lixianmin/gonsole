@@ -6,7 +6,6 @@ import (
 	"net/http/pprof"
 	"runtime"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -28,13 +27,13 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Console struct {
-	options      consoleOptions
-	app          *road.App
-	gpid         string
-	baseUrl      string
-	commands     sync.Map
-	topics       sync.Map
-	lastAuthTime atomic.Value
+	options         consoleOptions
+	app             *road.App
+	gpid            string
+	baseUrl         string
+	commandManager  *CommandManager
+	topicManager    *TopicManager
+	lastAuthTime    atomic.Value
 }
 
 func NewConsole(mux IServeMux, opts ...ConsoleOption) *Console {
@@ -73,9 +72,11 @@ func NewConsole(mux IServeMux, opts ...ConsoleOption) *Console {
 	}))
 
 	var console = &Console{
-		options: options,
-		app:     app,
-		gpid:    osx.GetGPID(options.Port),
+		options:        options,
+		app:            app,
+		gpid:           osx.GetGPID(options.Port),
+		commandManager: NewCommandManager(),
+		topicManager:   NewTopicManager(),
 	}
 
 	console.baseUrl = buildBaseUrl(options)
@@ -119,71 +120,27 @@ func (my *Console) RegisterService(name string, service component.Component) {
 }
 
 func (my *Console) RegisterCommand(cmd *Command) {
-	if cmd != nil && cmd.Name != "" {
-		my.commands.Store(cmd.Name, cmd)
-	}
+	my.commandManager.Register(cmd)
 }
 
 func (my *Console) RegisterTopic(topic *Topic) {
-	if topic != nil && topic.Name != "" && topic.Interval > 0 && topic.BuildResponse != nil {
-		my.topics.Store(topic.Name, topic)
-		topic.start()
-	}
+	my.topicManager.Register(topic)
 }
 
-func (my *Console) getCommand(name string) ifs.Command {
-	var box, ok = my.commands.Load(name)
-	if ok {
-		var cmd, _ = box.(ifs.Command)
-		return cmd
-	}
-
-	return nil
+func (my *Console) getCommand(name string) *Command {
+	return my.commandManager.Get(name).(*Command)
 }
 
 func (my *Console) getCommands() []ifs.Command {
-	var list []ifs.Command
-	my.commands.Range(func(key, value any) bool {
-		var cmd, ok = value.(*Command)
-		if ok {
-			list = append(list, cmd)
-		}
-
-		return true
-	})
-
-	list = append(list, &Command{
-		Name:    "request",
-		Example: `request console.command {"command":"help"}`,
-		Note:    "模拟直接发送请求",
-		Flag:    flagBuiltin,
-	})
-
-	return list
+	return my.commandManager.GetAll()
 }
 
 func (my *Console) getTopic(name string) *Topic {
-	var box, ok = my.topics.Load(name)
-	if ok {
-		var client, _ = box.(*Topic)
-		return client
-	}
-
-	return nil
+	return my.topicManager.Get(name)
 }
 
 func (my *Console) getTopics() []ifs.Command {
-	var list []ifs.Command
-	my.topics.Range(func(key, value interface{}) bool {
-		var topic, ok = value.(*Topic)
-		if ok {
-			list = append(list, topic)
-		}
-
-		return true
-	})
-
-	return list
+	return my.topicManager.GetAll()
 }
 
 func (my *Console) GPID() string {
