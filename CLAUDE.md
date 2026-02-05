@@ -2,7 +2,7 @@
 
 明确导入项目宪法, 确保AI在思考任何问题前,都已经加载核心原则.
 
-@./specs/constitution.md
+@./notes/constitution.md
 
 ##  Role and Mission
 
