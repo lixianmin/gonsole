@@ -33,7 +33,7 @@ func initLogo() {
 
 	// 文件日志
 	const flag = logo.FlagDate | logo.FlagTime | logo.FlagShortFile | logo.FlagLevel
-	var rollingFile = logo.NewRollingFileHook(logo.RollingFileHookArgs{Flag: flag, FilterLevel: level})
+	var rollingFile = logo.NewRollingFileHook(logo.WithHookFlag(flag), logo.WithHookFilterLevel(level))
 	theLogger.AddHook(rollingFile)
 }
 
@@ -111,12 +111,7 @@ func roadConnect(serverAddress string, wg *sync.WaitGroup) error {
 	var timer = time.NewTimer(5 * time.Second)
 	go func() {
 		defer wg.Done()
-		for {
-			select {
-			case <-timer.C:
-				return
-			}
-		}
+		<-timer.C
 	}()
 
 	return nil

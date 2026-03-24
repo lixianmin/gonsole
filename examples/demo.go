@@ -82,12 +82,9 @@ func goLoop(later loom.Later) {
 
 	var timer = later.NewTimer(5 * time.Minute)
 
-	for {
-		select {
-		case <-timer.C:
-			fmt.Printf("timer triggered, unlock \n")
-			lock.Unlock()
-		}
+	for range timer.C {
+		fmt.Printf("timer triggered, unlock \n")
+		lock.Unlock()
 	}
 }
 
