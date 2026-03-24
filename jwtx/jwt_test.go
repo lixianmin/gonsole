@@ -22,11 +22,11 @@ func TestSignAndParse(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		args           args
-		wantSignErr    bool
-		wantParseErr   bool
-		checkClaims    bool
+		name             string
+		args             args
+		wantSignErr      bool
+		wantParseErr     bool
+		checkClaims      bool
 		sleepBeforeParse time.Duration
 	}{
 		{

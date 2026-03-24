@@ -1,82 +1,202 @@
-## gonsole
+# gonsole
 
-基于 WebSocket 的远程控制台系统。
+Go 游戏服务器框架，提供完整的 TCP/WebSocket 长链接解决方案
 
----
+## 项目简介
 
-#### 0x1 简述
+gonsole 是一个轻量级游戏服务器框架，为实时游戏提供高性能的长链接通信能力。配套的 C# 客户端库 [unicorn](https://github.com/lixianmin/unicorn) 可实现 Unity 游戏与服务器的无缝对接。
 
-历数各类软件系统，你会发现每一个牛B的系统都会自带一个控制台，用于观察系统状态和调整系统参数，比如 Linux, MySQL 等。
+**核心能力**：
+- **双协议支持**：TCP + WebSocket，满足不同场景需求
+- **HTTP 服务**：同时提供 RESTful API 能力
+- **远程控制台**：Web 端交互式命令行，用于调试和运维
+- **RPC 框架**：基于反射的组件服务注册
 
-**核心功能**：
-1. 支持自定义 Command：`server.RegisterCommand(cmd)`
-2. 支持自定义 Topic，订阅后可周期性推送数据：`server.RegisterTopic(topic)`
-3. 安全验证：关键命令设置 `FlagPublic`，需 `auth` 验证后使用
-4. 历史命令：输入 `history` 查看，`!98` 执行第 98 条
-5. Tab 键命令补全
-6. 内置 pprof 性能分析
+## 架构概览
 
----
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        HTTP Layer                            │
+│         静态资源 │ 控制台页面 │ 日志文件 │ RESTful API        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────┼───────────────────────────────┐
+│                   Long Connection Layer                      │
+│         TCP Acceptor              │          WsAcceptor       │
+└─────────────────────────────┬────┴────────────┬──────────────┘
+                              │                 │
+┌─────────────────────────────┼─────────────────┼──────────────┐
+│                        Road Layer                            │
+│    Session │ Handshake │ Heartbeat │ Kick │ RPC │ Serde      │
+└─────────────────────────────┼─────────────────────────────────┘
+                              │
+┌─────────────────────────────┼─────────────────────────────────┐
+│                     Component Layer                          │
+│     ConsoleService │ Custom Services (Player, Room, ...)     │
+└───────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ TCP / WebSocket
+                              │
+┌─────────────────────────────┴─────────────────────────────────┐
+│              Unity Client (unicorn)                          │
+│              https://github.com/lixianmin/unicorn             │
+└───────────────────────────────────────────────────────────────┘
+```
 
-#### 0x2 基本命令图示
+## 核心特性
 
-##### 01 帮助中心 help
+### 长链接服务
+- **TCP**：高性能原生协议，适合对延迟敏感的游戏
+- **WebSocket**：Web 端兼容，支持 HTTP/2
+- **握手协议**：Server → Client 推送配置（心跳间隔、序列化方式、路由表）
+- **心跳机制**：Client 主动发送，Server 被动响应
+- **踢人机制**：Server 主动断开，附带原因码
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/help.png?raw=true"  style="zoom:50%" />
+### RPC 服务
+- **反射注册**：自动提取组件方法，生成路由
+- **拦截器**：支持请求前拦截
+- **请求/响应模式**：Client.Request() → Server → Client 回调
+- **Notify 模式**：Client.Send() → Server（无响应）
 
-##### 02 日志列表 log.list
+### 远程控制台
+- **自定义命令**：`server.RegisterCommand(cmd)` 注册业务命令
+- **Topic 订阅**：周期性数据推送，如系统 Top 信息
+- **权限控制**：`FlagPublic` 公开命令，需认证后执行
+- **历史命令**：`history` 查看，`!98` 重复执行
+- **Tab 补全**：命令自动补全
+- **pprof 集成**：内置性能分析
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/log.list.png?raw=true"  style="zoom:50%" />
+### 安全认证
+- **JWT 令牌**：登录成功后颁发，支持自动登录
+- **密码摘要**：SHA256 + Nonce 异或 + Base64
 
-##### 03 命令输入框
+## 环境要求
 
-<img src="https://raw.githubusercontent.com/lixianmin/gonsole/master/res/images/inputbox.png?raw=true"  style="zoom:50%" />
+- Go 1.22+
 
----
+## 快速开始
 
-#### 0x3 Demo
+### 运行 Demo
 
-1. 直接运行examples/demo/main.go
-1. 在浏览器中输入 http://127.0.0.1:8888/console
-1. 按提示在文件框中输入help命令，查看帮助信息
-1. 可以通过查看main.go的源代码，学习如何注册command和topic
+```bash
+make web
+./bin/web
+```
 
-部分代码如下：
+或直接运行：
+
+```bash
+go run examples/demo.go
+```
+
+- 控制台：http://127.0.0.1:8888/console
+- TCP 端口：8889（默认）
+
+### 代码示例
 
 ```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/lixianmin/gonsole"
+	"github.com/lixianmin/gonsole/road"
+)
+
 func main() {
 	var webPort = 8888
 	var mux = http.NewServeMux()
 	var server = gonsole.NewServer(mux,
-		gonsole.WithPort(webPort),                                      // webserver端口
-		gonsole.WithPageTemplate("console.html"),                       // 页面文件模板
-		gonsole.WithUserPasswords(map[string]string{"xmli": "123456"}), // 认证使用的用户名密码
-		gonsole.WithEnablePProf(true),                                  // 开启pprof
+		gonsole.WithPort(webPort),
+		gonsole.WithPageTemplate("console.html"),
+		gonsole.WithUserPasswords(map[string]string{"admin": "secret"}),
+		gonsole.WithEnablePProf(true),
 	)
 
+	// 注册控制台命令
 	server.RegisterCommand(&gonsole.Command{
 		Name:  "hi",
-		Note:  "打印 hi console",
-		Flag:  gonsole.FlagPublic, // 或 0 表示需认证
+		Note:  "打印问候语",
+		Flag:  gonsole.FlagPublic,
 		Handler: func(session road.Session, args []string) (*gonsole.Response, error) {
-			var bean = struct {
-				Text string `json:"text"`
-			}{Text: "hello world"}
-			return gonsole.NewBeanResponse(bean), nil
+			return gonsole.NewBeanResponse(map[string]string{"text": "hello"}), nil
 		},
 	})
+
+	// 注册 RPC 服务
+	// server.RegisterService(&PlayerService{})
+
+	http.ListenAndServe(":8888", mux)
 }
 ```
 
----
+## 项目结构
 
-#### 0x4 Road Map
+```
+gonsole/
+├── road/                 # 网络层核心
+│   ├── epoll/            # TCP/WebSocket Acceptor
+│   ├── intern/           # 连接封装
+│   ├── serde/            # 序列化（JSON等）
+│   ├── component/        # RPC 服务注册
+│   └── client/           # Go 客户端
+├── beans/                # 内置命令实现
+├── jwtx/                 # JWT 认证
+├── tools/                # 工具函数
+├── web/                  # 前端资源
+├── examples/             # 示例代码
+├── console.go            # 控制台入口
+└── Makefile              # 构建脚本
+```
 
-1. ~~引入完整的登录验证方式~~ ✅ JWT + 密码认证已实现
-2. ~~将项目中的 js 逐步过渡为 Vue 框架~~ ✅ 已完成
-3. ~~逐步使用 TypeScript 代替 JavaScript~~ ✅ 已完成
-4. ~~升级 golang 以引入泛型机制~~ ✅ 已要求 Go 1.22+
-5. ~~逐步移除 gaio 库~~ ✅ 已替换为自研 epoll
-6. 引入对 HTTPS 的支持，或设计完整支持方案
+## 常用命令
 
-**环境要求**：Go 1.22+
+```bash
+make test     # 运行测试
+make web      # 构建 Web 服务
+make build    # 构建项目
+make vet      # 静态检查
+make fmt      # 代码格式化
+make clean    # 清理构建产物
+```
+
+## 配套客户端
+
+**Unity/C# 客户端**：[unicorn](https://github.com/lixianmin/unicorn)
+
+```csharp
+// Unity 客户端连接示例
+var session = new Session();
+session.Connect("localhost", 8080, s => new JsonSerde(), 
+    onHandShaken: () => Logo.Info("Connected"),
+    onClosed: () => Logo.Info("Disconnected")
+);
+
+// RPC 调用
+session.Call("player.move", new { x = 10, y = 20 }, (response, error) => {
+    if (error == null) Logo.Info($"Result: {response}");
+});
+```
+
+## 技术栈
+
+| 层次 | 技术选型 |
+|------|----------|
+| 网络库 | gobwas/ws (WebSocket)、net (TCP) |
+| 序列化 | JSON（可扩展 Protobuf 等） |
+| 认证 | golang-jwt/jwt v5 |
+| 系统监控 | shirou/gopsutil |
+| 前端 | Solid.js + TypeScript + Vite |
+
+## Roadmap
+
+- [x] JWT + 密码认证
+- [x] Solid.js + TypeScript 前端
+- [x] Go 1.22+ 泛型支持
+- [x] 自研 epoll 替代 gaio
+- [ ] HTTPS 支持
+
+## 许可证
+
+[MIT License](LICENSE)

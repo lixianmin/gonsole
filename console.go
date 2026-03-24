@@ -27,13 +27,13 @@ Copyright (C) - All Rights Reserved
 *********************************************************************/
 
 type Console struct {
-	options         consoleOptions
-	app             *road.App
-	gpid            string
-	baseUrl         string
-	commandManager  *CommandManager
-	topicManager    *TopicManager
-	lastAuthTime    atomic.Value
+	options        consoleOptions
+	app            *road.App
+	gpid           string
+	baseUrl        string
+	commandManager *CommandManager
+	topicManager   *TopicManager
+	lastAuthTime   atomic.Value
 }
 
 func NewConsole(mux IServeMux, opts ...ConsoleOption) *Console {

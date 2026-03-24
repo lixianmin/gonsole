@@ -1,3 +1,3 @@
 package assets
 
-func ForceIncludeFiles() { }
+func ForceIncludeFiles() {}

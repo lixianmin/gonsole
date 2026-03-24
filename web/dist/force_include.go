@@ -1,3 +1,3 @@
 package dist
 
-func ForceIncludeFiles() { }
+func ForceIncludeFiles() {}
