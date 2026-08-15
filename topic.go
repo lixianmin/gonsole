@@ -36,7 +36,14 @@ func (topic *Topic) start() {
 		return
 	}
 
-	topic.sessions.d = make(map[road.Session]struct{})
+	// 持锁初始化sessions.d：热更时RegisterTopic可能在已有session订阅（addClient持锁写d）
+	// 之后调用，无锁赋值会与addClient/removeClient产生data race；
+	// 且若addClient先于start()执行，d为nil map，赋值直接panic
+	topic.sessions.Lock()
+	if topic.sessions.d == nil {
+		topic.sessions.d = make(map[road.Session]struct{})
+	}
+	topic.sessions.Unlock()
 
 	go func() {
 		time.Sleep(randx.Duration(0, topic.Interval))
@@ -62,6 +69,10 @@ func (topic *Topic) start() {
 func (topic *Topic) addClient(session road.Session) {
 	if session != nil {
 		topic.sessions.Lock()
+		// 懒初始化：防止start()尚未执行（或Topic未start）时对nil map赋值panic
+		if topic.sessions.d == nil {
+			topic.sessions.d = make(map[road.Session]struct{})
+		}
 		topic.sessions.d[session] = struct{}{}
 		topic.sessions.Unlock()
 	}
