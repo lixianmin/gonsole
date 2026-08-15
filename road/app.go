@@ -76,7 +76,7 @@ func (my *App) goLoop(later loom.Later) {
 			// 先写个心跳包检测一下链接的可用性, 如果失败了就无需建立session了
 			if _, err := conn.Write(heartbeatBuffer); err != nil {
 				logo.Info("heartbeat write failed, addr=%s, err=%v", conn.RemoteAddr(), err)
-				_ = conn.Close() // 显式忽略：commonLink.Close()永不为error，仅设置isClosed标志
+				_ = conn.Close() // 关闭底层conn（commonLink.Close()会unblock阻塞中的Read）
 				continue
 			}
 
@@ -84,6 +84,9 @@ func (my *App) goLoop(later loom.Later) {
 			var fullAddr = conn.RemoteAddr().String()
 			var ip = getIpWithoutPort(fullAddr)
 			if scanDefender.IsScanner(ip) {
+				// bugfix: 扫描器连接不建立session，必须显式关闭底层conn，否则fd泄漏
+				// （扫描器大量连入会耗尽fd）。注意commonLink.Close()会真正关闭socket。
+				_ = conn.Close()
 				continue
 			}
 
