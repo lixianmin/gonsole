@@ -91,7 +91,13 @@ func NewCommandAuth(session road.Session, args []string, jwtSecretKey string, us
 			return bean
 		}
 
-		var nonce = int32(data["nonce"].(float64))
+		// 注意: token可能是旧版本server签发或被人为篡改的, 缺少nonce/digest等claim时
+		// 不能直接做类型断言（会panic），必须用comma-ok的形式安全取值
+		var nonce int32 = 0
+		if v, ok := data["nonce"].(float64); ok {
+			nonce = int32(v)
+		}
+
 		if data["digest"] != sumPasswordDigest(password, nonce) {
 			bean.Code = invalidUsernameOrPassword
 			logo.JsonI("invalid_jwt_digest", data["digest"])
