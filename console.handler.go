@@ -100,14 +100,21 @@ func (my *Console) handleAssets(mux IServeMux) {
 	//var walkRoot = filepath.Join(pageRoot, "assets")
 	var walkRoot = pageRoot
 
-	// 如果是windows平台，dirName="web\\dist"
-	const dirName = "web" + string(os.PathSeparator) + "dist"
-	const dirLength = len(dirName)
-
+	// pattern 是相对于 pageRoot 的URL路径。
+	// bugfix: 原实现用 strings.Index(relativePath, "web"+sep+"dist") 定位dist目录，有两个坑：
+	//  1. PageTemplate使用绝对路径时（如 /home/me/web/dist/console.html），Index命中第一个
+	//     "web/dist"（在/home/me/web中），pattern前面多出一截错误前缀，静态资源404
+	//  2. PageTemplate不在名为web/dist的目录下（自定义模板目录）时，Index返回-1，切片越界，
+	//     pattern完全错乱；PageTemplate为裸文件名（Dir="."）时，按len切分也会错位
+	// filepath.Rel精确计算相对路径，兼容"."、绝对路径、windows分隔符
 	if err := filepath.Walk(walkRoot, func(relativePath string, info os.FileInfo, err error) error {
 		if err == nil && !info.IsDir() && isValidAsset(relativePath) {
-			var index = strings.Index(relativePath, dirName)
-			var pattern = strings.Replace(relativePath[index+dirLength:], "\\", "/", -1) // 如果是windows平台，则需要把\替换为/
+			var rel, relErr = filepath.Rel(pageRoot, relativePath)
+			if relErr != nil {
+				return relErr
+			}
+
+			var pattern = "/" + strings.Replace(rel, "\\", "/", -1) // 如果是windows平台，则需要把\替换为/
 			var contentType = getContentType(relativePath)
 
 			mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
@@ -136,6 +143,14 @@ func (my *Console) handleLogFiles(mux IServeMux, options consoleOptions) {
 		}
 
 		logFilePath = logFilePath[cutLength:]
+
+		// bugfix: 防路径穿越。net/http的ServeMux会对含".."的请求做cleanPath并重定向，
+		// 但自定义mux（如gin）不会，这里显式拒绝，防止读取LogListRoot之外的任意文件
+		if strings.Contains(logFilePath, "..") {
+			http.NotFound(writer, request)
+			return
+		}
+
 		RequestFileByRange(logFilePath, writer, request)
 	})
 }

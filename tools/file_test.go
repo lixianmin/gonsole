@@ -63,6 +63,46 @@ func TestReadTailLines(t *testing.T) {
 	}
 }
 
+// TestReadTailLines_NoTrailingNewline bugfix回归：文件最后一行没有换行符时也必须返回。
+// 原实现遇到io.EOF直接返回，丢掉了最后一行（ReadString在EOF时仍会返回部分数据）
+func TestReadTailLines_NoTrailingNewline(t *testing.T) {
+	tmpfile, err := os.CreateTemp("", "test*.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	// 注意：最后一行 "line5" 没有 \n
+	content := "line1\nline2\nline3\nline4\nline5"
+	if _, err := tmpfile.WriteString(content); err != nil {
+		t.Fatal(err)
+	}
+	tmpfile.Close()
+
+	tests := []struct {
+		name    string
+		num     int
+		filter  string
+		wantLen int
+	}{
+		{"读取全部-无尾换行", 10, "", 5},
+		{"读取部分-无尾换行", 3, "", 3},
+		{"带过滤-无尾换行", 10, "line5", 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ReadTailLines(tmpfile.Name(), tt.num, tt.filter)
+			if err != nil {
+				t.Fatalf("ReadTailLines() error = %v", err)
+			}
+			if len(got) != tt.wantLen {
+				t.Errorf("ReadTailLines() got %d lines, want %d, lines=%v", len(got), tt.wantLen, got)
+			}
+		})
+	}
+}
+
 func TestTimeSort(t *testing.T) {
 	tests := []struct {
 		name string

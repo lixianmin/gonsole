@@ -55,6 +55,16 @@ func readHeadLines(args ReadFileArgs) []string {
 	for counter < args.Num {
 		var line, err = reader.ReadString('\n')
 		if err != nil {
+			// bugfix: ReadString在文件末尾且最后一行没有换行符时返回(部分数据, io.EOF)，
+			// 原实现直接break导致最后一行被丢弃
+			if len(line) > 0 {
+				lineNum += 1
+				if filter == "" || strings.Contains(strings.ToLower(line), filter) {
+					var item = strconv.Itoa(lineNum) + " " + line
+					lines = append(lines, item)
+				}
+			}
+
 			break
 		}
 

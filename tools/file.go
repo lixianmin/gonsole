@@ -3,7 +3,6 @@ package tools
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -37,9 +36,26 @@ func ReadTailLines(fullPath string, num int, filter string) ([]string, error) {
 	var lineNum = 0
 	var resultCount = 0
 
+	// 把一行写入环形缓存；返回true表示文件已读完
+	var appendLine = func(line string) bool {
+		lineNum++
+		if filter == "" || strings.Contains(strings.ToLower(line), filter) {
+			cache[nextIndex] = strconv.Itoa(lineNum) + " " + line
+			nextIndex = (nextIndex + 1) % num
+			resultCount++
+		}
+		return false
+	}
+
 	for {
 		var line, err = reader.ReadString('\n')
 		if err != nil {
+			// bugfix: ReadString在读到文件末尾且最后一行没有换行符时，会返回(部分数据, io.EOF)，
+			// 原实现直接返回导致最后一行被丢弃。这里先处理部分数据再退出。
+			if len(line) > 0 {
+				appendLine(line)
+			}
+
 			// resultCount不足num时，不应该出现空白行
 			if resultCount >= num {
 				lines = append(lines, cache[nextIndex:]...)
@@ -49,68 +65,6 @@ func ReadTailLines(fullPath string, num int, filter string) ([]string, error) {
 			return lines, nil
 		}
 
-		lineNum++
-		if filter == "" || strings.Contains(strings.ToLower(line), filter) {
-			cache[nextIndex] = strconv.Itoa(lineNum) + " " + line
-			nextIndex = (nextIndex + 1) % num
-			resultCount++
-		}
+		appendLine(line)
 	}
-}
-
-func searchOffset(fin *os.File, num int) (int64, error) {
-	info, err := fin.Stat()
-	if err != nil {
-		return 0, err
-	}
-
-	var fileSize = info.Size()
-
-	const bufferSize int64 = 1024
-	var buffer [bufferSize]byte
-
-	var counter = 0
-	for i := 0; true; i++ {
-		var stepSize = bufferSize
-		var offset = int64(i+1) * bufferSize
-
-		var isLastRead = false
-		if offset > fileSize {
-			stepSize = fileSize - int64(i)*bufferSize
-			offset = fileSize
-			isLastRead = true
-		}
-
-		_, err := fin.Seek(-offset, io.SeekEnd)
-		if err != nil {
-			return 0, err
-		}
-
-		n, err := fin.Read(buffer[0:stepSize])
-		if err != nil {
-			return 0, err
-		}
-
-		if n != int(stepSize) {
-			return 0, fmt.Errorf("n=%d, stepSize=%d", n, stepSize)
-		}
-
-		for j := n - 1; j >= 0; j-- {
-			var b = buffer[j]
-			if b == '\n' {
-				counter += 1
-				if counter > num {
-					var result = -(stepSize - int64(j) + int64(i)*bufferSize - 1)
-					return result, nil
-				}
-			}
-		}
-
-		if isLastRead {
-			var result = -fileSize
-			return result, nil
-		}
-	}
-
-	return -fileSize, nil
 }
