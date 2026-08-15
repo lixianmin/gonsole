@@ -38,12 +38,18 @@ func (my *sessionImpl) Send(route string, v any) error {
 		return nil
 	}
 
-	if my.serde == nil {
+	// serde 与 routeKinds 的读写都受 writeLock 保护：
+	//  - my.serde 在 receive 线程的 onReceivedHandshakeRe() 中写入，这里可能被其它 goroutine（如topic推送）读取
+	//  - my.routeKinds 在 sendRouteKind() 中通过 clone+指针赋值替换，这里读取必须持锁
+	my.writeLock.Lock()
+	var mySerde = my.serde
+	var kind, ok = my.routeKinds[route]
+	my.writeLock.Unlock()
+
+	if mySerde == nil {
 		return ErrNilSerde
 	}
 
-	// 可能是并发访问my.routeKinds, 所以对my.routeKinds的修改都是通过clone实现的
-	var kind, ok = my.routeKinds[route]
 	var pack = serde.Packet{Kind: kind}
 	if !ok {
 		// 因为notify相关的逻辑经常使用SendByRoute(), 因此长的route还是挺费的. 但是:
@@ -60,7 +66,7 @@ func (my *sessionImpl) Send(route string, v any) error {
 
 	var err2, isError2 = v.(error)
 	if !isError2 {
-		var payload, err3 = serializeOrRaw(my.serde, v)
+		var payload, err3 = serializeOrRaw(mySerde, v)
 		if err3 != nil {
 			return err3
 		}
@@ -85,7 +91,12 @@ func (my *sessionImpl) sendRouteKind(route string) (int32, error) {
 	{
 		// double check lock
 		if kind, isSent = my.routeKinds[route]; !isSent {
-			kind = int32(len(my.routeKinds)) + serde.UserBase
+			// bugfix(2026-08-09): 动态kind改由Manager级单调序列分配（manager.nextRouteKind），
+			// 永远高于所有预分配kind。原实现 len(routeKinds)+UserBase 或按会话内max+1分配，
+			// 在热更/部分注册后，旧会话快照与新预分配kind错位，会撞上已分配的kind
+			// （实测.chat_stream与refresh_notify同一连接都拿到109，客户端把refresh_notify包
+			// 按.chat_stream handler解码，"on_daily_refresh"被当聊天文本插入Chat UI）。
+			kind = my.manager.nextRouteKind()
 
 			var cloned = maps.Clone(my.routeKinds)
 			cloned[route] = kind
@@ -162,7 +173,7 @@ func (my *sessionImpl) Handshake() error {
 		Heartbeat: float32(my.manager.heartbeatInterval.Seconds()),
 		SessionId: my.id, // server的很多日志都是基于sid的, client打印一下这个值, 用于跟server配对
 
-		Routes: my.manager.routes,
+		Routes: my.manager.getRoutes(),
 		// Gid:       my.manager.gid,
 	}
 
@@ -219,7 +230,19 @@ func (my *sessionImpl) sendPacket(pack serde.Packet) error {
 	return err
 }
 
+func (my *sessionImpl) getSerde() serde.Serde {
+	my.writeLock.Lock()
+	defer my.writeLock.Unlock()
+
+	return my.serde
+}
+
+// setSerde 在receive线程中由onReceivedHandshakeRe()调用，但Send()/respondWith()可能从
+// 其它goroutine读取my.serde，因此读写都必须持writeLock，避免data race
 func (my *sessionImpl) setSerde(serde serde.Serde) {
+	my.writeLock.Lock()
+	defer my.writeLock.Unlock()
+
 	my.serde = serde
 }
 

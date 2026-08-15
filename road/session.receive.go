@@ -140,7 +140,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 		return ErrEmptyHandler
 	}
 
-	if my.serde == nil {
+	if my.getSerde() == nil {
 		return ErrNilSerde
 	}
 
@@ -148,8 +148,9 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	for _, interceptor := range my.manager.interceptors {
 		if err1 := interceptor(my, handler.Route); err1 != nil {
 			// 如果被interceptor拦截了, 则直接Kick()
-			if roadErr := err1.(*Error); roadErr != nil {
-				my.Kick(roadErr.Code)
+			// 注意: interceptor可能返回普通的error, 必须使用comma-ok的形式断言, 否则会panic
+			if roadErr, ok := err1.(*Error); ok {
+				_ = my.Kick(roadErr.Code)
 			}
 
 			return err1
@@ -157,7 +158,7 @@ func (my *sessionImpl) onReceivedUserdata(input serde.Packet) error {
 	}
 
 	// 这是业务逻辑错误, 应该输出到client, 不应该引发session.Close()
-	var requestArg, err2 = unmarshalRequestArg(handler, my.serde, input.Data)
+	var requestArg, err2 = unmarshalRequestArg(handler, my.getSerde(), input.Data)
 	if err2 != nil {
 		return err2
 	}
@@ -233,10 +234,10 @@ func (my *sessionImpl) respondWith(input serde.Packet, response any, err error) 
 		return nil
 	}
 
-	// 这个方法有可能从非session线程中回调回来, 因此要求my.serder必须是thread-safe的
+	// 这个方法有可能从非session线程中回调回来, 因此要求my.serde必须是thread-safe的
 	var payload []byte
 	if err == nil {
-		payload, err = serializeOrRaw(my.serde, response)
+		payload, err = serializeOrRaw(my.getSerde(), response)
 	}
 
 	var pack = serde.Packet{
