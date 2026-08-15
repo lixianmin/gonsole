@@ -24,6 +24,13 @@ type (
 	}
 )
 
+// TODO(技术债务): 当前方法发现/调用基于反射
+// （ExtractHandler + reflect.Method.Func.Call + reflect.MakeFunc），是框架核心路径。
+// 如未来出现性能瓶颈，可考虑：
+//  1. 使用 go generate 生成处理器注册代码
+//  2. 或使用接口约束替代动态方法发现
+// 评估结论：风险收益比不划算，暂不处理，仅记录。
+
 // NewService creates a new service
 func NewService(comp Component, opts []Option) *Service {
 	s := &Service{
