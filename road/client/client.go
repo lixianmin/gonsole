@@ -9,7 +9,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/lixianmin/gonsole/road"
@@ -40,19 +39,22 @@ type Client struct {
 	onHandShaken       func(bean *serde.JsonHandshake)
 	requestIdGenerator int32
 
+	// routeKinds/kindRoutes/requestHandlers/registeredHandlers 会被两个goroutine并发访问：
+	//  - goLoop goroutine：onReceivedHandshake/onReceivedRouteKind 写入；fetchHandler 读取+删除
+	//  - 用户 goroutine：Request/On/Send 写入与读取
+	// 因此必须用 mapLock 保护，否则是data race
+	mapLock            sync.RWMutex
 	routeKinds         map[string]int32
 	kindRoutes         map[int32]string
 	requestHandlers    map[int32]func([]byte, *road.Error)
 	registeredHandlers map[string]func([]byte, *road.Error)
 }
 
-// idGenerator 用于生成Client ID，替代全局变量
-var idGenerator int64
-
 func NewClient() *Client {
-	var id = atomic.AddInt64(&idGenerator, 1)
 	var my = &Client{
-		id:                 id,
+		// 仅用于日志标识（如 close session(%d)），不需要全局唯一。
+		// 不用包级原子计数器：宪法4.2禁止全局可变状态传递运行时状态（计数器）。
+		id:                 time.Now().UnixNano(),
 		writer:             iox.NewOctetsWriter(&iox.OctetsStream{}),
 		heartbeatInterval:  time.Minute, // 初始给一个大一些的值, 防止client自己超时, 回头server会重置该值
 		routeKinds:         map[string]int32{},
@@ -217,6 +219,7 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 	logo.JsonI("handshake", handshake)
 	my.heartbeatInterval = time.Duration(handshake.Heartbeat) * time.Second
 
+	my.mapLock.Lock()
 	clear(my.routeKinds)
 	clear(my.kindRoutes)
 
@@ -230,6 +233,7 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 		} else {
 			// 如果解压失败，可能是旧格式或其他问题
 			logo.Warn("failed to decompress routes, error: %v", err)
+			my.mapLock.Unlock()
 			return fmt.Errorf("failed to process routes: %w", err)
 		}
 	}
@@ -241,8 +245,9 @@ func (my *Client) onReceivedHandshake(pack serde.Packet) error {
 		my.routeKinds[route] = kind
 		my.kindRoutes[kind] = route
 	}
-
 	my.nonce = handshake.Nonce
+	my.mapLock.Unlock()
+
 	my.handshakeRe()
 
 	if my.onHandShaken != nil {
@@ -274,8 +279,10 @@ func (my *Client) onReceivedRouteKind(pack serde.Packet) error {
 		return err
 	}
 
+	my.mapLock.Lock()
 	my.routeKinds[bean.Route] = bean.Kind
 	my.kindRoutes[bean.Kind] = bean.Route
+	my.mapLock.Unlock()
 	return nil
 }
 
@@ -313,13 +320,21 @@ func (my *Client) onReceivedUserdata(pack serde.Packet) error {
 func (my *Client) fetchHandler(pack serde.Packet) func([]byte, *road.Error) {
 	var requestId = pack.RequestId
 	if requestId != 0 {
-		if handler, ok := my.requestHandlers[requestId]; ok {
+		my.mapLock.Lock()
+		var handler, ok = my.requestHandlers[requestId]
+		if ok {
 			delete(my.requestHandlers, requestId)
+		}
+		my.mapLock.Unlock()
+		if ok {
 			return handler
 		}
 	} else {
+		my.mapLock.RLock()
 		var route = my.kindRoutes[pack.Kind]
-		if handler, ok := my.registeredHandlers[route]; ok {
+		var handler, ok = my.registeredHandlers[route]
+		my.mapLock.RUnlock()
+		if ok {
 			return handler
 		}
 	}
@@ -337,7 +352,9 @@ func (my *Client) Send(route string, v any) error {
 		return err1
 	}
 
+	my.mapLock.RLock()
 	var kind, ok = my.routeKinds[route]
+	my.mapLock.RUnlock()
 	var pack = serde.Packet{Kind: kind, Data: data}
 	if !ok {
 		return road.ErrInvalidRoute
@@ -361,7 +378,9 @@ func (my *Client) Request(route string, request any, pResponse any, handler func
 		return err
 	}
 
+	my.mapLock.RLock()
 	var kind, ok = my.routeKinds[route]
+	my.mapLock.RUnlock()
 	if !ok {
 		return road.ErrInvalidRoute
 	}
@@ -375,7 +394,7 @@ func (my *Client) Request(route string, request any, pResponse any, handler func
 	}
 
 	if handler != nil {
-		my.requestHandlers[requestId] = func(data1 []byte, err *road.Error) {
+		var wrapped = func(data1 []byte, err *road.Error) {
 			if data1 != nil {
 				var err2 = my.serde.Deserialize(data1, pResponse)
 				var err3 *road.Error
@@ -388,6 +407,10 @@ func (my *Client) Request(route string, request any, pResponse any, handler func
 				handler(err)
 			}
 		}
+
+		my.mapLock.Lock()
+		my.requestHandlers[requestId] = wrapped
+		my.mapLock.Unlock()
 	}
 
 	return my.sendPacket(pack)
@@ -402,6 +425,7 @@ func (my *Client) On(route string, pResponse any, handler func(*road.Error)) err
 		return road.ErrEmptyHandler
 	}
 
+	my.mapLock.Lock()
 	my.registeredHandlers[route] = func(data1 []byte, err *road.Error) {
 		if data1 != nil {
 			var err2 = my.serde.Deserialize(data1, pResponse)
@@ -415,11 +439,15 @@ func (my *Client) On(route string, pResponse any, handler func(*road.Error)) err
 			handler(err)
 		}
 	}
+	my.mapLock.Unlock()
 
 	return nil
 }
 
 func (my *Client) Nonce() int32 {
+	my.mapLock.RLock()
+	defer my.mapLock.RUnlock()
+
 	return my.nonce
 }
 
