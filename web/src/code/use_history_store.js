@@ -9,11 +9,26 @@
 
 // 原先使用pinia的defineStore+useLocalStorage, 其实也是利用了localStorage去实现跨页面的存储, 实现复杂度高一些
 // 现在改为每次add()的时候自动写入到localStorage中, 流程应该是一样的
-function createHistoryStore() {
+// 历史命令的最大条数, 超出后丢弃最旧的记录
+const MaxHistoryCount = 100
+
+export function createHistoryStore() {
     const storageKey = "this.is.history.store"
     // storedText can be null
     const storedText = localStorage.getItem(storageKey)
-    let _list = JSON.parse(storedText ?? '[]')
+
+    // 修正: 之前直接JSON.parse, localStorage中的内容一旦损坏(例如被其它程序改写),
+    // 整个页面会因为模块初始化抛异常而白屏
+    let _list = []
+    try {
+        const parsed = JSON.parse(storedText ?? '[]')
+        if (Array.isArray(parsed)) {
+            _list = parsed
+        }
+    } catch (ex) {
+        console.warn('invalid history store, reset it', ex)
+    }
+
     let _currentIndex = _list.length
 
     return {
@@ -23,10 +38,16 @@ function createHistoryStore() {
 
                 // 如果history中存储的最后一条与command不一样，则将command加入到history列表。否则将historyIndex调整到最后
                 if (size === 0 || _list[size - 1] !== command) {
-                    _currentIndex = _list.push(command)
-                } else { // add()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
-                    _currentIndex = _list.length
+                    _list.push(command)
+
+                    // 修正: 之前历史记录没有上限, 会一直增长直到撑爆localStorage
+                    if (_list.length > MaxHistoryCount) {
+                        _list = _list.slice(-MaxHistoryCount)
+                    }
                 }
+
+                // add()都是在输入命令时才调用的，这时万一historyIndex处于history数组的中间位置，将其调整到最后
+                _currentIndex = _list.length
             }
 
             localStorage.setItem(storageKey, JSON.stringify(_list))
@@ -48,7 +69,17 @@ function createHistoryStore() {
             return _list
         },
         getHistory(index) {
-            return typeof index === 'number' ? _list.at(index) : ''
+            // 修正: 之前直接使用_list.at(index), 越界时返回的是undefined而不是空字符串,
+            // 调用方直接使用会抛出TypeError; 负数下标还会取到最后一条记录, 语义与直觉相反
+            if (typeof index !== 'number' || !Number.isInteger(index)) {
+                return ''
+            }
+
+            if (index < 0 || index >= _list.length) {
+                return ''
+            }
+
+            return _list[index]
         },
         getHistoryCount() {
             return _list.length

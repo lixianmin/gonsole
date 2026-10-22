@@ -12,6 +12,7 @@ import {createLogin} from "./code/login";
 import {useHistoryStore} from "./code/use_history_store.js";
 import moment from "moment";
 import {longestCommonPrefix, useKeyDown} from "./code/tools";
+import {parseConsoleInput} from "./code/console_input";
 import History from "./widgets/History";
 import {render} from "solid-js/web";
 import JsonTable from "./widgets/JsonTable";
@@ -20,6 +21,7 @@ import InputBox from "./widgets/InputBox";
 import MainPanel, {changeWidget, printHtml, println, printWithTimestamp} from "./widgets/MainPanel";
 import LogList from "./widgets/LogList";
 import {newSession} from "@src/code/road/session";
+import {textToHtml} from "@src/code/html";
 
 // todo 修改从golang的template传参到js的逻辑, 不再使用title
 // todo disconnected from server的时候, 写一个online time
@@ -49,7 +51,16 @@ const App = () => {
         const bean = {command: `${cmd} ${username} ${digestOrToken} ${fingerprint}`}
         return new Promise(resolve => {
             // 把callback改为promise
-            session.request("console.command", bean, response => {
+            session.request("console.command", bean, (response, err) => {
+                // 修正: 之前没有处理err, 出错时response是undefined, 访问response.data会抛出TypeError,
+                // 导致promise永远不会resolve, 登录流程卡死且localStorage中的token不会被清除
+                if (err) {
+                    printWithTimestamp("<b>server响应：</b>" + JSON.stringify(err))
+                    println()
+                    resolve(undefined)
+                    return
+                }
+
                 const cloned = {...response.data}  // shadow clone
                 resolve(response.data)
 
@@ -102,10 +113,8 @@ const App = () => {
     let streamWidget = undefined
 
     function onReceivedStreamText(text) {
-        text = text ?? ""
-        text = text.replace(/\r\n|\r|\n/g, '<br>')
-
-        streamWidget.html += text
+        // 修正: 之前直接把文本拼进html, 文本中的尖括号会被当成html解析
+        streamWidget.html += textToHtml(text ?? "")
         changeWidget(streamWidget)
     }
 
@@ -153,21 +162,18 @@ const App = () => {
         sendBean("console.command", bean, onCommand)
     }
 
-    function sendRoadRequest(texts) {
-        if (texts.length < 2) {
-            console.log("InvalidCommandFormat", texts)
+    function sendRoadRequest(route, data) {
+        // console.log(`route="${route}", data=${data}`)
+        let bean
+        try {
+            bean = JSON.parse(data)
+        } catch (ex) {
+            // 修正: 之前没有捕获解析异常, 非法JSON会抛出未捕获异常, 命令也不会被记入历史
+            printWithTimestamp(`<b> invalid json: ${data} </b>`)
+            println()
             return
         }
 
-        const route = texts[1];
-
-        let data = ""
-        if (texts.length > 2) {
-            data = texts.slice(2).join(' ')
-        }
-
-        // console.log(`route="${route}", data=${data}`)
-        const bean = JSON.parse(data);
         sendBean(route, bean, onCommand)
     }
 
@@ -201,62 +207,70 @@ const App = () => {
             const control = document.activeElement;
             if (control !== inputBox) {
                 inputBox.focus()
-                // return false的意思是：这个按键事件当前代码处理了，不再bubble上传这个事件。
-                // 默认情况下会继续传播按键事件，Enter会导致页面refresh
-                return false
+                // 修正: addEventListener的回调返回false没有任何效果(返回false只有inline onXXX属性才有此语义),
+                // 要阻止默认行为必须调用preventDefault()
+                evt.preventDefault()
             }
         })
 
         useKeyDown(inputBox, 'Enter', evt => {
-            let command = inputBox.value
-            if (command !== "") {
-                inputBox.value = ""
-                command = command.trim()
+            const text = inputBox.value
+            if (text.trim() === "") {
+                printWithTimestamp('')
+                return
+            }
 
-                // 检查是不是调用history命令
-                if (command.startsWith("!")) {
-                    const index = Number(command.substring(1)) - 1
-                    // console.log("index:", index)
-                    if (!Number.isNaN(index)) {
-                        command = historyStore.getHistory(index)
-                        command = historyStore.getHistory(index)
-                    }
-                }
+            inputBox.value = ""
+            const command = text.trim()
 
-                let texts = command.split(/\s+/)  // 支持连续多个空格
-                let textsLength = texts.length
-                const name = texts[0]
+            // 修正: 输入的解析逻辑已经抽到code/console_input.ts, 便于单元测试
+            const result = parseConsoleInput(command, {
+                isAuthorizing,
+                getHistory: index => historyStore.getHistory(index),
+                historyCount: historyStore.getHistoryCount(),
+            })
 
-                if (name === "help") {
-                    sendCommand(name, rootUrl)
+            switch (result.type) {
+                case "empty":
+                    printWithTimestamp('')
+                    break
+                case "unknownHistory":
+                    printWithTimestamp(`<b> history not found: !${result.reference} </b>`)
+                    break
+                case "password":
+                    // 密码不写入历史记录
+                    isAuthorizing = false
+                    evt.target.type = "text"
+                    login.login(username, result.password).then()
+                    break
+                case "help":
+                    sendCommand("help", rootUrl)
                     historyStore.add(command)
-                } else if (textsLength >= 2 && (name === "sub" || name === "unsub")) {
+                    break
+                case "sub":
+                case "unsub": {
                     const bean = {
-                        topic: texts[1],
+                        topic: result.topic,
                     };
-
-                    const route = "console." + name
-                    sendBean(route, bean, onCommand)
+                    sendBean("console." + result.type, bean, onCommand)
                     historyStore.add(command)
-                } else if (textsLength >= 2 && name === "auth") {
-                    username = texts[1]
+                    break
+                }
+                case "auth":
+                    username = result.username
                     isAuthorizing = true
                     evt.target.type = "password"
                     printWithTimestamp(command + "<br/> <h3>请输入密码：</h3><br/>")
                     historyStore.add(command)
-                } else if (isAuthorizing && textsLength >= 1) {
-                    isAuthorizing = false
-                    evt.target.type = "text"
-                    login.login(username, name).then()
-                } else if (textsLength >= 2 && name === 'request') {
-                    sendRoadRequest(texts)
+                    break
+                case "roadRequest":
+                    sendRoadRequest(result.route, result.data)
                     historyStore.add(command)
-                } else {
-                    sendCommand(texts.join(' '))
+                    break
+                case "command":
+                    sendCommand(result.command)
                     historyStore.add(command)
-                }
-            } else {
-                printWithTimestamp('')
+                    break
             }
         })
 

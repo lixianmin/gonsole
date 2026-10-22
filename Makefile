@@ -1,7 +1,7 @@
 # Makefile for gonsole project
 # 基于项目宪法定义的标准化操作
 
-.PHONY: test web build clean vet fmt
+.PHONY: test test-web web build clean vet fmt
 
 # 默认目标
 default: test
@@ -9,6 +9,10 @@ default: test
 # 运行所有测试
 test:
 	go test -v ./...
+
+# 运行Web端(JavaScript)测试
+test-web:
+	cd web && bun test
 
 # 构建 Web 服务
 web:

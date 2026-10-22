@@ -86,7 +86,10 @@ export function newOctetsStream(capacity = 8) {
 
         const b = _buffer
         const p = _position
-        let num = b[p] | (b[p + 1] << 8) | (b[p + 2] << 16) || (b[p + 3] << 24)
+        // 修正: 此处原本写成 `| (b[p + 3] << 24)`, 运算符优先级(||低于|)导致整个表达式
+        // 变成 `(低24位) || (高8位<<24)`, 低24位非0时高字节会被直接丢弃, 任何大于等于
+        // 256且高字节非0的int32都会读错(例如0x01020304会被读成0x00020304)
+        let num = b[p] | (b[p + 1] << 8) | (b[p + 2] << 16) | (b[p + 3] << 24)
 
         _position += readSize
         return num
@@ -97,8 +100,10 @@ export function newOctetsStream(capacity = 8) {
             throw new Error(`InvalidArgument: offset=${offset}, count=${count}`)
         }
 
-        if (_buffer.length - offset < count) {
-            throw new Error(`the size of the buffer is less than offset + count, _buffer.length=${_buffer.length}, offset=${offset}, count=${count}`)
+        // 修正: 此处原本检查的是源缓冲区_buffer的长度, 但真正会越界写坏的是目标缓冲区buffer,
+        // 检查错了对象导致目标缓冲区小于count时不会报错, 越界数据被静默丢弃
+        if (buffer.length - offset < count) {
+            throw new Error(`the size of the buffer is less than offset + count, buffer.length=${buffer.length}, offset=${offset}, count=${count}`)
         }
 
         if (_position >= _length || count === 0) {

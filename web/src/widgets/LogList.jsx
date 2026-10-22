@@ -7,6 +7,7 @@
  *********************************************************************/
 import {For} from "solid-js";
 import {getHumanReadableSize} from "../code/tools";
+import {escapeHtml, encodeUrlPath} from "../code/html";
 
 export default function LogList(props) {
     // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/
@@ -15,9 +16,16 @@ export default function LogList(props) {
     const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current, 0))
 
     function fetchNameHtml(fi) {
-        return `<a href="${props.rootUrl}/${fi.path}?access_token=${fi.access_token}">${fi.path}</a>
-          <span class="tips_text">${fi.sample}</span>
-          <input type="button" class="copy_button" onclick="copyToClipboard('${fi.path}')" value="复制"/>`
+        // 修正: 之前路径与样本直接拼进innerHTML, 路径里的引号可以逃逸出onclick的js字符串
+        const url = escapeHtml(`${props.rootUrl}/${encodeUrlPath(fi.path)}?access_token=${encodeUrlPath(fi.access_token)}`)
+        const path = escapeHtml(fi.path)
+        const sample = escapeHtml(fi.sample)
+        // JSON.stringify生成带双引号的js字符串字面量, 再用escapeHtml转义双引号, 避免提前结束html属性
+        const jsPath = escapeHtml(JSON.stringify(fi.path))
+
+        return `<a href="${url}">${path}</a>
+          <span class="tips_text">${sample}</span>
+          <input type="button" class="copy_button" onclick="copyToClipboard(${jsPath})" value="复制"/>`
     }
 
     return <>

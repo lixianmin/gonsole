@@ -9,9 +9,10 @@
     "esModuleInterop": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "node", "bun"],
     "noEmit": true,
     "isolatedModules": true,
+    "skipLibCheck": true,
     "paths": {
       "@src/*": [
         "./src/*"

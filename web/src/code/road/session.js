@@ -13,6 +13,9 @@ import { PacketKind } from "@src/code/road/consts";
 import { newJsonSerde } from "@src/code/road/json_serde";
 import { newOctetsWriter } from "@src/code/iox/octets_writer";
 
+// 客户端保留的route名, 与server端的route无关, 用于在连接断开时通知业务层
+const RouteDisconnect = "disconnect"
+
 // 异步deflate-raw解压函数
 async function inflateRaw(base64CompressedData) {
     try {
@@ -50,7 +53,11 @@ export function newSession() {
 
     const _kindRoutes = new Map()
     const _routeKinds = new Map()
+    // 修正: 之前requestId->handler与route->handler共用一张表, 重连时_reconnect()会把这张表整个清空,
+    // 导致session.on()注册的route处理器(console.html/console.default/console.stream等)在断线重连后全部失效,
+    // 控制台不再显示任何服务端推送且没有任何报错. 现在拆成两张表, 重连只清空待响应请求
     const _requestHandlers = new Map()
+    const _routeHandlers = new Map()
 
     let _onConnected = undefined
     let _socket = undefined
@@ -58,6 +65,7 @@ export function newSession() {
     let _reconnect = undefined
     let _isVisible = true
     let _requestIdGenerator = 0
+    let _visibilityListenerAdded = false
 
     function connect(url, onConnected) {
         _reconnect = function () {
@@ -65,6 +73,7 @@ export function newSession() {
             _writer.stream.reset()
             _kindRoutes.clear()
             _routeKinds.clear()
+            // 断线后服务端不会再响应之前发出的请求, 丢弃这些待响应的处理器, 避免内存泄漏
             _requestHandlers.clear()
             _onConnected = onConnected
 
@@ -76,6 +85,7 @@ export function newSession() {
             _socket.onclose = onclose
         }
 
+        addVisibilityListener()
         _reconnect()
     }
 
@@ -101,6 +111,7 @@ export function newSession() {
 
     function onclose(evt) {
         stopSendingHeartbeat()
+        notifyDisconnect(evt)
         if (_isVisible) {
             _reconnect()
         }
@@ -108,15 +119,38 @@ export function newSession() {
         // console.log('onclose:', evt)
     }
 
-    document.addEventListener("visibilitychange", function () {
-        _isVisible = document.visibilityState === 'visible'
-        const readState = _socket.readyState
-        if (_isVisible && (readState === WebSocket.CLOSING || readState === WebSocket.CLOSED)) {
-            stopSendingHeartbeat()
-            _reconnect()
+    // 通知业务层连接已经断开, 修正: 之前session.on("disconnect", ...)注册的处理器永远不会被调用,
+    // 因为断开连接时没有任何代码去触发它
+    function notifyDisconnect(evt) {
+        const handler = _routeHandlers.get(RouteDisconnect)
+        if (handler) {
+            handler(undefined, {code: evt?.code, reason: evt?.reason})
         }
-        // console.log('visibilitychange', document.visibilityState)
-    });
+    }
+
+    // 注册页面可见性变化的监听, 用于标签页重新可见时重连
+    // 修正: 之前监听是在newSession()中直接注册的, 且直接读取_socket.readyState,
+    // 尚未连接时触发会抛出TypeError
+    function addVisibilityListener() {
+        if (_visibilityListenerAdded) {
+            return
+        }
+        _visibilityListenerAdded = true
+
+        document.addEventListener("visibilitychange", function () {
+            _isVisible = document.visibilityState === 'visible'
+            if (!_socket) {
+                return
+            }
+
+            const readState = _socket.readyState
+            if (_isVisible && (readState === WebSocket.CLOSING || readState === WebSocket.CLOSED)) {
+                stopSendingHeartbeat()
+                _reconnect()
+            }
+            // console.log('visibilitychange', document.visibilityState)
+        });
+    }
 
     function onReceivedData(reader) {
         const packets = decode(reader)
@@ -260,7 +294,7 @@ export function newSession() {
             return handler
         } else {
             const route = _kindRoutes.get(pack.kind)
-            const handler = _requestHandlers.get(route)
+            const handler = _routeHandlers.get(route)
             if (!handler) {
                 console.error(`can not find handler, kind=${pack.kind}, route=${route}`)
             }
@@ -279,10 +313,16 @@ export function newSession() {
     }
 
     function request(route, request, handler = undefined) {
+        const kind = _routeKinds.get(route)
+        // 修正: 之前kind取不到时(例如握手完成前调用)会写出kind=0的坏包, 且没有任何提示
+        if (kind === undefined) {
+            console.error(`can not find route, route=${route}`)
+            return
+        }
+
         const data = _serde.serialize(request)
         const requestId = ++_requestIdGenerator
 
-        const kind = _routeKinds.get(route)
         const pack = { kind: kind, requestId: requestId, data: data }
         // console.log(`route=${route}, kind=${kind}`)
         // if (!kind) {
@@ -299,7 +339,7 @@ export function newSession() {
     }
 
     function on(route, handler) {
-        _requestHandlers.set(route, handler)
+        _routeHandlers.set(route, handler)
     }
 
     return {

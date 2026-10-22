@@ -51,7 +51,8 @@ export function createWebConfig() {
         },
 
         toString() {
-            return `host=${_host}, directory=${_directory}, websocketPath=${_websocketPath}, autoLoginLimit=${_autoLoginLimit}, body=${_body}`
+            // 修正: 之前这里引用了从未定义的_autoLoginLimit, 调用toString()会抛出ReferenceError
+            return `host=${_host}, directory=${_directory}, websocketPath=${_websocketPath}, body=${_body}`
         }
     }
 }

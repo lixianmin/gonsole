@@ -6,6 +6,7 @@
  Copyright (C) - All Rights Reserved
  *********************************************************************/
 import {For} from "solid-js";
+import {escapeHtml} from "@src/code/html";
 
 function processTableData(tableData) {
     let results = JSON.parse(tableData)
@@ -34,7 +35,8 @@ export default function JsonTable(props) {
     // })
 
     // 因为我们产生的代码里有字符串, 因此只能用innerHTML内嵌的方式
-    const headData = Array.from(mapList[0].keys()).map((item, index) => `<th onClick= "sortTableByHead.call(this, ${index})">${item}</th>`).join('')
+    // 修正: 表头内容之前直接拼进innerHTML, 服务端返回的内容含尖括号时会被当成html解析
+    const headData = Array.from(mapList[0].keys()).map((item, index) => `<th onClick= "sortTableByHead.call(this, ${index})">${escapeHtml(item)}</th>`).join('')
 
     // const bodyData = mapList.map(row => {
     //     const rowHtml = Array.from(row.values()).map(item => <td>{item}</td>)
