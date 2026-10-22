@@ -7,7 +7,7 @@
     "build": "vite build",
     "postbuild": "bash postbuild.sh",
     "serve": "vite preview",
-    "test": "bun test"
+    "test": "bun test --conditions=browser"
   },
   "license": "MIT",
   "devDependencies": {

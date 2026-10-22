@@ -28,7 +28,8 @@ export default function InputBox(props) {
 
             // 按bash中history的操作习惯, 如果是arrow down的话, 最后一个应该是""
             if (nextText !== '' || step === 1) {
-                inputBox.value = nextText
+                // 修正: 之前直接写inputBox.value, 没有同步signal, 之后任何一次signal更新都会把输入框内容回滚
+                setValue(nextText)
                 delayedSetCursor(nextText.length)
             }
 

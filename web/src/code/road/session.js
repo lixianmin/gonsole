@@ -79,7 +79,6 @@ export function newSession() {
 
             _socket = new WebSocket(url)
             _socket.binaryType = 'arraybuffer'
-            _socket.onopen = onopen
             _socket.onmessage = onmessage
             _socket.onerror = onerror
             _socket.onclose = onclose
@@ -87,10 +86,6 @@ export function newSession() {
 
         addVisibilityListener()
         _reconnect()
-    }
-
-    function onopen(evt) {
-
     }
 
     function onmessage(evt) {

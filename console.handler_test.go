@@ -6,6 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/jwtx"
 )
 
 /********************************************************************
@@ -98,19 +103,96 @@ func TestHandleLogFiles_PathTraversal(t *testing.T) {
 	if err := os.WriteFile(templatePath, []byte("<html>{{.Data}}</html>"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	_ = NewConsole(mux, WithPageTemplate(templatePath), WithLogListRoot("logs"))
+
+	var secretKey = "test-secret-key"
+	_ = NewConsole(mux, WithPageTemplate(templatePath), WithLogListRoot("logs"), WithSecretKey(secretKey))
 
 	var handler, ok = mux.handlers["/logs/"]
 	if !ok {
 		t.Fatalf("patterns=%v, want /logs/ registered", mux.patterns)
 	}
 
+	// 下载日志文件需要携带有效的访问令牌, 这里只关心路径穿越的拦截
+	var token, err = jwtx.Sign(secretKey, jwt.MapClaims{}, jwtx.WithExpiration(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// 直接调用handler，绕过net/http ServeMux的cleanPath（自定义mux场景）
 	var request = httptest.NewRequest("GET", "/logs/../secret.txt", nil)
+	request.Header.Set(ifs.HeaderAccessToken, token)
 	var recorder = httptest.NewRecorder()
 	handler(recorder, request)
 
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("status=%d, want 404 (path traversal must be rejected), body=%q", recorder.Code, recorder.Body.String())
+	}
+}
+
+// TestHandleLogFiles_AccessToken
+// Red: 旧实现不校验任何令牌，access_token只是拼在url的query里给前端用，
+//
+//	服务端从未校验过，知道路径的人可以直接下载日志文件
+//
+// Green: 令牌改由X-Access-Token请求头携带，缺失或无效时返回401
+func TestHandleLogFiles_AccessToken(t *testing.T) {
+	var dir = t.TempDir()
+	var logsRoot = filepath.Join(dir, "logs")
+	if err := os.MkdirAll(logsRoot, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(logsRoot, "ok.log"), []byte("log content"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	var oldWd, _ = os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(oldWd)
+
+	var secretKey = "test-secret-key"
+	var mux = newMockServeMux()
+	var templatePath = filepath.Join(dir, "console.html")
+	if err := os.WriteFile(templatePath, []byte("<html>{{.Data}}</html>"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	_ = NewConsole(mux, WithPageTemplate(templatePath), WithLogListRoot("logs"), WithSecretKey(secretKey))
+
+	var handler, ok = mux.handlers["/logs/"]
+	if !ok {
+		t.Fatalf("patterns=%v, want /logs/ registered", mux.patterns)
+	}
+
+	// 场景1: 没有携带令牌
+	var recorder = httptest.NewRecorder()
+	handler(recorder, httptest.NewRequest("GET", "/logs/ok.log", nil))
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d, want 401 (missing access token)", recorder.Code)
+	}
+
+	// 场景2: 令牌无效
+	var request = httptest.NewRequest("GET", "/logs/ok.log", nil)
+	request.Header.Set(ifs.HeaderAccessToken, "invalid-token")
+	var recorder2 = httptest.NewRecorder()
+	handler(recorder2, request)
+	if recorder2.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d, want 401 (invalid access token)", recorder.Code)
+	}
+
+	// 场景3: 令牌有效
+	var token, err = jwtx.Sign(secretKey, jwt.MapClaims{}, jwtx.WithExpiration(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request2 = httptest.NewRequest("GET", "/logs/ok.log", nil)
+	request2.Header.Set(ifs.HeaderAccessToken, token)
+	var recorder3 = httptest.NewRecorder()
+	handler(recorder3, request2)
+	if recorder3.Code != http.StatusOK {
+		t.Fatalf("status=%d, want 200, body=%q", recorder3.Code, recorder3.Body.String())
+	}
+	if recorder3.Body.String() != "log content" {
+		t.Fatalf("body=%q, want %q", recorder3.Body.String(), "log content")
 	}
 }

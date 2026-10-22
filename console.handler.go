@@ -3,6 +3,8 @@ package gonsole
 import (
 	"fmt"
 	"github.com/lixianmin/gonsole/beans"
+	"github.com/lixianmin/gonsole/ifs"
+	"github.com/lixianmin/gonsole/jwtx"
 	"github.com/lixianmin/gonsole/road"
 	"github.com/lixianmin/gonsole/tools"
 	"github.com/lixianmin/got/convert"
@@ -137,6 +139,14 @@ func (my *Console) handleLogFiles(mux IServeMux, options consoleOptions) {
 	var pattern = options.getPathByDirectory("/" + my.options.LogListRoot + "/")
 	var cutLength = len(pattern) - len(my.options.LogListRoot) - 1
 	mux.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
+		// 令牌放在X-Access-Token请求头里, 不再拼在url的query上,
+		// 避免令牌进入浏览器历史与Referer
+		var token = request.Header.Get(ifs.HeaderAccessToken)
+		if _, err := jwtx.Parse(options.SecretKey, token); err != nil {
+			http.Error(writer, "invalid access token", http.StatusUnauthorized)
+			return
+		}
+
 		var logFilePath = request.URL.Path
 		if len(logFilePath) < 1 {
 			return

@@ -7,7 +7,9 @@
  *********************************************************************/
 import {For} from "solid-js";
 import {getHumanReadableSize} from "../code/tools";
-import {escapeHtml, encodeUrlPath} from "../code/html";
+import {encodeUrlPath} from "../code/html";
+import {fetchFileWithToken} from "../code/download";
+import {printWithTimestamp, println} from "./MainPanel";
 
 export default function LogList(props) {
     // https://blog.ninja-squad.com/2021/09/30/script-setup-syntax-in-vue-3/
@@ -15,17 +17,28 @@ export default function LogList(props) {
     const count = logFiles.length
     const totalSize = getHumanReadableSize(logFiles.map(fi => fi.size).reduce((last, current) => last + current, 0))
 
-    function fetchNameHtml(fi) {
-        // 修正: 之前路径与样本直接拼进innerHTML, 路径里的引号可以逃逸出onclick的js字符串
-        const url = escapeHtml(`${props.rootUrl}/${encodeUrlPath(fi.path)}?access_token=${encodeUrlPath(fi.access_token)}`)
-        const path = escapeHtml(fi.path)
-        const sample = escapeHtml(fi.sample)
-        // JSON.stringify生成带双引号的js字符串字面量, 再用escapeHtml转义双引号, 避免提前结束html属性
-        const jsPath = escapeHtml(JSON.stringify(fi.path))
+    // 修正: 之前access_token是拼在url的query里的, 令牌会进入浏览器历史与Referer,
+    // 现在改为放在X-Access-Token请求头中, 通过fetch下载
+    async function downloadLogFile(fi) {
+        const url = `${props.rootUrl}/${encodeUrlPath(fi.path)}`
+        try {
+            const blob = await fetchFileWithToken(url, fi.access_token)
+            const objectUrl = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = objectUrl
+            link.download = fi.path
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(objectUrl)
+        } catch (ex) {
+            printWithTimestamp(`<b> 下载日志文件失败: ${ex.message} </b>`)
+            println()
+        }
+    }
 
-        return `<a href="${url}">${path}</a>
-          <span class="tips_text">${sample}</span>
-          <input type="button" class="copy_button" onclick="copyToClipboard(${jsPath})" value="复制"/>`
+    function copyPath(fi) {
+        window.copyToClipboard(fi.path)
     }
 
     return <>
@@ -48,7 +61,15 @@ export default function LogList(props) {
                     <td>{index() + 1}</td>
                     <td>{getHumanReadableSize(fi.size)}</td>
                     <td>
-                        <div innerHTML={fetchNameHtml(fi)} className='tips'></div>
+                        {/*修正: 之前这里用innerHTML拼接, 服务端返回的路径与样本会被当成html解析, 现在改用solid的文本绑定*/}
+                        <div class="tips">
+                            <a href="#" onClick={evt => {
+                                evt.preventDefault()
+                                downloadLogFile(fi)
+                            }}>{fi.path}</a>
+                            <span class="tips_text">{fi.sample}</span>
+                            <input type="button" class="copy_button" onClick={() => copyPath(fi)} value="复制"/>
+                        </div>
                     </td>
                     <td>{fi.mod_time}</td>
                 </tr>

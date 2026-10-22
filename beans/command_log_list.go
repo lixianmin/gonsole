@@ -49,7 +49,10 @@ func readFileSample(filePath string, fileSize int64) string {
 			break
 		}
 		sb.WriteString(line)
-		sb.WriteString("<br/>")
+		// 修正: 之前这里写的是"<br/>", 样本是html片段而不是纯文本,
+		// 客户端只能通过innerHTML渲染它, 日志内容里的尖括号会被当成html解析.
+		// 现在样本是纯文本, 换行用"\n"表示, 由客户端负责渲染换行
+		sb.WriteString("\n")
 	}
 
 	var sample = sb.String()

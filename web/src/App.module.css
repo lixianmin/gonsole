@@ -18,7 +18,8 @@ td { border-width: 1px;padding: 8px;border-style: solid;border-color: #729ea5;}
 .tips { position: relative; display: inline-block; border-bottom: 1px dotted black; }
 
 .tips .tips_text {
-  visibility: hidden; display: inline-block; white-space: nowrap; background: #005959; border-radius: 6px; padding: 6px 6px;
+  /* white-space改成pre-wrap, 样本现在是纯文本(换行用\n表示), 需要保留换行 */
+  visibility: hidden; display: inline-block; white-space: pre-wrap; background: #005959; border-radius: 6px; padding: 6px 6px;
   /* 定位 */
   position: absolute; z-index: 1; top: -5px;left: 105%;
 }

@@ -15,13 +15,11 @@ const [storePanel, setStorePanel] = createStore({
     widgets: [],
 })
 
-let scrollMainPanelToBottom
-
 export function changeWidget(widget) {
     setStorePanel(produce((state) => {
         state.widgets[widget.index] = {...widget}
-        // 这种修改可能需要导致窗口滚动
-        scrollMainPanelToBottom()
+        // 修正: 之前在这里直接调用模块级的滚动函数, 而该函数是MainPanel渲染时才赋值的全局可变变量,
+        // 违反了"无全局可变状态"的约定. 现在改由MainPanel中的effect负责滚动
     }))
 }
 
@@ -51,7 +49,7 @@ export function printWithTimestamp(html) {
 export default function MainPanel() {
     let mainPanel
 
-    scrollMainPanelToBottom = function () {
+    const scrollMainPanelToBottom = function () {
         const targetPosition = mainPanel.scrollHeight - mainPanel.clientHeight - 1
         if (mainPanel.scrollTop < targetPosition) {
             mainPanel.scrollTop = targetPosition
@@ -62,9 +60,15 @@ export default function MainPanel() {
         scrollMainPanelToBottom()
     })
 
-    // 如果监控widgets, 则只执行一次; 如果监控widgets.length, 则可以每次在push后都执行
+    // 监控widgets的内容, 无论是新增还是修改(changeWidget)都会滚动到底部
+    // 修正: 之前滚动函数是模块级的可变变量, 由MainPanel渲染时赋值, 违反了"无全局可变状态"的约定
     createEffect(() => {
-        delayedScrollMainPanelToBottom(storePanel.widgets.length)
+        // 读取每个widget的html, 建立effect与widgets内容之间的依赖
+        for (const widget of storePanel.widgets) {
+            void widget.html
+        }
+
+        delayedScrollMainPanelToBottom()
     })
 
     return <>

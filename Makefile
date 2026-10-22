@@ -12,7 +12,7 @@ test:
 
 # 运行Web端(JavaScript)测试
 test-web:
-	cd web && bun test
+	cd web && bun run test
 
 # 构建 Web 服务
 web:
